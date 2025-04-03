@@ -1,39 +1,53 @@
-// File: src/App.js
+// src/App.js
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
+import useVAD from './hooks/useVAD';
 
 const API_URL = 'http://localhost:8000';
 
 function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [sessionId, setSessionId] = useState(null);
-  const [isListening, setIsListening] = useState(false);
   const [messages, setMessages] = useState([]);
   const [status, setStatus] = useState('Initializing...');
+  const [isProcessing, setIsProcessing] = useState(false);
   
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
+  // Refs
   const messagesEndRef = useRef(null);
-  const processingRef = useRef(false);
   
-  // Create a session when the app loads
+  // VAD hook
+  const vad = useVAD({
+    positiveSpeechThreshold: 0.8,
+    negativeSpeechThreshold: 0.2,
+    minSpeechFrames: 3,
+    redemptionFrames: 10,
+    onSpeechStart: () => {
+      console.log('Speech started');
+      setStatus('Listening to you...');
+    },
+    onSpeechEnd: (audio) => {
+      console.log('Speech ended, processing...');
+      setStatus('Processing your message...');
+      setIsProcessing(true);
+      processAudio(audio);
+    },
+    onVADMisfire: () => {
+      console.log('VAD misfire');
+      setStatus(isConnected ? 'Ready' : 'Cannot connect to backend');
+      setIsProcessing(false);
+    }
+  });
+
+  // Initialize session and check backend
   useEffect(() => {
+    checkBackendConnection();
     createSession();
     
-    // Check if backend is available
-    fetch(API_URL)
-      .then(response => {
-        if (response.ok) {
-          setIsConnected(true);
-          setStatus('Ready');
-        }
-      })
-      .catch(() => {
-        setStatus('Cannot connect to backend. Is the server running?');
-      });
-      
     return () => {
-      stopListening();
+      // Cleanup
+      if (vad.isListening) {
+        vad.toggle(false);
+      }
     };
   }, []);
 
@@ -41,6 +55,24 @@ function App() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Check if backend is available
+  const checkBackendConnection = async () => {
+    try {
+      const response = await fetch(API_URL);
+      if (response.ok) {
+        setIsConnected(true);
+        setStatus(vad.isLoading ? 'Loading speech detection...' : 'Ready');
+      } else {
+        setIsConnected(false);
+        setStatus('Cannot connect to backend. Is the server running?');
+      }
+    } catch (error) {
+      console.error('Error connecting to backend:', error);
+      setIsConnected(false);
+      setStatus('Cannot connect to backend. Is the server running?');
+    }
+  };
 
   const createSession = async () => {
     try {
@@ -56,87 +88,36 @@ function App() {
     }
   };
 
-  const startListening = async () => {
-    if (isListening || processingRef.current) return;
+  const startListening = () => {
+    if (vad.isLoading || isProcessing) return;
     
-    try {
-      // Reset state
-      audioChunksRef.current = [];
-      processingRef.current = false;
-      
-      // Get audio stream
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      // Create recorder
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      
-      mediaRecorder.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
-      };
-      
-      mediaRecorder.onstop = async () => {
-        if (audioChunksRef.current.length > 0) {
-          await processRecording();
-        } else {
-          processingRef.current = false;
-          setStatus('No speech detected. Try again.');
-          setTimeout(() => startListening(), 1000);
-        }
-        
-        // Stop all tracks
-        stream.getTracks().forEach(track => track.stop());
-      };
-      
-      // Start recording
-      mediaRecorder.start();
-      setIsListening(true);
-      setStatus('Listening... (speak now)');
-      
-      // Set a timeout to stop recording after 10 seconds
-      setTimeout(() => {
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-          console.log('Recording timed out, processing...');
-          mediaRecorderRef.current.stop();
-        }
-      }, 10000);
-      
-    } catch (error) {
-      console.error('Error starting audio:', error);
-      setStatus('Error accessing microphone');
-      setIsListening(false);
-    }
+    vad.toggle(true);
+    setStatus('Listening... (speak now)');
   };
   
   const stopListening = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-    }
+    if (!vad.isListening) return;
     
-    setIsListening(false);
-    setStatus('Stopped listening');
+    vad.toggle(false);
+    setStatus(isConnected ? 'Ready' : 'Cannot connect to backend');
   };
   
-  const processRecording = async () => {
-    if (!sessionId || audioChunksRef.current.length === 0) {
-      processingRef.current = false;
+  const processAudio = async (audioData) => {
+    if (!sessionId || !audioData || audioData.length === 0) {
+      setIsProcessing(false);
+      setStatus(isConnected ? 'Ready' : 'Cannot connect to backend');
       return;
     }
     
     try {
-      processingRef.current = true;
-      setStatus('Processing...');
+      // Convert Float32Array to WAV format
+      const wavBlob = convertToWav(audioData, 16000);
       
-      // Create a blob from the audio chunks
-      const audioBlob = new Blob(audioChunksRef.current);
-      
-      // Create a new file 
-      const file = new File([audioBlob], "recording.wav", { 
+      // Create file from blob
+      const file = new File([wavBlob], "recording.wav", { 
         type: 'audio/wav',
-        lastModified: new Date().getTime()
+        lastModified: Date.now()
       });
-      
-      console.log('Sending file to server:', file.name, file.type, file.size);
       
       // Create form data
       const formData = new FormData();
@@ -171,17 +152,15 @@ function App() {
         const audio = new Audio(`${API_URL}/audio/${result.audio_file}`);
         
         audio.onended = () => {
-          // Restart listening after response finishes
-          processingRef.current = false;
-          setStatus('Ready for next question');
-          setTimeout(() => startListening(), 500);
+          // Ready for next interaction
+          setIsProcessing(false);
+          setStatus(isConnected ? 'Ready' : 'Cannot connect to backend');
         };
         
         audio.onerror = () => {
           console.error('Audio playback error');
-          processingRef.current = false;
+          setIsProcessing(false);
           setStatus('Error playing response');
-          setTimeout(() => startListening(), 1000);
         };
         
         audio.play();
@@ -189,15 +168,60 @@ function App() {
       } else {
         console.log('Error from server:', result.message);
         setStatus(`Error: ${result.message}`);
-        processingRef.current = false;
-        setTimeout(() => startListening(), 2000);
+        setIsProcessing(false);
       }
       
     } catch (error) {
       console.error('Error processing audio:', error);
       setStatus('Error processing audio');
-      processingRef.current = false;
-      setTimeout(() => startListening(), 2000);
+      setIsProcessing(false);
+    }
+  };
+
+  // Convert Float32Array to WAV blob
+  const convertToWav = (audioData, sampleRate) => {
+    const numChannels = 1;
+    const bytesPerSample = 2; // 16-bit PCM
+    const blockAlign = numChannels * bytesPerSample;
+    const buffer = new ArrayBuffer(44 + audioData.length * bytesPerSample);
+    const view = new DataView(buffer);
+    
+    // Write WAV header
+    // "RIFF" chunk descriptor
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + audioData.length * bytesPerSample, true);
+    writeString(view, 8, 'WAVE');
+    
+    // "fmt " sub-chunk
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true); // subchunk size
+    view.setUint16(20, 1, true); // PCM format
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * blockAlign, true); // byte rate
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, 8 * bytesPerSample, true); // bits per sample
+    
+    // "data" sub-chunk
+    writeString(view, 36, 'data');
+    view.setUint32(40, audioData.length * bytesPerSample, true);
+    
+    // Write audio data
+    const volume = 0.8;
+    let offset = 44;
+    for (let i = 0; i < audioData.length; i++, offset += 2) {
+      const sample = Math.max(-1, Math.min(1, audioData[i] * volume));
+      const sampleValue = sample < 0 ? sample * 32768 : sample * 32767;
+      view.setInt16(offset, sampleValue, true);
+    }
+    
+    return new Blob([buffer], { type: 'audio/wav' });
+  };
+  
+  // Helper to write strings to DataView
+  const writeString = (view, offset, string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
     }
   };
 
@@ -208,6 +232,8 @@ function App() {
         <div className={`status ${isConnected ? 'connected' : 'disconnected'}`}>
           {status}
         </div>
+        {vad.isLoading && <div className="loading-indicator">Loading speech detection...</div>}
+        {vad.error && <div className="error-message">{vad.error}</div>}
       </header>
 
       <div className="conversation-container">
@@ -230,18 +256,18 @@ function App() {
 
       <div className="controls-container">
         <button
-          className={`mic-button ${isListening ? 'listening' : ''} ${processingRef.current ? 'processing' : ''}`}
-          onClick={isListening ? stopListening : startListening}
-          disabled={processingRef.current}
+          className={`mic-button ${vad.isSpeaking ? 'listening' : ''} ${isProcessing ? 'processing' : ''}`}
+          onClick={vad.isListening ? stopListening : startListening}
+          disabled={vad.isLoading || isProcessing || !isConnected || !vad.isLoaded}
         >
-          {isListening ? (
+          {vad.isListening ? (
             <>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="6" y="6" width="12" height="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               Stop
             </>
-          ) : processingRef.current ? (
+          ) : isProcessing ? (
             <>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
@@ -260,29 +286,6 @@ function App() {
               Start Conversation
             </>
           )}
-        </button>
-      </div>
-      
-      {/* Debug section */}
-      <div className="debug-section" style={{ display: 'none' }}>
-        <h3>Debug Info</h3>
-        <button onClick={() => {
-          if (sessionId) {
-            navigator.clipboard.writeText(sessionId);
-            alert('Session ID copied to clipboard');
-          }
-        }}>
-          Copy Session ID
-        </button>
-        <button onClick={() => {
-          console.log('Current state:', {
-            isListening,
-            isProcessing: processingRef.current,
-            messageCount: messages.length,
-            sessionId
-          });
-        }}>
-          Log State
         </button>
       </div>
     </div>

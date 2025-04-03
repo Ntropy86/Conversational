@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silero VAD Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        #log {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+        }
+        #visualizer {
+            width: 100%;
+            height: 100px;
+            background-color: #f0f0f0;
+            margin: 10px 0;
+            position: relative;
+        }
+        .indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            background-color: #ccc;
+        }
+        .active {
+            background-color: #28a745;
+            box-shadow: 0 0 10px #28a745;
+        }
+    </style>
+</head>
+<body>
+    <h1>Silero VAD Test</h1>
+    
+    <div id="status" class="status info">Loading VAD...</div>
+    
+    <div>
+        <span class="indicator" id="vadIndicator"></span>
+        <span id="vadStatus">VAD not loaded</span>
+    </div>
+    
+    <div>
+        <span class="indicator" id="speechIndicator"></span>
+        <span id="speechStatus">No speech detected</span>
+    </div>
+    
+    <div>
+        <button id="startBtn" disabled>Start Listening</button>
+        <button id="stopBtn" disabled>Stop Listening</button>
+    </div>
+    
+    <h3>Log:</h3>
+    <div id="log"></div>
+    
+    <script>
+        // UI elements
+        const statusEl = document.getElementById('status');
+        const logEl = document.getElementById('log');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const vadIndicator = document.getElementById('vadIndicator');
+        const vadStatus = document.getElementById('vadStatus');
+        const speechIndicator = document.getElementById('speechIndicator');
+        const speechStatus = document.getElementById('speechStatus');
+        
+        // VAD instance
+        let myvad = null;
+        
+        function log(message) {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.textContent = `${timeStr}: ${message}`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+        
+        function updateStatus(message, type = 'info') {
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+        
+        async function init() {
+            try {
+                updateStatus('Initializing Silero VAD...', 'info');
+                log('Loading Silero VAD...');
+                
+                // Create VAD instance
+                myvad = await vad.MicVAD.new({
+                    onSpeechStart: () => {
+                        log('Speech started');
+                        speechIndicator.classList.add('active');
+                        speechStatus.textContent = 'Speech detected!';
+                    },
+                    onSpeechEnd: (audio) => {
+                        log(`Speech ended (${audio.length} samples)`);
+                        speechIndicator.classList.remove('active');
+                        speechStatus.textContent = 'Speech ended';
+                        
+                        // Log some stats about the audio
+                        const durationSec = audio.length / 16000; // 16kHz sample rate
+                        log(`Audio duration: ${durationSec.toFixed(2)}s`);
+                    },
+                    onVADMisfire: () => {
+                        log('VAD misfire (too short)');
+                        speechIndicator.classList.remove('active');
+                        speechStatus.textContent = 'VAD misfire (too short)';
+                    }
+                });
+                
+                // Update UI
+                updateStatus('VAD loaded successfully!', 'success');
+                log('VAD loaded successfully');
+                
+                vadIndicator.classList.add('active');
+                vadStatus.textContent = 'VAD loaded and ready';
+                
+                startBtn.disabled = false;
+            } catch (error) {
+                updateStatus('Error loading VAD: ' + error.message, 'error');
+                log('Error: ' + error.message);
+                console.error(error);
+                
+                vadStatus.textContent = 'Error loading VAD';
+            }
+        }
+        
+        function startListening() {
+            if (!myvad) return;
+            
+            try {
+                myvad.start();
+                updateStatus('Listening for speech...', 'info');
+                log('Started listening');
+                
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+            } catch (error) {
+                updateStatus('Error starting: ' + error.message, 'error');
+                log('Error: ' + error.message);
+            }
+        }
+        
+        function stopListening() {
+            if (!myvad) return;
+            
+            try {
+                myvad.stop();
+                updateStatus('Stopped listening', 'warning');
+                log('Stopped listening');
+                
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                
+                speechIndicator.classList.remove('active');
+                speechStatus.textContent = 'Not listening';
+            } catch (error) {
+                updateStatus('Error stopping: ' + error.message, 'error');
+                log('Error: ' + error.message);
+            }
+        }
+        
+        // Set up event listeners
+        startBtn.addEventListener('click', startListening);
+        stopBtn.addEventListener('click', stopListening);
+        
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
