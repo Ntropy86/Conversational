@@ -34,3 +34,9 @@ python test_components.py tts --text "Hello, this is a test of the text to speec
 
 # Test the full pipeline with an audio file
 python test_components.py full --audio sample.wav
+
+
+If you want to run the backend and test it using cURL commands:
+# Record a test audio file if you don't have one
+# You can use your vad_service.py to record
+python -c "from vad_service import record_until_silence; import soundfile as sf; audio=record_until_silence(); sf.write('test_recording.wav', audio, 16000)"

@@ -23,8 +23,12 @@ async def generate_speech_async(text):
     
     return audio_data, sample_rate
 
+# Don't use asyncio.run in the synchronous wrapper - this doesn't work in FastAPI
 def generate_speech(text):
-    """Synchronous wrapper for text-to-speech generation"""
+    """
+    Synchronous wrapper - DO NOT USE IN FASTAPI
+    Only use this for command line testing
+    """
     return asyncio.run(generate_speech_async(text))
 
 def play_audio(audio_data, sample_rate):
@@ -33,10 +37,10 @@ def play_audio(audio_data, sample_rate):
     sd.wait()
 
 # Test function
-def test_tts():
+async def test_tts_async():
     test_text = "Hello, this is a test of the text to speech system."
     try:
-        audio_data, sample_rate = generate_speech(test_text)
+        audio_data, sample_rate = await generate_speech_async(test_text)
         print(f"Generated audio with {len(audio_data)} samples at {sample_rate}Hz")
         print("Playing audio...")
         play_audio(audio_data, sample_rate)
@@ -44,6 +48,9 @@ def test_tts():
         print(f"Error testing TTS: {e}")
         import traceback
         traceback.print_exc()
+
+def test_tts():
+    asyncio.run(test_tts_async())
 
 if __name__ == "__main__":
     test_tts()
