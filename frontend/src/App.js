@@ -3,11 +3,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import useVAD from './hooks/useVAD';
 
+// Ensure this matches your backend API endpoint
 const API_URL = 'http://localhost:8000';
 
 function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [sessionId, setSessionId] = useState(null);
+  const [sessionCreating, setSessionCreating] = useState(false);
   const [messages, setMessages] = useState([]);
   const [status, setStatus] = useState('Initializing...');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -25,11 +27,26 @@ function App() {
       console.log('Speech started');
       setStatus('Listening to you...');
     },
-    onSpeechEnd: (audio) => {
-      console.log('Speech ended, processing...');
+    onSpeechEnd: async (audio) => {
+      console.log('Speech ended, samples:', audio.length);
       setStatus('Processing your message...');
       setIsProcessing(true);
-      processAudio(audio);
+      
+      // Ensure we have a session before processing
+      let currentSessionId = sessionId;
+      if (!currentSessionId) {
+        try {
+          currentSessionId = await ensureSession();
+        } catch (error) {
+          console.error('Failed to create session:', error);
+          setStatus('Failed to create session');
+          setIsProcessing(false);
+          return;
+        }
+      }
+      
+      // Now process with the guaranteed session ID
+      processAudio(audio, currentSessionId);
     },
     onVADMisfire: () => {
       console.log('VAD misfire');
@@ -40,16 +57,33 @@ function App() {
 
   // Initialize session and check backend
   useEffect(() => {
-    checkBackendConnection();
-    createSession();
-    
-    return () => {
-      // Cleanup
-      if (vad.isListening) {
-        vad.toggle(false);
+    async function initializeApp() {
+      const connected = await checkBackendConnection();
+      if (connected) {
+        await createSession();
       }
-    };
+    }
+    
+    initializeApp();
+    
+    // Periodically check backend connection
+    const intervalId = setInterval(() => {
+      if (!isProcessing) {
+        checkBackendConnection();
+      }
+    }, 30000); // Check every 30 seconds
+    
+    return () => clearInterval(intervalId);
   }, []);
+
+  // Update status when VAD state changes
+  useEffect(() => {
+    if (vad.isLoaded && isConnected) {
+      setStatus('Ready');
+    } else if (vad.isLoading) {
+      setStatus('Loading speech detection...');
+    }
+  }, [vad.isLoaded, vad.isLoading, isConnected]);
 
   // Scroll to bottom of messages
   useEffect(() => {
@@ -59,59 +93,136 @@ function App() {
   // Check if backend is available
   const checkBackendConnection = async () => {
     try {
-      const response = await fetch(API_URL);
+      console.log('Checking backend connection...');
+      console.log('Backend URL:', API_URL);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch(API_URL, { 
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
+        console.log('Backend connected!');
         setIsConnected(true);
-        setStatus(vad.isLoading ? 'Loading speech detection...' : 'Ready');
+        setStatus(vad.isLoaded ? 'Ready' : 'Loading speech detection...');
+        return true;
       } else {
+        console.error('Backend responded with status:', response.status);
         setIsConnected(false);
         setStatus('Cannot connect to backend. Is the server running?');
+        return false;
       }
     } catch (error) {
       console.error('Error connecting to backend:', error);
       setIsConnected(false);
       setStatus('Cannot connect to backend. Is the server running?');
+      return false;
     }
   };
 
+  // Create a new session
   const createSession = async () => {
+    if (sessionCreating) {
+      console.log('Session creation already in progress...');
+      return null;
+    }
+    
     try {
+      setSessionCreating(true);
+      console.log('Creating session...');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
       const response = await fetch(`${API_URL}/session/create`, {
         method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to create session: ${response.status}`);
+      }
+      
       const data = await response.json();
-      setSessionId(data.session_id);
       console.log('Session created:', data.session_id);
+      
+      // Set the session ID in state
+      setSessionId(data.session_id);
+      return data.session_id;
     } catch (error) {
       console.error('Error creating session:', error);
       setStatus('Error creating session. Please refresh.');
+      return null;
+    } finally {
+      setSessionCreating(false);
     }
   };
 
-  const startListening = () => {
-    if (vad.isLoading || isProcessing) return;
+  // Ensure we have a valid session
+  const ensureSession = async () => {
+    if (sessionId) {
+      return sessionId;
+    }
     
-    vad.toggle(true);
-    setStatus('Listening... (speak now)');
+    return await createSession();
+  };
+
+  const startListening = () => {
+    if (vad.isLoading || isProcessing || !vad.isLoaded) return;
+    
+    const success = vad.toggle(true);
+    if (success) {
+      setStatus('Listening... (speak now)');
+    }
   };
   
   const stopListening = () => {
     if (!vad.isListening) return;
     
-    vad.toggle(false);
-    setStatus(isConnected ? 'Ready' : 'Cannot connect to backend');
+    const success = vad.toggle(false);
+    if (success) {
+      setStatus(isConnected ? 'Ready' : 'Cannot connect to backend');
+    }
   };
   
-  const processAudio = async (audioData) => {
-    if (!sessionId || !audioData || audioData.length === 0) {
+  const processAudio = async (audioData, sid) => {
+    if (!audioData || audioData.length === 0) {
+      console.error('No audio data to process');
       setIsProcessing(false);
       setStatus(isConnected ? 'Ready' : 'Cannot connect to backend');
       return;
     }
     
+    if (!sid) {
+      console.error('No session ID provided for processing');
+      setIsProcessing(false);
+      setStatus('Error: No session available');
+      return;
+    }
+    
     try {
+      console.log(`Processing audio: ${audioData.length} samples with session ${sid}`);
+      
       // Convert Float32Array to WAV format
+      console.log('Converting to WAV...');
       const wavBlob = convertToWav(audioData, 16000);
+      
+      // Debug the WAV blob
+      console.log('WAV blob created, size:', wavBlob.size, 'bytes');
       
       // Create file from blob
       const file = new File([wavBlob], "recording.wav", { 
@@ -122,100 +233,137 @@ function App() {
       // Create form data
       const formData = new FormData();
       formData.append('audio_file', file);
-      formData.append('session_id', sessionId);
+      formData.append('session_id', sid);
       
-      // Send to backend
-      const response = await fetch(`${API_URL}/process`, {
-        method: 'POST',
-        body: formData,
-      });
+      console.log('Sending request to backend...');
+      console.log(`URL: ${API_URL}/process, Session ID: ${sid}, File size: ${file.size} bytes`);
       
-      if (!response.ok) {
-        console.error('Server error:', response.status, response.statusText);
-        const errorText = await response.text();
-        console.error('Error details:', errorText);
-        throw new Error(`Server error: ${response.status}`);
-      }
+      // Send to backend with proper timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
-      const result = await response.json();
-      console.log('Processing result:', result);
-      
-      if (result.status === 'success') {
-        // Add messages to conversation
-        setMessages(prev => [
-          ...prev, 
-          { role: 'user', content: result.transcription },
-          { role: 'assistant', content: result.response }
-        ]);
+      try {
+        const response = await fetch(`${API_URL}/process`, {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal
+        });
         
-        // Play audio response
-        const audio = new Audio(`${API_URL}/audio/${result.audio_file}`);
+        clearTimeout(timeoutId);
+        console.log('Response received:', response.status);
         
-        audio.onended = () => {
-          // Ready for next interaction
+        if (!response.ok) {
+          console.error('Server error:', response.status, response.statusText);
+          const errorText = await response.text();
+          console.error('Error details:', errorText);
+          throw new Error(`Server error: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Processing result:', result);
+        
+        if (result.status === 'success') {
+          // Add messages to conversation
+          setMessages(prev => [
+            ...prev, 
+            { role: 'user', content: result.transcription },
+            { role: 'assistant', content: result.response }
+          ]);
+          
+          // Play audio response
+          console.log(`Playing audio from: ${API_URL}/audio/${result.audio_file}`);
+          const audio = new Audio(`${API_URL}/audio/${result.audio_file}`);
+          
+          audio.onended = () => {
+            // Ready for next interaction
+            setIsProcessing(false);
+            setStatus(isConnected ? 'Ready' : 'Cannot connect to backend');
+          };
+          
+          audio.onerror = (e) => {
+            console.error('Audio playback error:', e);
+            setIsProcessing(false);
+            setStatus('Error playing response');
+          };
+          
+          // Try to play
+          try {
+            await audio.play();
+          } catch (playError) {
+            console.error('Error playing audio:', playError);
+            setIsProcessing(false);
+            setStatus('Error playing audio response');
+          }
+          
+        } else {
+          console.log('Error from server:', result.message);
+          setStatus(`Error: ${result.message}`);
           setIsProcessing(false);
-          setStatus(isConnected ? 'Ready' : 'Cannot connect to backend');
-        };
+        }
+      } catch (fetchError) {
+        console.error('Fetch error:', fetchError);
+        clearTimeout(timeoutId);
         
-        audio.onerror = () => {
-          console.error('Audio playback error');
-          setIsProcessing(false);
-          setStatus('Error playing response');
-        };
+        // Check if it's an abort error (timeout)
+        if (fetchError.name === 'AbortError') {
+          console.log('Request timed out');
+          setStatus('Request timed out. Try again.');
+        } else {
+          setStatus('Error processing audio: ' + fetchError.message);
+        }
         
-        audio.play();
-        
-      } else {
-        console.log('Error from server:', result.message);
-        setStatus(`Error: ${result.message}`);
         setIsProcessing(false);
       }
-      
     } catch (error) {
       console.error('Error processing audio:', error);
-      setStatus('Error processing audio');
+      setStatus('Error processing audio: ' + error.message);
       setIsProcessing(false);
     }
   };
 
   // Convert Float32Array to WAV blob
   const convertToWav = (audioData, sampleRate) => {
-    const numChannels = 1;
-    const bytesPerSample = 2; // 16-bit PCM
-    const blockAlign = numChannels * bytesPerSample;
-    const buffer = new ArrayBuffer(44 + audioData.length * bytesPerSample);
-    const view = new DataView(buffer);
-    
-    // Write WAV header
-    // "RIFF" chunk descriptor
-    writeString(view, 0, 'RIFF');
-    view.setUint32(4, 36 + audioData.length * bytesPerSample, true);
-    writeString(view, 8, 'WAVE');
-    
-    // "fmt " sub-chunk
-    writeString(view, 12, 'fmt ');
-    view.setUint32(16, 16, true); // subchunk size
-    view.setUint16(20, 1, true); // PCM format
-    view.setUint16(22, numChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * blockAlign, true); // byte rate
-    view.setUint16(32, blockAlign, true);
-    view.setUint16(34, 8 * bytesPerSample, true); // bits per sample
-    
-    // "data" sub-chunk
-    writeString(view, 36, 'data');
-    view.setUint32(40, audioData.length * bytesPerSample, true);
-    
-    // Write audio data
-    const volume = 0.8;
-    let offset = 44;
-    for (let i = 0; i < audioData.length; i++, offset += 2) {
-      const sample = Math.max(-1, Math.min(1, audioData[i] * volume));
-      const sampleValue = sample < 0 ? sample * 32768 : sample * 32767;
-      view.setInt16(offset, sampleValue, true);
+    try {
+      const numChannels = 1;
+      const bytesPerSample = 2; // 16-bit PCM
+      const blockAlign = numChannels * bytesPerSample;
+      const buffer = new ArrayBuffer(44 + audioData.length * bytesPerSample);
+      const view = new DataView(buffer);
+      
+      // Write WAV header
+      // "RIFF" chunk descriptor
+      writeString(view, 0, 'RIFF');
+      view.setUint32(4, 36 + audioData.length * bytesPerSample, true);
+      writeString(view, 8, 'WAVE');
+      
+      // "fmt " sub-chunk
+      writeString(view, 12, 'fmt ');
+      view.setUint32(16, 16, true); // subchunk size
+      view.setUint16(20, 1, true); // PCM format
+      view.setUint16(22, numChannels, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * blockAlign, true); // byte rate
+      view.setUint16(32, blockAlign, true);
+      view.setUint16(34, 8 * bytesPerSample, true); // bits per sample
+      
+      // "data" sub-chunk
+      writeString(view, 36, 'data');
+      view.setUint32(40, audioData.length * bytesPerSample, true);
+      
+      // Write audio data
+      const volume = 0.8;
+      let offset = 44;
+      for (let i = 0; i < audioData.length; i++, offset += 2) {
+        const sample = Math.max(-1, Math.min(1, audioData[i] * volume));
+        const sampleValue = sample < 0 ? sample * 32768 : sample * 32767;
+        view.setInt16(offset, sampleValue, true);
+      }
+      
+      return new Blob([buffer], { type: 'audio/wav' });
+    } catch (error) {
+      console.error('Error converting audio to WAV:', error);
+      throw error;
     }
-    
-    return new Blob([buffer], { type: 'audio/wav' });
   };
   
   // Helper to write strings to DataView

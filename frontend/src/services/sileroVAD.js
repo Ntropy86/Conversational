@@ -1,3 +1,4 @@
+// src/services/sileroVAD.js
 import * as ort from 'onnxruntime-web';
 
 class SileroVAD {

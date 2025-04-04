@@ -1,5 +1,5 @@
 // src/hooks/useVAD.js
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const useVAD = (options = {}) => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -8,128 +8,151 @@ const useVAD = (options = {}) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [error, setError] = useState(null);
   
+  // Store VAD instance in ref
   const vadRef = useRef(null);
-  const scriptsLoadedRef = useRef(false);
-
-  const {
-    onSpeechStart,
-    onSpeechEnd,
-    onVADMisfire,
-    positiveSpeechThreshold = 0.8,
-    negativeSpeechThreshold = 0.2,
-    minSpeechFrames = 3,
-    redemptionFrames = 10
-  } = options;
-
-  // Load required scripts
+  const scriptRef = useRef(null);
+  
+  // Load external scripts
   useEffect(() => {
-    if (scriptsLoadedRef.current) return;
+    let mounted = true;
     
-    const loadScripts = async () => {
+    const loadScript = () => {
+      return new Promise((resolve, reject) => {
+        // Check if already loaded
+        if (window.vad) {
+          console.log('VAD already loaded');
+          return resolve();
+        }
+        
+        // Create script element
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.js';
+        script.async = true;
+        script.onload = () => {
+          console.log('ONNX Runtime loaded');
+          
+          // Now load VAD script
+          const vadScript = document.createElement('script');
+          vadScript.src = 'https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js';
+          vadScript.async = true;
+          vadScript.onload = () => {
+            console.log('VAD script loaded');
+            scriptRef.current = vadScript;
+            resolve();
+          };
+          vadScript.onerror = (err) => {
+            console.error('Error loading VAD script:', err);
+            reject(new Error('Failed to load VAD script'));
+          };
+          document.body.appendChild(vadScript);
+        };
+        script.onerror = (err) => {
+          console.error('Error loading ONNX Runtime:', err);
+          reject(new Error('Failed to load ONNX Runtime'));
+        };
+        document.body.appendChild(script);
+      });
+    };
+    
+    const initVAD = async () => {
       try {
-        // Load ONNX Runtime first
-        await loadScript('https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.js');
-        // Then load VAD
-        await loadScript('https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.22/dist/bundle.min.js');
+        setIsLoading(true);
+        console.log('Loading VAD dependencies...');
         
-        scriptsLoadedRef.current = true;
+        // Load scripts
+        await loadScript();
         
-        // Initialize VAD
-        initVAD();
+        if (!mounted) return;
+        
+        console.log('Initializing VAD...');
+        
+        // Initialize VAD with options
+        vadRef.current = await window.vad.MicVAD.new({
+          positiveSpeechThreshold: options.positiveSpeechThreshold || 0.8,
+          negativeSpeechThreshold: options.negativeSpeechThreshold || 0.2,
+          minSpeechFrames: options.minSpeechFrames || 3,
+          redemptionFrames: options.redemptionFrames || 10,
+          onSpeechStart: () => {
+            console.log('Speech started');
+            setIsSpeaking(true);
+            if (options.onSpeechStart) options.onSpeechStart();
+          },
+          onSpeechEnd: (audio) => {
+            console.log('Speech ended', audio.length, 'samples');
+            setIsSpeaking(false);
+            if (options.onSpeechEnd) options.onSpeechEnd(audio);
+          },
+          onVADMisfire: () => {
+            console.log('VAD misfire (too short)');
+            setIsSpeaking(false);
+            if (options.onVADMisfire) options.onVADMisfire();
+          }
+        });
+        
+        // VAD initialized successfully
+        setIsLoaded(true);
+        setIsLoading(false);
+        console.log('VAD initialized successfully!');
+        console.log('VAD methods:', Object.keys(vadRef.current));
       } catch (err) {
-        console.error('Failed to load VAD scripts:', err);
-        setError('Failed to load speech detection model');
+        if (!mounted) return;
+        
+        console.error('Error initializing VAD:', err);
+        setError(err.message);
         setIsLoading(false);
       }
     };
     
-    loadScripts();
+    initVAD();
     
     return () => {
-      // Cleanup
-      if (vadRef.current) {
-        try {
-          vadRef.current.stop();
-        } catch (e) {
-          console.error('Error stopping VAD:', e);
-        }
-        vadRef.current = null;
+      mounted = false;
+      // Clean up using proper method
+      if (vadRef.current && typeof vadRef.current.destroy === 'function') {
+        vadRef.current.destroy();
       }
     };
   }, []);
-
-  // Initialize VAD once scripts are loaded
-  const initVAD = useCallback(async () => {
+  
+  // Toggle function for start/stop
+  const toggle = (shouldListen) => {
     try {
-      if (!window.vad) {
-        throw new Error('VAD library not loaded');
+      if (!vadRef.current) {
+        console.error('VAD not initialized');
+        return false;
       }
       
-      setIsLoading(true);
+      console.log('VAD methods:', Object.keys(vadRef.current));
       
-      vadRef.current = await window.vad.MicVAD.new({
-        positiveSpeechThreshold,
-        negativeSpeechThreshold,
-        minSpeechFrames,
-        redemptionFrames,
-        onSpeechStart: () => {
-          setIsSpeaking(true);
-          if (onSpeechStart) onSpeechStart();
-        },
-        onSpeechEnd: (audio) => {
-          setIsSpeaking(false);
-          if (onSpeechEnd) onSpeechEnd(audio);
-        },
-        onVADMisfire: () => {
-          setIsSpeaking(false);
-          if (onVADMisfire) onVADMisfire();
-        }
-      });
-      
-      setIsLoaded(true);
-      setIsLoading(false);
-    } catch (err) {
-      console.error('Error initializing VAD:', err);
-      setError(`Error initializing speech detection: ${err.message}`);
-      setIsLoading(false);
-    }
-  }, [onSpeechStart, onSpeechEnd, onVADMisfire, positiveSpeechThreshold, negativeSpeechThreshold, minSpeechFrames, redemptionFrames]);
-
-  // Function to start/stop listening
-  const toggle = useCallback((listen = true) => {
-    if (!vadRef.current || !isLoaded) return false;
-    
-    try {
-      if (listen) {
+      if (shouldListen && !isListening) {
+        // Start listening
+        console.log('Starting VAD...');
         vadRef.current.start();
         setIsListening(true);
-      } else {
-        vadRef.current.stop();
+        return true;
+      } else if (!shouldListen && isListening) {
+        // Stop listening - check available methods first
+        console.log('Stopping VAD...');
+        
+        // The correct method name might be different
+        if (typeof vadRef.current.pause === 'function') {
+          vadRef.current.pause();
+        } else if (typeof vadRef.current.destroy === 'function') {
+          vadRef.current.destroy();
+        }
+        
         setIsListening(false);
-        setIsSpeaking(false);
+        return true;
       }
-      return true;
+      
+      return true; // Already in desired state
     } catch (err) {
       console.error('Error toggling VAD:', err);
-      setError(`Error with speech detection: ${err.message}`);
+      setError(err.message);
       return false;
     }
-  }, [isLoaded]);
-
-  // Helper to load scripts
-  const loadScript = (src) => {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = src;
-      script.async = true;
-      
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
-      
-      document.head.appendChild(script);
-    });
   };
-
+  
   return {
     isLoaded,
     isLoading,
