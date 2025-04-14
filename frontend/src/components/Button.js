@@ -1,0 +1,106 @@
+'use client';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useTheme } from '../context/ThemeContext';
+import { Subtitle, Paragraph } from './Typography';
+
+const Button = ({ 
+  children, 
+  variant = 'primary', 
+  size = 'md',
+  disabled = false,
+  className = '',
+  onClick = () => {},
+  ...props 
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
+  const { isDarkMode } = useTheme();
+  
+  // Enhanced acrylic effect settings based on mode
+  const acrylicStyles = {
+    light: {
+      background: "rgba(245, 245, 245, 0.11)",
+      backdropFilter: "blur(56.8px)",
+    },
+    dark: {
+      background: "rgba(245, 245, 245, 0.05)",
+      backdropFilter: "blur(56.8px)",
+    },
+    lightHover: {
+      background: "rgba(245, 245, 245, 0.2)",
+      backdropFilter: "blur(56.8px)",
+    },
+    darkHover: {
+      background: "rgba(245, 245, 245, 0.11)",
+      backdropFilter: "blur(56.8px)",
+    }
+  };
+  
+  const getButtonStyles = () => {
+    const baseClasses = "relative font-medium rounded-xl transition-all flex items-center justify-center px-6 py-3";
+    
+    if (disabled) {
+      return `${baseClasses} opacity-50 cursor-not-allowed`;
+    }
+    
+    return baseClasses;
+  };
+  
+  const getAcrylicStyle = () => {
+    if (isDarkMode) {
+      return isHovered ? acrylicStyles.darkHover : acrylicStyles.dark;
+    } else {
+      return isHovered ? acrylicStyles.lightHover : acrylicStyles.light;
+    }
+  };
+  
+  return (
+    <motion.button
+      className={`${getButtonStyles()} ${className}`}
+      style={getAcrylicStyle()}
+      whileHover={{ 
+        scale: 1.05,
+        transition: { type: "spring", stiffness: 400, damping: 10 } 
+      }}
+      whileTap={{ 
+        scale: 0.97,
+        transition: { type: "spring", stiffness: 400, damping: 17 } 
+      }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      onClick={(e) => {
+        if (!disabled) {
+          setIsPressed(true);
+          onClick(e);
+          setTimeout(() => setIsPressed(false), 300);
+        }
+      }}
+      disabled={disabled}
+      {...props}
+    >
+      <motion.span
+        initial={{ y: 0 }}
+        animate={{ y: isHovered ? -2 : 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        {isHovered ? (
+          <Paragraph>{children}</Paragraph>
+        ) : (
+          <Subtitle>{children}</Subtitle>
+        )}
+      </motion.span>
+      
+      {isPressed && !disabled && (
+        <motion.span
+          className="absolute inset-0 rounded-xl bg-white/20"
+          initial={{ scale: 0, opacity: 0.8 }}
+          animate={{ scale: 2, opacity: 0 }}
+          transition={{ duration: 0.5 }}
+        />
+      )}
+    </motion.button>
+  );
+};
+
+export default Button;

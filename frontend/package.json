@@ -1,39 +1,21 @@
 {
-    "name": "conversational-model",
-    "version": "0.1.0",
-    "private": true,
-    "dependencies": {
-        "@ricky0123/vad-react": "^0.0.28",
-        "onnxruntime-web": "^1.21.0",
-        "react": "^18.2.0",
-        "react-app-rewired": "^2.2.1",
-        "react-dom": "^18.2.0",
-        "react-scripts": "5.0.1"
-    },
-    "scripts": {
-        "start": "react-app-rewired start",
-        "build": "react-app-rewired build",
-        "test": "react-app-rewired test"
-    },
-    "eslintConfig": {
-        "extends": [
-            "react-app",
-            "react-app/jest"
-        ]
-    },
-    "browserslist": {
-        "production": [
-            ">0.2%",
-            "not dead",
-            "not op_mini all"
-        ],
-        "development": [
-            "last 1 chrome version",
-            "last 1 firefox version",
-            "last 1 safari version"
-        ]
-    },
-    "devDependencies": {
-        "copy-webpack-plugin": "^13.0.0"
-    }
+  "name": "ntropy",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "framer-motion": "^12.5.0",
+    "next": "15.2.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "tailwindcss": "^4"
+  }
 }

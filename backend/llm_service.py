@@ -1,6 +1,8 @@
 # llm_service.py
 import os
 from groq import Groq
+from dotenv import load_dotenv
+load_dotenv() # Load environment variables from .env file
 
 class ConversationManager:
     def __init__(self):
