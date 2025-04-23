@@ -116,7 +116,7 @@ const MainLayout = ({ children }) => {
     },
     { 
       name: 'LinkedIn', 
-      href: 'https://linkedin.com/in/nitigya',
+      href: 'https://linkedin.com/in/nitigyak',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
@@ -127,7 +127,7 @@ const MainLayout = ({ children }) => {
     },
     { 
       name: 'Scholar', 
-      href: 'https://scholar.google.com',
+      href: 'https://scholar.google.com/citations?user=tBFE15IAAAAJ&hl=en',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
