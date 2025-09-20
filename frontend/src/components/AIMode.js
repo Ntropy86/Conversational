@@ -168,12 +168,15 @@ const AIMode = () => {
       onClick={handleSendMessage}
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
+      className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 transition-colors flex items-center justify-center"
+      disabled={inputMessage.trim() === ''}
+      style={{
+        opacity: inputMessage.trim() === '' ? 0.4 : 1
+      }}
     >
-      <div className="w-8 h-8 rounded-full bg-white bg-opacity-10 flex items-center justify-center">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-          <path d="M5 12h14M12 5l7 7-7 7" />
-        </svg>
-      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+        <path d="M5 12h14M12 5l7 7-7 7" />
+      </svg>
     </motion.button>
   );
 
@@ -184,22 +187,33 @@ const AIMode = () => {
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
       disabled={!vad.isLoaded || !isBackendConnected || isAIResponding || audioProcessing}
-      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-        voiceMode ? 'bg-red-500 bg-opacity-20' : 'bg-white bg-opacity-10'
+      className={`p-2 rounded-full flex items-center justify-center transition-colors ${
+        voiceMode 
+          ? 'bg-red-500 hover:bg-red-600' 
+          : 'bg-green-500 hover:bg-green-600'
       } ${(!vad.isLoaded || !isBackendConnected) ? 'opacity-40' : ''}`}
     >
       {audioProcessing ? (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+        <motion.svg 
+          width="16" 
+          height="16" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="white" 
+          strokeWidth="2"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        >
           <circle cx="12" cy="12" r="10" />
           <path d="M12 8V16" strokeLinecap="round" />
           <path d="M8 12H16" strokeLinecap="round" />
-        </svg>
+        </motion.svg>
       ) : voiceMode ? (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
           <rect x="6" y="6" width="12" height="12" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ) : (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
           <path d="M12 15C13.6569 15 15 13.6569 15 12V6C15 4.34315 13.6569 3 12 3C10.3431 3 9 4.34315 9 6V12C9 13.6569 10.3431 15 12 15Z" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M12 19V22" strokeLinecap="round" strokeLinejoin="round" />
@@ -335,16 +349,17 @@ const AIMode = () => {
           <div className="fixed top-4 right-4 z-50">
             <motion.button
               onClick={clearConversation}
-              className="flex items-center space-x-2 px-3 py-2 bg-red-500 bg-opacity-20 border border-red-500 rounded-lg text-red-400 hover:text-red-300 hover:bg-opacity-30 transition-colors text-sm"
+              className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 bg-red-500 border border-red-500 rounded-lg text-white hover:bg-red-600 hover:border-red-600 transition-colors text-xs sm:text-sm"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="sm:w-[14px] sm:h-[14px]">
                 <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c0-1 1-2 2-2v2"/>
                 <line x1="10" y1="11" x2="10" y2="17"/>
                 <line x1="14" y1="11" x2="14" y2="17"/>
               </svg>
-              <span>Clear Chat</span>
+              <span className="hidden sm:inline">Clear Chat</span>
+              <span className="sm:hidden">Clear</span>
             </motion.button>
           </div>
           
@@ -474,7 +489,7 @@ const AIMode = () => {
                 >
                   <div className="text-center">
                     <motion.div 
-                      className="inline-block p-4 rounded-full bg-white bg-opacity-5 mb-3"
+                      className="inline-block mb-3"
                       animate={{ rotate: 360 }}
                       transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                     >
@@ -548,7 +563,7 @@ const AIMode = () => {
             onKeyPress={handleKeyPress}
             placeholder={voiceMode ? "Listening... speak now" : "Type your message..."}
             customEndButton={
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1">
                 <VoiceButton />
                 <InputButton />
               </div>
@@ -559,16 +574,17 @@ const AIMode = () => {
       )}
       
       {/* Dock element - fixed at bottom with Magic UI style */}
-      <div className={`fixed ${isScrolled ? 'bottom-14' : 'bottom-10'} left-1/2 transform -translate-x-1/2 z-40 transition-all duration-300`}>
+      <div className={`fixed ${isScrolled ? 'bottom-14' : 'bottom-10'} left-1/2 transform -translate-x-1/2 z-40 transition-all duration-300 px-4`}>
         <motion.div 
-          className="magic-ui-dock flex items-center p-2 bg-transparent rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg"
+          className="magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[12px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-x-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ scale: 1.03 }}
           transition={{ type: "spring", stiffness: 400, damping: 17 }}
           style={{
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-            background: 'rgba(30, 17, 8, 0.2)'
+            background: 'rgba(30, 17, 8, 0.2)',
+            maxWidth: 'calc(100vw - 32px)'
           }}
         >
           {[
@@ -587,7 +603,7 @@ const AIMode = () => {
           ].map((item, idx) => (
             <motion.div 
               key={idx}
-              className="magic-ui-dock-item relative mx-2 cursor-pointer group"
+              className="magic-ui-dock-item relative mx-1 sm:mx-2 cursor-pointer group flex-shrink-0"
               initial={{ scale: 1 }}
               whileHover={{ 
                 scale: 1.2,
@@ -624,7 +640,7 @@ const AIMode = () => {
               
               {/* Button with glow effect */}
               <motion.div
-                className="w-12 h-12 rounded-full flex items-center justify-center relative"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center relative"
                 style={{ 
                   backgroundColor: item.color,
                   boxShadow: `0 0 10px ${item.color}40`
@@ -633,7 +649,7 @@ const AIMode = () => {
                   boxShadow: `0 0 15px ${item.color}80`
                 }}
               >
-                <item.icon className="w-5 h-5 text-white" />
+                <item.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 
                 {/* Subtle inner glow/ring effect */}
                 <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-300" 
