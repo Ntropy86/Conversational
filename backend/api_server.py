@@ -35,6 +35,7 @@ conversations = {}
 class TextRequest(BaseModel):
     text: str
     session_id: str = None
+    conversation_history: list = []
 
 class SessionRequest(BaseModel):
     session_id: str
@@ -81,7 +82,7 @@ async def test_transcribe(audio_file: UploadFile = File(...)):
 
 @app.post("/test/llm")
 async def test_llm(request: TextRequest):
-    """Test LLM with a text prompt"""
+    """Test LLM with a text prompt - returns structured response"""
     # Use existing session or create a new one
     session_id = request.session_id
     if not session_id or session_id not in conversations:
@@ -90,15 +91,20 @@ async def test_llm(request: TextRequest):
     
     conversation = conversations[session_id]
     
-    # Process with LLM
+    # Process with LLM using structured response with conversation context
     start_time = time.time()
-    conversation.add_user_message(request.text)
-    response, _ = conversation.generate_response()
+    structured_response = conversation.generate_structured_response(
+        request.text, 
+        conversation_history=request.conversation_history
+    )
     processing_time = time.time() - start_time
     
     return {
         "session_id": session_id,
-        "response": response,
+        "response": structured_response["response"],
+        "items": structured_response["items"],
+        "item_type": structured_response["item_type"],
+        "metadata": structured_response["metadata"],
         "processing_time_ms": round(processing_time * 1000, 2)
     }
 
@@ -193,10 +199,10 @@ async def process_audio(
                 }
             )
             
-        # Process with LLM
+        # Process with LLM using structured response
         llm_start = time.time()
-        conversation.add_user_message(transcription)
-        response, _ = conversation.generate_response()
+        structured_response = conversation.generate_structured_response(transcription)
+        response = structured_response["response"]
         llm_time = time.time() - llm_start
         
         # Generate speech for response - using async properly
@@ -216,6 +222,9 @@ async def process_audio(
                 "session_id": session_id,
                 "transcription": transcription,
                 "response": response,
+                "items": structured_response["items"],
+                "item_type": structured_response["item_type"],
+                "metadata": structured_response["metadata"],
                 "audio_file": output_file,
                 "timing": {
                     "transcribe_ms": round(transcribe_time * 1000, 2),

@@ -3,13 +3,16 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAIAgent } from '../context/AIAgentContext';
 import { useTheme } from '../context/ThemeContext';
+import useVAD from '../hooks/useVAD';
 import Card from './Card';
+import ContentPage from './ContentPage';
 import DynamicBackground from './DynamicBackground';
 import Input from './Input';
 import Link from './Link';
 import Chip from './Chip';
 import { typographyClasses } from './Typography';
 import { MonitorIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon } from './Icons';
+import { loadMarkdownContent } from '../services/contentService';
 
 const AIMode = () => {
   const { 
@@ -22,13 +25,41 @@ const AIMode = () => {
     isAIResponding, 
     addUserMessage, 
     generateAIResponse,
-    toggleAIMode 
+    clearConversation,
+    toggleAIMode,
+    isBackendConnected,
+    audioProcessing,
+    processAudioData
   } = useAIAgent();
   
   const { isDarkMode } = useTheme();
   const [inputMessage, setInputMessage] = useState('');
+  const [voiceMode, setVoiceMode] = useState(false);
+  const [currentView, setCurrentView] = useState('conversation'); // 'conversation' or 'content'
+  const [currentContent, setCurrentContent] = useState(null);
+  const [contentLoading, setContentLoading] = useState(false);
   const inputRef = useRef(null);
   const contentRef = useRef(null);
+  
+  // VAD integration for voice input
+  const vad = useVAD({
+    positiveSpeechThreshold: 0.8,
+    negativeSpeechThreshold: 0.2,
+    minSpeechFrames: 3,
+    redemptionFrames: 10,
+    onSpeechStart: () => {
+      console.log('Speech started');
+    },
+    onSpeechEnd: async (audio) => {
+      console.log('Speech ended, samples:', audio.length);
+      if (voiceMode && isBackendConnected) {
+        await processAudioData(audio);
+      }
+    },
+    onVADMisfire: () => {
+      console.log('VAD misfire');
+    }
+  });
   
   // Make dock and input visible when scrolling
   const [isScrolled, setIsScrolled] = useState(false);
@@ -64,6 +95,65 @@ const AIMode = () => {
       handleSendMessage();
     }
   };
+
+  // Load content for a specific item
+  const loadContent = async (item) => {
+    setContentLoading(true);
+    try {
+      // Determine content type based on item structure
+      let contentType = 'projects'; // default
+      if (item.company || item.role) {
+        contentType = 'experiences';
+      }
+      
+      const content = await loadMarkdownContent(contentType.slice(0, -1), item.id);
+      if (content) {
+        setCurrentContent({
+          title: item.title || item.company,
+          content: content.content,
+          item: item
+        });
+        setCurrentView('content');
+      }
+    } catch (error) {
+      console.error('Error loading content:', error);
+    } finally {
+      setContentLoading(false);
+    }
+  };
+
+  // Go back to conversation view
+  const goBackToConversation = () => {
+    setCurrentView('conversation');
+    setCurrentContent(null);
+  };
+
+  // Voice mode controls
+  const startVoiceMode = () => {
+    if (vad.isLoaded && isBackendConnected && !audioProcessing) {
+      const success = vad.toggle(true);
+      if (success) {
+        setVoiceMode(true);
+      }
+    }
+  };
+
+  const stopVoiceMode = () => {
+    if (vad.isListening) {
+      const success = vad.toggle(false);
+      if (success) {
+        setVoiceMode(false);
+      }
+    }
+  };
+
+  const toggleVoiceMode = () => {
+    if (voiceMode) {
+      stopVoiceMode();
+    } else {
+      startVoiceMode();
+    }
+  };
   
   // Ensure content doesn't go under fixed elements
   useEffect(() => {
@@ -86,13 +176,75 @@ const AIMode = () => {
       </div>
     </motion.button>
   );
+
+  // Voice mode button
+  const VoiceButton = () => (
+    <motion.button 
+      onClick={toggleVoiceMode}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.95 }}
+      disabled={!vad.isLoaded || !isBackendConnected || isAIResponding || audioProcessing}
+      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+        voiceMode ? 'bg-red-500 bg-opacity-20' : 'bg-white bg-opacity-10'
+      } ${(!vad.isLoaded || !isBackendConnected) ? 'opacity-40' : ''}`}
+    >
+      {audioProcessing ? (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 8V16" strokeLinecap="round" />
+          <path d="M8 12H16" strokeLinecap="round" />
+        </svg>
+      ) : voiceMode ? (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+          <rect x="6" y="6" width="12" height="12" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ) : (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+          <path d="M12 15C13.6569 15 15 13.6569 15 12V6C15 4.34315 13.6569 3 12 3C10.3431 3 9 4.34315 9 6V12C9 13.6569 10.3431 15 12 15Z" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M12 19V22" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )}
+    </motion.button>
+  );
   
   return (
     <div className="min-h-screen">
       <DynamicBackground isDarkMode={true} />
       
+      {/* Content View - when viewing specific markdown content */}
+      {currentView === 'content' && currentContent && (
+        <div className="min-h-screen pt-8">
+          {/* Header with only back button */}
+          <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-[#1e1108] to-transparent py-4">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6">
+              <motion.button
+                onClick={goBackToConversation}
+                className={`flex items-center ${typographyClasses.subtitle} hover:${typographyClasses.heading} transition-colors`}
+                whileHover={{ x: -5 }}
+                transition={{ duration: 0.2 }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-2">
+                  <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to AI Chat
+              </motion.button>
+            </div>
+          </div>
+          
+          {/* Content */}
+          <div className="pt-20">
+            <ContentPage 
+              title={currentContent.title}
+              content={currentContent.content}
+              onBack={goBackToConversation}
+            />
+          </div>
+        </div>
+      )}
+      
       {/* Welcome screen layout */}
-      {conversation.length === 0 ? (
+      {currentView === 'conversation' && conversation.length === 0 && (
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
           <motion.h2 
             className={`text-white mb-4 text-center ${typographyClasses.heading}`}
@@ -119,8 +271,13 @@ const AIMode = () => {
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Type your message..."
-              customEndButton={<InputButton />}
+              placeholder={voiceMode ? "Listening... speak now" : "Type your message..."}
+              customEndButton={
+                <div className="flex items-center space-x-2">
+                  <VoiceButton />
+                  <InputButton />
+                </div>
+              }
               className="rounded-lg"
             />
             
@@ -131,6 +288,30 @@ const AIMode = () => {
               transition={{ delay: 0.3 }}
             >
               not a chatter? <Link href="/resume" className={typographyClasses.paragraph}>View Resume</Link>
+            </motion.div>
+
+            {/* Status indicators */}
+            <motion.div 
+              className="text-center mt-6 text-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              <div className="flex items-center justify-center space-x-4 text-gray-400">
+                <div className="flex items-center space-x-1">
+                  <div className={`w-2 h-2 rounded-full ${isBackendConnected ? 'bg-green-400' : 'bg-red-400'}`} />
+                  <span>Backend {isBackendConnected ? 'Connected' : 'Disconnected'}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <div className={`w-2 h-2 rounded-full ${vad.isLoaded ? 'bg-green-400' : vad.isLoading ? 'bg-yellow-400' : 'bg-red-400'}`} />
+                  <span>Voice {vad.isLoaded ? 'Ready' : vad.isLoading ? 'Loading...' : 'Error'}</span>
+                </div>
+              </div>
+              {(audioProcessing || isAIResponding) && (
+                <div className="mt-2 text-blue-400">
+                  {audioProcessing ? 'Processing audio...' : 'AI is responding...'}
+                </div>
+              )}
             </motion.div>
           </div>
           
@@ -145,9 +326,28 @@ const AIMode = () => {
             or you can click elements on the dock as well.
           </motion.div>
         </div>
-      ) : (
-        /* Conversation layout - matches screenshots */
+      )}
+      
+      {/* Conversation layout - matches screenshots */}
+      {currentView === 'conversation' && conversation.length > 0 && (
         <div className="min-h-screen pt-8" ref={contentRef}>
+          {/* Clear conversation button */}
+          <div className="fixed top-4 right-4 z-50">
+            <motion.button
+              onClick={clearConversation}
+              className="flex items-center space-x-2 px-3 py-2 bg-red-500 bg-opacity-20 border border-red-500 rounded-lg text-red-400 hover:text-red-300 hover:bg-opacity-30 transition-colors text-sm"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c0-1 1-2 2-2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
+              <span>Clear Chat</span>
+            </motion.button>
+          </div>
+          
           <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-40">
             {/* ALL messages displayed consistently */}
             {conversation.map((message, index) => (
@@ -172,32 +372,88 @@ const AIMode = () => {
                       {message.content}
                     </p>
                     
-                    {/* Projects if any */}
-                    {message.projects && message.projects.length > 0 && (
+                    {/* Structured data cards */}
+                    {message.structuredData && message.structuredData.items && message.structuredData.items.length > 0 && (
                       <div className="space-y-6">
-                        {message.projects.map((project, idx) => (
+                        {message.structuredData.items.map((item, idx) => (
                           <Card 
-                            key={idx}
-                            title={project.title}
-                            subtitle={project.date}
+                            key={item.id || idx}
+                            title={item.title || item.company}
+                            subtitle={item.date || item.dates || item.role}
                             hoverEffect={true}
+                            className="cursor-pointer transition-all duration-200"
+                            onClick={() => {
+                              // Stay in AI mode and load content
+                              if (item.id && !contentLoading) {
+                                loadContent(item);
+                              } else if (item.link) {
+                                window.open(item.link, '_blank');
+                              }
+                            }}
                           >
-                            <div className="mb-3 flex flex-wrap gap-2">
-                              {project.technologies.map((tech, techIdx) => (
-                                <Chip key={techIdx}>{tech}</Chip>
-                              ))}
-                            </div>
-                            <p className={typographyClasses.paragraph}>{project.description}</p>
+                            {/* Technologies/Skills chips */}
+                            {item.technologies && (
+                              <div className="mb-3 flex flex-wrap gap-2">
+                                {item.technologies.map((tech, techIdx) => (
+                                  <Chip key={techIdx}>{tech}</Chip>
+                                ))}
+                              </div>
+                            )}
+                            
+                            {/* Description or highlights */}
+                            {item.description && (
+                              <p className={typographyClasses.paragraph}>{item.description}</p>
+                            )}
+                            
+                            {item.highlights && (
+                              <ul className="space-y-2 mt-3">
+                                {item.highlights.slice(0, 2).map((highlight, hIdx) => (
+                                  <li key={hIdx} className={`text-sm text-gray-300`}>
+                                    • {highlight}
+                                  </li>
+                                ))}
+                                {item.highlights.length > 2 && (
+                                  <li className="text-sm text-gray-400 italic">
+                                    +{item.highlights.length - 2} more achievements...
+                                  </li>
+                                )}
+                              </ul>
+                            )}
+                            
+                            {/* Metrics if available */}
+                            {item.metrics && (
+                              <div className="mt-3 text-sm text-blue-400">
+                                📊 {item.metrics}
+                              </div>
+                            )}
+                            
+                            {/* Skills section special handling */}
+                            {item.skills && (
+                              <div className="flex flex-wrap gap-2">
+                                {item.skills.map((skill, skillIdx) => (
+                                  <Chip key={skillIdx} className="text-xs">{skill}</Chip>
+                                ))}
+                              </div>
+                            )}
                           </Card>
                         ))}
                         
+                        {/* Navigation link based on item type */}
                         <div className="text-center mt-8">
                           <Link 
-                            href="#projects"
-                            onClick={() => toggleAIMode()}
+                            href={`#${message.structuredData.item_type}`}
+                            onClick={() => {
+                              toggleAIMode();
+                              setTimeout(() => {
+                                const element = document.getElementById(message.structuredData.item_type);
+                                if (element) {
+                                  element.scrollIntoView({ behavior: 'smooth' });
+                                }
+                              }, 100);
+                            }}
                             className="text-gray-300 hover:text-white"
                           >
-                            View All Projects
+                            View All {message.structuredData.item_type.charAt(0).toUpperCase() + message.structuredData.item_type.slice(1)}
                           </Link>
                         </div>
                       </div>
@@ -238,12 +494,41 @@ const AIMode = () => {
                 </motion.div>
               )}
             </AnimatePresence>
+            
+            {/* Content loading indicator */}
+            <AnimatePresence>
+              {contentLoading && (
+                <motion.div 
+                  className="flex justify-center items-center py-12"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <div className="text-center">
+                    <motion.div 
+                      className="inline-block p-4 rounded-full bg-white bg-opacity-5 mb-3"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14,2 14,8 20,8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10,9 9,9 8,9"></polyline>
+                      </svg>
+                    </motion.div>
+                    <p className={typographyClasses.subtitle}>Loading content...</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       )}
       
       {/* Fixed background behind input to prevent content showing through */}
-      {conversation.length > 0 && (
+      {currentView === 'conversation' && conversation.length > 0 && (
         <div 
           className="fixed bottom-0 left-0 right-0 h-40 z-10"
           style={{
@@ -254,15 +539,20 @@ const AIMode = () => {
       )}
       
       {/* Input field - ONLY shown in conversation mode */}
-      {conversation.length > 0 && (
+      {currentView === 'conversation' && conversation.length > 0 && (
         <div className={`fixed ${isScrolled ? 'bottom-40' : 'bottom-36'} left-1/2 transform -translate-x-1/2 w-full max-w-[500px] px-4 z-20 transition-all duration-300`}>
           <Input
             ref={inputRef}
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            customEndButton={<InputButton />}
+            placeholder={voiceMode ? "Listening... speak now" : "Type your message..."}
+            customEndButton={
+              <div className="flex items-center space-x-2">
+                <VoiceButton />
+                <InputButton />
+              </div>
+            }
             className="rounded-lg"
           />
         </div>

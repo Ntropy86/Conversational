@@ -1,7 +1,11 @@
 # llm_service.py
 import os
+import json
+import re
+from typing import Dict, Any
 from groq import Groq
 from dotenv import load_dotenv
+from resume_query_processor import ResumeQueryProcessor
 load_dotenv() # Load environment variables from .env file
 
 class ConversationManager:
@@ -14,24 +18,32 @@ class ConversationManager:
         self.client = Groq(api_key=self.api_key)
         self.model = "llama-3.1-8b-instant"  # Use your available model
         
+        # Initialize resume query processor
+        self.query_processor = ResumeQueryProcessor()
+        
+        # Load full resume data for context
+        with open("resume_data.json", 'r') as f:
+            resume_data = json.load(f)
+        
         self.system_prompt = (
-            "You are a witty, sarcastic friend who keeps answers under two lines. "
+            "You are a witty, sarcastic friend who represents Nitigya. Keep responses conversational and engaging. "
             "You only discuss content relevant to Nitigya's resume, skill set, or projects. If the user asks something off-topic, "
             "reply: 'Hmm, maybe ChatGPT can help you out with that?' \n"
-            "Never mention you're an AI. Use comedic flair and 'Yes, and...' style responses, but keep it short. \n\n"
+            "Never mention you're an AI. Use comedic flair but stay professional when discussing technical work.\n\n"
+            
+            "ABSOLUTE RULE: Response must be 30 words or LESS. NO EXCEPTIONS. Count each word carefully before responding. Short and punchy responses only.\n\n"
 
-            "=== Nitigya's Resume Context ===\n"
-            "He has a Master's in Data Science at UW–Madison (GPA ~3.8), previously B.Tech in CS with DL minor (9.35 GPA). \n"
-            "Key experiences:\n"
-            "- EEG Emotion Classifier (91% accuracy, used ExtraTrees + SMOTE)\n"
-            "- Chicago Crime Forecasting (ARIMA+LSTM+DBSCAN + Plotly)\n"
-            "- Spenza internship: 20K PDF parser on AWS Lambda, 30% cost cut.\n"
-            "- CDAC: BCI pipeline, 30% latency drop.\n"
-            "- DRDO: Satellite classification, 88% accuracy.\n"
-            "Skills: Python, PyTorch, scikit-learn, Big Data, React, Next.js, Docker, Spark, and so on.\n\n"
+            "CONVERSATION AWARENESS: If conversation context is provided, maintain continuity and reference previous topics naturally. "
+            "Use pronouns like 'that project', 'the one I mentioned', etc. when appropriate.\n\n"
 
-            "Stay comedic, warm, never more than 2 lines. Provide quick roasts or jokes as well. \n"
-            "If user tries to talk about something irrelevant, use the fallback line. \n"
+            "IMPORTANT: The system will provide you with structured data about Nitigya's background. "
+            "Use this data to give accurate, specific responses about his projects, experience, and skills. "
+            "When discussing specific projects or experiences, reference the exact details provided.\n\n"
+
+            f"FULL RESUME CONTEXT:\n{json.dumps(resume_data, indent=2)}\n\n"
+
+            "If structured data is provided, incorporate those details naturally into your response. "
+            "Keep your personality but be accurate about technical details, dates, and achievements.\n"
         )
         
         # Initialize chat history
@@ -80,6 +92,175 @@ class ConversationManager:
                 full_reply += content
                 
         self.chat_history.append({"role": "assistant", "content": full_reply.strip()})
+
+    def generate_structured_response(self, user_message: str, conversation_history: list = None) -> Dict:
+        """Generate an intelligent response that only shows cards when relevant content is mentioned"""
+        
+        # Create conversation context if provided
+        context_summary = ""
+        if conversation_history and len(conversation_history) > 0:
+            context_summary = "\n\nCONVERSATION CONTEXT:\n"
+            for msg in conversation_history[-5:]:  # Use last 5 messages for context
+                role = msg.get('role', 'user')
+                content = msg.get('content', '')
+                context_summary += f"{role.upper()}: {content}\n"
+        
+        # First, use the query processor to determine if cards are needed
+        query_result = self.query_processor.query(user_message)
+        
+        # If no cards needed (greeting, general convo), just do conversational response
+        if query_result.item_type == "none" or len(query_result.items) == 0:
+            # Simple conversational response
+            conversation_prompt = f"""
+User says: {user_message}
+{context_summary}
+
+You are Nitigya's witty, sarcastic friend. Respond naturally and conversationally.
+
+RULES:
+- Keep it under 30 words
+- Be friendly but with personality 
+- If it's a greeting, greet back naturally
+- If it's casual conversation, engage casually
+- Don't mention projects/work unless specifically asked
+- Never mention you're an AI
+
+Just have a normal conversation.
+"""
+            
+            enhanced_history = self.chat_history + [
+                {"role": "system", "content": conversation_prompt},
+                {"role": "user", "content": user_message}
+            ]
+            
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=enhanced_history,
+                temperature=0.8,
+                max_tokens=100
+            )
+            
+            response_text = response.choices[0].message.content.strip()
+            
+            # Add to conversation history
+            self.chat_history.append({"role": "user", "content": user_message})
+            self.chat_history.append({"role": "assistant", "content": response_text})
+            
+            return {
+                "response": response_text,
+                "items": [],
+                "item_type": "none",
+                "metadata": {"reasoning": "Casual conversation - no cards needed"}
+            }
+        
+        # Cards are needed - do intelligent selection
+        selection_prompt = f"""
+User Query: {user_message}
+{context_summary}
+
+Available {query_result.item_type}:
+{json.dumps(query_result.items, indent=2)}
+
+You are Nitigya's sarcastic friend. Analyze the user's question and:
+
+1. Give a natural, witty response (max 30 words)
+2. Select ONLY items that directly match what they asked about
+3. If they ask about "startups" - only show startup experience
+4. If they ask about "Chrome extension" - only show that specific project
+5. If they ask broadly, pick the most impressive/relevant ones
+
+CRITICAL: Look at the user's exact words. If they say "startup", only pick items from actual startup companies. If they mention specific technologies, prioritize those.
+
+Format:
+RESPONSE: [your witty response here]
+IDS: [comma-separated item IDs that specifically match their question, or NONE]
+
+Example:
+User: "startup experience" → only pick items from startup companies
+User: "machine learning projects" → only pick ML-related projects
+User: "Chrome extension" → only pick that specific project
+
+Be precise in your selection!"""
+        
+        enhanced_history = self.chat_history + [
+            {"role": "system", "content": selection_prompt},
+            {"role": "user", "content": user_message}
+        ]
+        
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=enhanced_history,
+            temperature=0.7,
+            max_tokens=200
+        )
+        
+        ai_response = response.choices[0].message.content.strip()
+        
+        # Parse the response
+        try:
+            # Look for the RESPONSE: and IDS: markers
+            response_text = ""
+            selected_ids = []
+            
+            # Split by lines and parse
+            lines = ai_response.split('\n')
+            for line in lines:
+                line = line.strip()
+                if line.startswith("RESPONSE:"):
+                    response_text = line[9:].strip()  # Remove "RESPONSE:" prefix
+                elif line.startswith("IDS:"):
+                    ids_text = line[4:].strip()  # Remove "IDS:" prefix
+                    if ids_text and ids_text != "NONE":
+                        # Split by comma and clean up
+                        selected_ids = [id.strip() for id in ids_text.split(",") if id.strip()]
+            
+            # If we didn't find structured format, extract IDs from the whole response
+            if not response_text and not selected_ids:
+                # Look for patterns that might be IDs
+                import re
+                # Look for lines that might contain IDs
+                possible_ids = re.findall(r'\b[a-z-]+\b', ai_response.lower())
+                # Check if any match actual item IDs
+                actual_ids = [item.get("id", "") for item in query_result.items]
+                selected_ids = [id for id in possible_ids if id in actual_ids]
+                response_text = ai_response
+            
+            # Filter items based on selected IDs
+            selected_items = [item for item in query_result.items if item.get("id") in selected_ids]
+            
+            # Ensure we have a response text
+            if not response_text and selected_items:
+                response_text = f"Here's what you're looking for about his {query_result.item_type}:"
+            elif not response_text:
+                response_text = "Tell me more about what you're looking for."
+                
+            # Fallback - if no specific IDs found but we have a good response, don't show any cards
+            if not selected_ids and response_text and "here's what you're looking for" not in response_text.lower():
+                selected_items = []
+            elif not selected_ids:
+                # Last resort - show first relevant item if we have any
+                selected_items = query_result.items[:1] if len(query_result.items) > 0 else []
+                
+        except Exception as e:
+            print(f"Parsing error: {e}")
+            print(f"AI Response: {ai_response}")
+            response_text = ai_response if ai_response else "Tell me more about what you're looking for."
+            selected_items = []
+        
+        # Add to conversation history
+        self.chat_history.append({"role": "user", "content": user_message})
+        self.chat_history.append({"role": "assistant", "content": response_text})
+        
+        return {
+            "response": response_text,
+            "items": selected_items,
+            "item_type": query_result.item_type,
+            "metadata": {
+                **query_result.metadata,
+                "intelligent_selection": True,
+                "cards_shown": len(selected_items) > 0
+            }
+        }
 
 # Test function - make sure we use the SAME conversation manager for both tests
 def test_llm(input_text=None):
