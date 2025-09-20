@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAIAgent } from '../context/AIAgentContext';
 import { TouchIndicator, touchVariants } from '../utils/touchInteractions';
-import { BotIcon, ZapOffIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon } from './Icons';
+import { BotIcon, ZapOffIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon, BookOpenIcon, FileTextIcon } from './Icons';
 
 const Dock = ({ onSectionNavigate, highlightAI }) => {
   const { isAIMode, toggleAIMode } = useAIAgent();
@@ -31,16 +31,18 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
       )}
       
       <motion.div
-        className={`magic-ui-dock flex items-center p-2 bg-transparent rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg ${
+        className={`magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[12px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-x-auto scrollbar-hide ${
           highlightAI ? 'z-50' : ''
         }`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        whileHover={{ scale: 1.03 }}
+        whileHover={{ scale: 1.01 }}
         transition={{ type: "spring", stiffness: 400, damping: 17 }}
         style={{
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-          background: 'rgba(30, 17, 8, 0.2)'
+          background: 'rgba(30, 17, 8, 0.2)',
+          maxWidth: '100%',
+          minWidth: 'fit-content'
         }}
       >
       {[
@@ -54,13 +56,15 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
         { color: '#3498DB', icon: UserIcon, tooltip: 'About', section: 'about' },
         { color: '#8B5C3C', icon: BriefcaseIcon, tooltip: 'Experience', section: 'experience' },
         { color: '#E67E22', icon: FolderIcon, tooltip: 'Projects', section: 'projects' },
+        { color: '#6C63FF', icon: BookOpenIcon, tooltip: 'Publications', section: 'publications' },
+        { color: '#FF6B9D', icon: FileTextIcon, tooltip: 'Blog', section: 'blog' },
         { color: '#27AE60', icon: CodeIcon, tooltip: 'Skills', section: 'skills' },
         { color: '#F39C12', icon: MailIcon, tooltip: 'Contact', section: 'contact' }
       ].map((item, idx) => (
         <TouchIndicator
           key={idx}
           variant="dockItem"
-          className="magic-ui-dock-item relative mx-2 cursor-pointer group"
+          className="magic-ui-dock-item relative mx-0.5 sm:mx-1 md:mx-2 cursor-pointer group flex-shrink-0"
           onClick={() => {
             if (item.section === 'ai-toggle') {
               toggleAIMode();
@@ -89,15 +93,15 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
           }}
         >
           {/* Tooltip */}
-          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[9999]">
             <div className="bg-black bg-opacity-80 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
               {item.tooltip}
             </div>
           </div>
 
-          {/* Button with glow effect */}
+          {/* Button with glow effect and hover animation */}
           <motion.div
-            className={`w-12 h-12 rounded-full flex items-center justify-center relative ${
+            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center relative ${
               highlightAI && idx === 0 ? 'z-50' : ''
             }`}
             style={{
@@ -106,9 +110,18 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
                 ? `0 0 25px ${item.color}, 0 0 50px ${item.color}80, 0 0 75px ${item.color}40`
                 : `0 0 10px ${item.color}40`
             }}
-            whileHover={{
-              boxShadow: `0 0 15px ${item.color}80`
+            initial={{ scale: 1 }}
+            whileHover={{ 
+              scale: window?.innerWidth < 640 ? 1.1 : 1.2,
+              y: window?.innerWidth < 640 ? -4 : -8,
+              boxShadow: `0 0 15px ${item.color}80`,
+              transition: { 
+                type: "spring", 
+                stiffness: 300, 
+                damping: 20 
+              }
             }}
+            whileTap={{ scale: 0.95 }}
             animate={highlightAI && idx === 0 ? {
               scale: [1, 1.1, 1],
               boxShadow: [
@@ -123,7 +136,7 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
               ease: "easeInOut"
             } : {}}
           >
-            <item.icon className="w-5 h-5 text-white" />
+            <item.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             
             {/* Tutorial spotlight overlay for AI button */}
             {highlightAI && idx === 0 && (

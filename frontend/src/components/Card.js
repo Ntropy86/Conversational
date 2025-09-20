@@ -63,7 +63,7 @@ const Card = ({
 
   return (
     <motion.div
-      className={`rounded-xl p-6 ${className}`}
+      className={`rounded-xl p-4 md:p-6 ${className}`}
       style={getAcrylicStyle()}
       animate={{
         ...(isHovered && hoverEffect ? glowVariants.hover : glowVariants.initial),
@@ -74,7 +74,7 @@ const Card = ({
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       whileHover={hoverEffect ? { 
-        y: -5,
+        y: window?.innerWidth < 640 ? -2 : -5,
         transition: { duration: 0.2 }
       } : {}}
       initial={{ opacity: 0, y: 20 }}
@@ -83,11 +83,11 @@ const Card = ({
       {...props}
     >
       {title && (
-        <h3 className={`mb-1 ${typographyClasses.heading}`}>{title}</h3>
+        <h3 className={`mb-1 text-lg md:text-xl ${typographyClasses.heading}`}>{title}</h3>
       )}
       
       {subtitle && (
-        <p className={`mb-4 ${typographyClasses.subtitle}`}>{subtitle}</p>
+        <p className={`mb-3 md:mb-4 text-sm md:text-base ${typographyClasses.subtitle}`}>{subtitle}</p>
       )}
       
       <div className={typographyClasses.paragraph}>{children}</div>

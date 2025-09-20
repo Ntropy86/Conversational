@@ -17,9 +17,22 @@ const SkillsRadar = ({ className = "" }) => {
   // Update chart size after hydration to avoid SSR mismatch
   useEffect(() => {
     const updateSize = () => {
-      const maxWidth = Math.min(window.innerWidth - 40, 700);
-      const minWidth = 400;
-      setChartSize(Math.max(minWidth, maxWidth));
+      const viewportWidth = window.innerWidth;
+      let size;
+      
+      if (viewportWidth < 400) {
+        size = Math.max(280, viewportWidth - 40); // iPhone SE and smaller
+      } else if (viewportWidth < 640) {
+        size = Math.max(320, viewportWidth - 60); // Small mobile
+      } else if (viewportWidth < 768) {
+        size = 450; // Standard mobile
+      } else if (viewportWidth < 1024) {
+        size = 500; // Tablet
+      } else {
+        size = Math.min(600, viewportWidth - 200); // Desktop
+      }
+      
+      setChartSize(size);
     };
     
     updateSize();
@@ -70,9 +83,9 @@ const SkillsRadar = ({ className = "" }) => {
   return (
     <div className={`w-full mx-auto ${className}`}>
       {/* Category Tabs */}
-      <div className="flex justify-center mb-6 px-2">
-        <div className="relative w-full">
-          <div className="flex flex-wrap justify-center gap-0.5 sm:gap-1 bg-opacity-20 backdrop-blur-sm rounded-xl p-1 sm:p-1.5 border border-opacity-20" 
+      <div className="flex justify-center mb-4 md:mb-6 px-2">
+        <div className="relative w-full max-w-4xl">
+          <div className="flex flex-wrap justify-center gap-1 md:gap-2 bg-opacity-20 backdrop-blur-sm rounded-xl p-2 border border-opacity-20" 
                style={{ 
                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
                  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
@@ -86,11 +99,11 @@ const SkillsRadar = ({ className = "" }) => {
                 <motion.button
                   key={category}
                   className={`
-                    relative px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-300 z-10 whitespace-nowrap
+                    relative px-2 py-2 md:px-3 md:py-2 text-xs md:text-sm font-medium rounded-lg transition-all duration-300 z-10 whitespace-nowrap min-h-[36px] touch-manipulation
                     ${isActive ? 'text-white' : isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}
                   `}
                   onClick={() => handleCategoryClick(category)}
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: window?.innerWidth < 640 ? 1.02 : 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   {isActive && (
@@ -114,12 +127,12 @@ const SkillsRadar = ({ className = "" }) => {
       
       {/* Description */}
       <motion.div 
-        className="mb-6 text-center"
+        className="mb-4 md:mb-6 text-center px-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
       >
-        <p className="text-sm opacity-75 max-w-2xl mx-auto leading-relaxed" style={{ color: isDarkMode ? '#CBB09D' : '#542D12' }}>
+        <p className="text-xs md:text-sm opacity-75 max-w-2xl mx-auto leading-relaxed" style={{ color: isDarkMode ? '#CBB09D' : '#542D12' }}>
           {getSkillDescription(highlightCategory)}
         </p>
       </motion.div>

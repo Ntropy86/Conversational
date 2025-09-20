@@ -41,8 +41,8 @@ const Input = forwardRef(({
       : '1px solid rgba(239, 68, 68, 0.7)';
   }
 
-  // Define input classes
-  const inputClasses = `w-full px-4 py-2 rounded-lg focus:outline-none transition-all ${typographyClasses.paragraph}`;
+  // Define input classes with better mobile touch targets
+  const inputClasses = `w-full px-3 md:px-4 py-3 md:py-2 rounded-lg focus:outline-none transition-all text-base ${typographyClasses.paragraph}`;
 
   return (
     <div className={`relative ${className}`}>
@@ -69,7 +69,7 @@ const Input = forwardRef(({
         />
         
         {customEndButton && (
-          <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+          <div className="absolute right-1 md:right-2 top-1/2 transform -translate-y-1/2">
             {customEndButton}
           </div>
         )}

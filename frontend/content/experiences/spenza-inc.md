@@ -1,4 +1,4 @@
-# Software Engineer (Intern)
+# Software Engineer
 **Spenza Inc. (B2B SaaS, ~8-person)**  
 *Jan. 2023 – Aug. 2023 | Remote / Bengaluru, IN*
 

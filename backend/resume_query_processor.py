@@ -41,6 +41,9 @@ class ResumeQueryProcessor:
             ],
             "publications": [
                 r"(?i)publications?", r"(?i)papers?", r"(?i)research", r"(?i)published"
+            ],
+            "blog": [
+                r"(?i)blog", r"(?i)articles?", r"(?i)posts?", r"(?i)writing", r"(?i)insights"
             ]
         }
         
@@ -208,6 +211,9 @@ class ResumeQueryProcessor:
         elif intent == "publications":
             return f"His research contributions include {count} publication{'s' if count != 1 else ''}:"
         
+        elif intent == "blog":
+            return f"Here are {count} insightful blog post{'s' if count != 1 else ''} he's written:"
+        
         return f"Here's what I found about {intent}:"
 
     def query(self, question: str) -> QueryResult:
@@ -238,6 +244,8 @@ class ResumeQueryProcessor:
             items = self.resume_data.get("education", [])
         elif intent == "publications":
             items = self.resume_data.get("publications", [])
+        elif intent == "blog":
+            items = self.resume_data.get("blog", [])
         elif intent == "skills":
             # For skills, return structured skill data with proper IDs
             skills_data = self.resume_data.get("skills", {})
@@ -254,8 +262,8 @@ class ResumeQueryProcessor:
             # Default to projects
             items = self.resume_data.get("projects", [])
         
-        # Apply technology filters (except for education and publications which don't need filtering)
-        if tech_filters and intent not in ["skills", "education", "publications"]:
+        # Apply technology filters (except for education, publications, and blog which don't need filtering)
+        if tech_filters and intent not in ["skills", "education", "publications", "blog"]:
             items = self.filter_by_technology(items, tech_filters)
         
         # Sort projects by date as default (LLM will do context-based selection)
@@ -292,6 +300,7 @@ def test_query_processor():
         "What are his skills in Python?",
         "Where did he study?",
         "What research papers has he published?",
+        "What blog posts has he written?",
         "Tell me about his experience at startups",
         "What EEG or BCI work has he done?"
     ]

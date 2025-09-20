@@ -276,7 +276,7 @@ const Chip = ({
 
   return (
     <motion.div
-      className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${className}`}
+      className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${className}`}
       style={currentStyle}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.98 }}
@@ -288,11 +288,7 @@ const Chip = ({
       {...props}
     >
       {showIcon && color === 'auto' && <TechIcon tech={children} />}
-      {isHovered ? (
-        <Paragraph>{children}</Paragraph>
-      ) : (
-        <Subtitle>{children}</Subtitle>
-      )}
+      <span className="text-xs font-medium">{children}</span>
     </motion.div>
   );
 };

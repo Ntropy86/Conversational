@@ -1,4 +1,4 @@
-# Summer Vocational Intern
+# Summer Vocational Trainee
 **Defence Research & Development Organisation (DRDO)**  
 *Jun. 2022 – Jul. 2022 | Dehradun, IN*
 

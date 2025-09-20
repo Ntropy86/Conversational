@@ -38,7 +38,7 @@ const Button = ({
   };
   
   const getButtonStyles = () => {
-    const baseClasses = "relative font-medium rounded-xl transition-all flex items-center justify-center px-6 py-3";
+    const baseClasses = "relative font-medium rounded-xl transition-all duration-200 flex items-center justify-center px-4 md:px-6 py-3 md:py-3 min-h-[44px] touch-manipulation";
     
     if (disabled) {
       return `${baseClasses} opacity-50 cursor-not-allowed`;
@@ -74,7 +74,7 @@ const Button = ({
       className={`${getButtonStyles()} ${className}`}
       style={getAcrylicStyle()}
       whileHover={{ 
-        scale: 1.05,
+        scale: window?.innerWidth < 640 ? 1.02 : 1.05,
         transition: { type: "spring", stiffness: 400, damping: 10 } 
       }}
       whileTap={{ 

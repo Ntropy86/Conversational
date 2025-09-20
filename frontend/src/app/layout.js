@@ -16,6 +16,12 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Nitigya Kargeti | Data Scientist & ML Engineer",
   description: "Portfolio of Nitigya Kargeti - Data Scientist and Machine Learning Engineer.",
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 };
 
 export default function RootLayout({ children }) {

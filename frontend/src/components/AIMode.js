@@ -11,7 +11,7 @@ import Input from './Input';
 import Link from './Link';
 import Chip from './Chip';
 import { typographyClasses } from './Typography';
-import { MonitorIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon } from './Icons';
+import { MonitorIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon, BookOpenIcon, FileTextIcon } from './Icons';
 import { loadMarkdownContent } from '../services/contentService';
 
 const AIMode = () => {
@@ -478,7 +478,7 @@ const AIMode = () => {
             </motion.button>
           </div>
           
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-40">
+          <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 pb-32 md:pb-40">
             {/* ALL messages displayed consistently */}
             {conversation.map((message, index) => (
               <motion.div 
@@ -486,7 +486,7 @@ const AIMode = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="mb-8"
+                className="mb-6 md:mb-8"
               >
                 {message.role === 'user' ? (
                   // ALL user messages displayed as right-aligned bubbles
@@ -689,19 +689,21 @@ const AIMode = () => {
       )}
       
       {/* Dock element - fixed at bottom with Magic UI style */}
-      <div className={`fixed ${isScrolled ? 'bottom-14' : 'bottom-10'} left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 px-4`}>
-        <motion.div 
-          className="magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[12px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-x-visible"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ scale: 1.03 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          style={{
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-            background: 'rgba(30, 17, 8, 0.2)',
-            maxWidth: 'calc(100vw - 32px)'
-          }}
-        >
+      <div className={`fixed ${isScrolled ? 'bottom-14' : 'bottom-10'} left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 px-4 w-full max-w-screen`}>
+        <div className="flex justify-center">
+          <motion.div 
+            className="magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[12px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-x-auto scrollbar-hide"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.03 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            style={{
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+              background: 'rgba(30, 17, 8, 0.2)',
+              maxWidth: '100%',
+              minWidth: 'fit-content'
+            }}
+          >
           {[
             { 
               color: '#2ECC71', 
@@ -713,12 +715,14 @@ const AIMode = () => {
             { color: '#3498DB', icon: UserIcon, tooltip: 'About', section: 'about' },
             { color: '#8B5C3C', icon: BriefcaseIcon, tooltip: 'Experience', section: 'experience' },
             { color: '#E67E22', icon: FolderIcon, tooltip: 'Projects', section: 'projects' },
+            { color: '#6C63FF', icon: BookOpenIcon, tooltip: 'Publications', section: 'publications' },
+            { color: '#FF6B9D', icon: FileTextIcon, tooltip: 'Blog', section: 'blog' },
             { color: '#27AE60', icon: CodeIcon, tooltip: 'Skills', section: 'skills' },
             { color: '#F39C12', icon: MailIcon, tooltip: 'Contact', section: 'contact' }
           ].map((item, idx) => (
             <motion.div 
               key={idx}
-              className="magic-ui-dock-item relative mx-1 sm:mx-2 cursor-pointer group flex-shrink-0"
+              className="magic-ui-dock-item relative mx-0.5 sm:mx-1 md:mx-2 cursor-pointer group flex-shrink-0"
               initial={{ scale: 1 }}
               whileHover={{ 
                 scale: 1.2,
@@ -776,7 +780,8 @@ const AIMode = () => {
               </motion.div>
             </motion.div>
           ))}
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

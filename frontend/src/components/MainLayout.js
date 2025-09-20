@@ -101,6 +101,8 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
     { name: 'About', href: '#about' },
     { name: 'Experience', href: '#experience' },
     { name: 'Projects', href: '#projects' },
+    { name: 'Publications', href: '#publications' },
+    { name: 'Blog', href: '#blog' },
     { name: 'Skills', href: '#skills' },
     { name: 'Contact', href: '#contact' }
   ];
@@ -163,6 +165,38 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
     <div className="min-h-screen flex flex-col md:flex-row">
       <DynamicBackground isDarkMode={isDarkMode} />
       
+      {/* Mobile menu toggle */}
+      <div className={`fixed top-4 right-4 z-50 md:hidden ${isAIMode ? 'hidden' : ''}`}>
+        <Button
+          onClick={toggleMenu}
+          className="p-2 bg-amber-900 bg-opacity-80 backdrop-blur-sm"
+          aria-label="Toggle menu"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            {isMenuOpen ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            )}
+          </svg>
+        </Button>
+      </div>
+
       <div className="fixed top-4 right-4 z-50 hidden md:block">
         {/* <Toggle 
           checked={isDarkMode} 
@@ -174,7 +208,7 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
       {/* Fixed Sidebar */}
       <AnimatePresence>
       <motion.aside 
-        className={`fixed left-0 top-0 h-screen md:w-64 flex flex-col justify-between py-8 px-6 z-40 transition-all duration-300 ease-in-out ${
+        className={`fixed left-0 top-0 h-screen w-full md:w-64 flex flex-col justify-between py-6 md:py-8 px-4 md:px-6 z-40 transition-all duration-300 ease-in-out ${
           isMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         } ${isAIMode ? 'hidden' : ''}`}
         initial="hidden"
@@ -183,12 +217,13 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
         style={{
           backdropFilter: "blur(15px)",
           WebkitBackdropFilter: "blur(15px)",
+          backgroundColor: 'rgba(30, 17, 8, 0.95)'
         }}
         >
           <div className="flex flex-col h-full">
-            <motion.div className="mb-8" variants={itemVariants}>
+            <motion.div className="mb-6 md:mb-8" variants={itemVariants}>
               <motion.h1 
-                className={`text-2xl md:text-3xl ${typographyClasses.heading}`}
+                className={`text-xl md:text-2xl lg:text-3xl ${typographyClasses.heading}`}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
@@ -196,7 +231,7 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
                 Nitigya Kargeti
               </motion.h1>
               <motion.p 
-                className={`mt-1 ${typographyClasses.subtitle}`}
+                className={`mt-1 text-sm md:text-base ${typographyClasses.subtitle}`}
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
@@ -207,11 +242,11 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
 
             {/* AI Mode toggle */}
             <motion.div 
-              className="mb-8"
+              className="mb-6 md:mb-8"
               variants={itemVariants}
             >
               <Button 
-                className="text-sm w-full"
+                className="text-xs md:text-sm w-full py-2 md:py-3"
                 onClick={toggleAIMode}
               >
                 {isAIMode ? 'Switch to Text Mode' : 'Switch to AI Mode'}
@@ -235,7 +270,7 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
               className="mb-auto"
               variants={itemVariants}
             >
-              <ul className="space-y-5">
+              <ul className="space-y-3 md:space-y-5">
                 {navLinks.map((link) => {
                   const isActive = activeSection === link.href.substring(1);
                   return (
@@ -247,7 +282,7 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
                     >
                       <Link 
                         href={link.href} 
-                        className={`nav-link ${isActive ? 'active' : ''}`}
+                        className={`nav-link text-base md:text-lg ${isActive ? 'active' : ''}`}
                         onClick={() => {
                           setIsMenuOpen(false);
                           const element = document.querySelector(link.href);
@@ -308,21 +343,21 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
         )}
       </AnimatePresence>
       
-      {/* Main content */}
+       {/* Main content */}
        <motion.main
-         className="flex-1 py-12 px-6 md:px-20 pb-24 overflow-y-auto md:ml-64"
+         className="flex-1 py-6 md:py-12 px-4 md:px-6 lg:px-20 pb-20 md:pb-24 overflow-y-auto md:ml-64"
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ duration: 0.5 }}
        >
-         <div className="max-w-3xl mx-auto pt-16 md:pt-10">
+         <div className="max-w-3xl mx-auto pt-8 md:pt-16 lg:pt-10">
            {children}
          </div>
-       </motion.main>
-
-       {/* Dock */}
-       <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40">
-         <Dock onSectionNavigate={onSectionNavigate} highlightAI={highlightAI} />
+       </motion.main>       {/* Dock */}
+       <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 px-4 w-full max-w-screen">
+         <div className="flex justify-center">
+           <Dock onSectionNavigate={onSectionNavigate} highlightAI={highlightAI} />
+         </div>
        </div>
      </div>
    );

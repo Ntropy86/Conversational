@@ -10,7 +10,7 @@
     },
     {
       "id": "spenza-inc",
-      "title": "Software Engineer (Intern)",
+      "title": "Software Engineer",
       "subtitle": "Spenza Inc. (B2B SaaS, ~8-person) • Jan. 2023 – Aug. 2023",
       "file": "spenza-inc.md",
       "preview": "Contributed to core infrastructure and platform engineering at fast-growing B2B SaaS startup, focusing on AWS serverless architecture, payment systems, and high-reliability data processing.",
@@ -18,7 +18,7 @@
     },
     {
       "id": "cdac-intern", 
-      "title": "Research & Development Intern",
+      "title": "Research & Development Engineer",
       "subtitle": "Centre for Development of Advanced Computing (CDAC), Govt. of India • Sep. 2022 – Mar. 2023",
       "file": "cdac-intern.md",
       "preview": "Contributed to advanced brain-computer interface research at India's premier computing research institute, focusing on EEG signal processing, machine learning optimization, and computer vision applications.",
@@ -26,7 +26,7 @@
     },
     {
       "id": "drdo-intern",
-      "title": "Summer Vocational Intern",
+      "title": "Summer Vocational Trainee",
       "subtitle": "Defence Research & Development Organisation (DRDO) • Jun. 2022 – Jul. 2022",
       "file": "drdo-intern.md",
       "preview": "Contributed to hyperspectral imaging research for defense applications at India's premier defense research organization, focusing on advanced image analysis techniques and workflow optimization.",
@@ -65,6 +65,67 @@
       "file": "moody-eeg-classifier.md",
       "preview": "Advanced BCI system for real-time emotion classification from EEG signals, featuring SMOTE, ensemble learning, and 80-100% adjusted match rates with sliding window robustness.",
       "tags": ["BCI", "EEG", "Machine Learning", "SMOTE", "Real-time Processing", "Emotion Recognition"]
+    }
+  ],
+  "publications": [
+    {
+      "id": "set-paired-chi-2025",
+      "title": "SET-PAiREd: Designing for Parental Involvement in Learning with an AI-Assisted Educational Robot",
+      "subtitle": "ACM CHI 2025 • 2025",
+      "file": "set-paired-chi-2025.md",
+      "preview": "Investigating how AI-assisted educational robots can facilitate meaningful parental involvement in children's learning processes through the SET-PAiREd framework.",
+      "tags": ["Educational Robotics", "Parental Involvement", "AI-Assisted Learning", "HCI", "Child-Robot Interaction"],
+      "type": "Conference Paper",
+      "venue": "ACM CHI Conference on Human Factors in Computing Systems",
+      "date": "2025",
+      "doi": "https://doi.org/10.1145/3706598.3713330"
+    },
+    {
+      "id": "osa-detection-ecg-dcnn",
+      "title": "Hybrid DCNN model for classification and detecting Obstructive Sleep Apnea (OSA) from digitized ECG signals",
+      "subtitle": "Biomedical Signal Processing and Control • 2023",
+      "file": "osa-detection-ecg-dcnn.md",
+      "preview": "A novel hybrid deep convolutional neural network approach for automated detection and classification of obstructive sleep apnea using digitized ECG signals.",
+      "tags": ["Sleep Apnea", "ECG Signals", "Deep Learning", "CNN", "Biomedical Signal Processing"],
+      "type": "Journal Article",
+      "venue": "Biomedical Signal Processing and Control 84 (2023)",
+      "date": "2023",
+      "link": "https://www.sciencedirect.com/science/article/abs/pii/S1746809423001878"
+    }
+  ],
+  "blog": [
+    {
+      "id": "building-conversational-ai-systems",
+      "title": "Building Conversational AI Systems: From Concept to Production",
+      "subtitle": "December 15, 2024 • 8 min read",
+      "file": "building-conversational-ai-systems/index.md",
+      "preview": "A comprehensive guide to building production-ready conversational AI systems, covering architecture decisions, real-time streaming, voice processing, and optimization strategies for natural human-AI interaction.",
+      "tags": ["AI", "Conversational AI", "FastAPI", "LLM", "Voice AI", "Production Systems"],
+      "publishDate": "December 15, 2024",
+      "readingTime": "8 minutes",
+      "featured": true
+    },
+    {
+      "id": "modern-web-development-practices", 
+      "title": "Modern Web Development: Lessons from Building Production Applications",
+      "subtitle": "November 28, 2024 • 6 min read",
+      "file": "modern-web-development-practices/index.md",
+      "preview": "Insights from building modern web applications with React, Next.js, and contemporary development practices. Covers performance optimization, accessibility, testing strategies, and deployment patterns.",
+      "tags": ["Web Development", "React", "Next.js", "Performance", "Architecture", "Best Practices"],
+      "publishDate": "November 28, 2024",
+      "readingTime": "6 minutes",
+      "featured": false
+    },
+    {
+      "id": "machine-learning-in-production",
+      "title": "Machine Learning in Production: Bridging the Gap Between Research and Reality", 
+      "subtitle": "October 10, 2024 • 10 min read",
+      "file": "machine-learning-in-production/index.md",
+      "preview": "A deep dive into the challenges and solutions for deploying machine learning models in production environments. Covers MLOps, monitoring, data pipelines, and real-world case studies from BCI systems.",
+      "tags": ["Machine Learning", "MLOps", "Production Systems", "AI Engineering", "Data Science"],
+      "publishDate": "October 10, 2024", 
+      "readingTime": "10 minutes",
+      "featured": true
     }
   ]
 }

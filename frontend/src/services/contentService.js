@@ -23,6 +23,16 @@ export async function getProjectList() {
   return metadata.projects || [];
 }
 
+export async function getPublicationList() {
+  const metadata = await getContentMetadata();
+  return metadata.publications || [];
+}
+
+export async function getBlogList() {
+  const metadata = await getContentMetadata();
+  return metadata.blog || [];
+}
+
 export async function loadMarkdownContent(type, id) {
   try {
     const response = await fetch(`/api/content?type=${type}&id=${id}`);
@@ -42,4 +52,12 @@ export async function getExperienceContent(id) {
 
 export async function getProjectContent(id) {
   return await loadMarkdownContent('project', id);
+}
+
+export async function getPublicationContent(id) {
+  return await loadMarkdownContent('publication', id);
+}
+
+export async function getBlogContent(id) {
+  return await loadMarkdownContent('blog', id);
 }

@@ -7,4 +7,6 @@ export { default as Input } from './Input';
 export { default as Toggle } from './Toggle';
 export { default as RadarChart } from './RadarChart';
 export { default as SkillsRadar } from './SkillsRadar';
+export { default as Publications } from './Publications';
+export { default as Blog } from './Blog';
 export { Heading, Subtitle, Paragraph } from './Typography';
