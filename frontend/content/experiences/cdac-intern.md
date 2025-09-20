@@ -1,48 +1,46 @@
 # Research & Development Intern
-**Centre for Development of Advanced Computing (CDAC) | Sep 2022 - Mar 2023**
+**Centre for Development of Advanced Computing (CDAC), Govt. of India**  
+*Sep. 2022 – Mar. 2023 | New Delhi, IN*
 
 ## Overview
-Developed cutting-edge Brain-Computer Interface (BCI) systems and signal processing algorithms, contributing to advanced neurotechnology research at one of India's premier R&D institutions.
+Contributed to advanced brain-computer interface research at India's premier computing research institute, focusing on EEG signal processing, machine learning optimization, and computer vision applications.
 
-## Key Projects
+## Key Achievements
 
-### Brain-Computer Interface System
-- **Objective**: Develop real-time BCI system for motor imagery classification
-- **Achievement**: Achieved 89% accuracy in classifying motor imagery signals
-- **Impact**: Contributed to assistive technology development for individuals with motor disabilities
+### Brain-Computer Interface Optimization
+- **EEG P300 Keyspeller**: Re-engineered complete P300 Keyspeller pipeline for brain-computer interface applications
+- **Performance Improvements**: Achieved 30% reduction in system latency and 10% improvement in accuracy
+- **Signal Processing**: Enhanced EEG signal processing algorithms for more reliable P300 event detection
+- **Real-time Processing**: Optimized pipeline for real-time brain signal interpretation
 
-### EEG Signal Processing Pipeline
-- **Innovation**: Designed advanced signal processing algorithms for noise reduction
-- **Technical**: Implemented Common Spatial Pattern (CSP) algorithms for feature extraction
-- **Performance**: Improved signal-to-noise ratio by 35% compared to baseline methods
+### Computer Vision & Automation
+- **Dataset Automation**: Built comprehensive face-detection and expression-cropping automation tool using OpenCV
+- **Training Pipeline**: Streamlined creation of training datasets for facial expression recognition models
+- **Workflow Optimization**: Automated manual processes that previously required significant human intervention
+- **Quality Assurance**: Implemented validation mechanisms to ensure dataset quality and consistency
 
-## Technical Contributions
-- **Algorithm Development**: Created novel machine learning algorithms for EEG signal classification
-- **Real-time Processing**: Implemented real-time signal processing systems with sub-100ms latency
-- **Data Analysis**: Analyzed large-scale EEG datasets using advanced statistical methods
-- **Research Documentation**: Co-authored technical reports and research publications
+### Legacy System Modernization
+- **Python Migration**: Successfully modernized legacy Python 2.7 codebase to Python 3.x
+- **Async Implementation**: Introduced asynchronous streaming capabilities for improved performance
+- **Code Quality**: Improved maintainability and future-proofing of critical research software
+- **Documentation**: Created comprehensive documentation for migrated systems
 
-## Technologies Used
-- MATLAB
-- Python
-- Signal Processing Toolbox
-- Machine Learning (SVM, Neural Networks)
-- EEG/BCI Hardware
-- Statistical Analysis
+## Technical Stack
+- **Signal Processing**: EEG signal analysis, P300 event detection
+- **Computer Vision**: OpenCV, face detection, automated cropping
+- **Machine Learning**: Classification algorithms, accuracy optimization
+- **Programming**: Python 2.7 → 3.x migration, async programming
+- **Research Tools**: Scientific computing, data analysis
 
-## Research Outcomes
-- **Performance**: Achieved state-of-the-art results in motor imagery classification
-- **Publication**: Contributed to research papers on BCI technology
-- **Innovation**: Developed novel approaches to EEG artifact removal
-- **Collaboration**: Worked with interdisciplinary teams including neuroscientists and engineers
+## Research Impact
+- Contributed to advancing brain-computer interface technology for assistive applications
+- Improved accessibility tools for individuals with motor disabilities
+- Enhanced research efficiency through automation and optimization
+- Supported India's national initiative in advanced computing research
 
-## Skills Developed
-- Biomedical Signal Processing
-- Brain-Computer Interface Development
-- Machine Learning for Healthcare
-- Research Methodology
-- Technical Writing & Documentation
-- Cross-functional Team Collaboration
-
-## Impact
-This internship provided foundational experience in neurotechnology and biomedical engineering, contributing to the development of assistive technologies that can improve quality of life for individuals with disabilities.
+## Learning Outcomes
+This research internship provided deep experience in:
+- Cutting-edge neurotechnology and brain-computer interfaces
+- Balancing research innovation with practical engineering constraints
+- Working within government research institutions and their unique requirements
+- Contributing to technology with significant social impact potential

@@ -1,38 +1,70 @@
 {
   "experiences": [
     {
-      "id": "graduate-researcher",
-      "title": "Graduate Student Researcher",
-      "subtitle": "People and Robots Lab, NSF-Funded | Mar 2024 - Jan 2025",
-      "file": "graduate-researcher.md",
-      "preview": "Engineered an AI-assisted educational robot system resulting in a publication at ACM CHI 2025 and demonstrating a 15% improvement in learning retention among child-parent pairs.",
-      "tags": ["Python", "GPT-4o", "PyTorch", "Statistical Analysis"]
+      "id": "people-robots-lab",
+      "title": "Graduate Research Engineer (Backend & Systems)",
+      "subtitle": "People & Robots Lab (NSF-funded), University of Wisconsin–Madison • Mar. 2024 – Jan. 2025",
+      "file": "people-robots-lab.md",
+      "preview": "Led backend engineering and systems development for NSF-funded research on human-robot interaction, focusing on scalable data processing and LLM integration for educational robotics applications.",
+      "tags": ["FastAPI", "MongoDB", "LLM", "Robotics", "Multi-Agent Systems", "Research"]
+    },
+    {
+      "id": "spenza-inc",
+      "title": "Software Engineer (Intern)",
+      "subtitle": "Spenza Inc. (B2B SaaS, ~8-person) • Jan. 2023 – Aug. 2023",
+      "file": "spenza-inc.md",
+      "preview": "Contributed to core infrastructure and platform engineering at fast-growing B2B SaaS startup, focusing on AWS serverless architecture, payment systems, and high-reliability data processing.",
+      "tags": ["AWS", "Serverless", "Stripe", "ETL", "Lambda", "SQS"]
     },
     {
       "id": "cdac-intern", 
       "title": "Research & Development Intern",
-      "subtitle": "Centre for Development of Advanced Computing (CDAC) | Sep 2022 - Mar 2023",
+      "subtitle": "Centre for Development of Advanced Computing (CDAC), Govt. of India • Sep. 2022 – Mar. 2023",
       "file": "cdac-intern.md",
-      "preview": "Developed cutting-edge Brain-Computer Interface (BCI) systems and signal processing algorithms, contributing to advanced neurotechnology research.",
-      "tags": ["MATLAB", "Python", "Signal Processing", "Machine Learning", "BCI"]
+      "preview": "Contributed to advanced brain-computer interface research at India's premier computing research institute, focusing on EEG signal processing, machine learning optimization, and computer vision applications.",
+      "tags": ["BCI", "EEG", "P300", "OpenCV", "Signal Processing", "Python"]
+    },
+    {
+      "id": "drdo-intern",
+      "title": "Summer Vocational Intern",
+      "subtitle": "Defence Research & Development Organisation (DRDO) • Jun. 2022 – Jul. 2022",
+      "file": "drdo-intern.md",
+      "preview": "Contributed to hyperspectral imaging research for defense applications at India's premier defense research organization, focusing on advanced image analysis techniques and workflow optimization.",
+      "tags": ["Hyperspectral Imaging", "Linear Mixture Modeling", "Remote Sensing", "MATLAB", "Defense Research"]
     }
   ],
   "projects": [
     {
-      "id": "chicago-crime-forecasting",
-      "title": "Chicago Crime Data Forecasting & Hotspot Analysis", 
-      "subtitle": "Feb 2025",
-      "file": "chicago-crime-forecasting.md",
-      "preview": "Engineered a hybrid ARIMA-LSTM predictive model that improved crime pattern forecasting accuracy to 85%, enabling law-enforcement to optimize patrol resource allocation.",
-      "tags": ["ARIMA", "LSTM", "DBSCAN", "PySpark", "AWS EMR"]
+      "id": "codeforces-potd",
+      "title": "Codeforces-POTD (Chrome Extension)",
+      "subtitle": "Featured Chrome Extension with 2k+ Users • 4.8/5 Rating",
+      "file": "codeforces-potd.md",
+      "preview": "Featured Chrome extension with 2k+ users and 4.8/5 rating. Gamifies competitive programming practice with daily problems, streak tracking, and calendar interface.",
+      "tags": ["Chrome Extension", "JavaScript", "API Integration", "CI/CD", "GitHub Actions"]
     },
     {
-      "id": "hallucination-detection",
-      "title": "Hallucination Detection in Vision-Language Models",
-      "subtitle": "Dec 2024", 
-      "file": "hallucination-detection.md",
-      "preview": "Developed a novel framework for detecting and mitigating hallucinations in Vision-Language Models (VLMs), achieving 92% accuracy in identifying false visual descriptions.",
-      "tags": ["PyTorch", "Transformers", "Computer Vision", "NLP", "Deep Learning"]
+      "id": "external-memory-merge-sort",
+      "title": "External Memory Merge Sort",
+      "subtitle": "High-Performance C++ Implementation for Big Data Processing",
+      "file": "external-memory-merge-sort.md",
+      "preview": "High-performance C++ implementation of external memory merge sort designed to handle 10GB+ datasets on memory-constrained systems with optimized I/O patterns.",
+      "tags": ["C++", "Algorithms", "Big Data", "Performance Optimization", "Systems Programming"]
+    },
+    {
+      "id": "llm-resume-qa-agent",
+      "title": "LLM Resume Q&A Agent (RAG-lite)",
+      "subtitle": "Streaming FastAPI + Qwen-7B Agent with Personal Document Grounding",
+      "file": "llm-resume-qa-agent.md",
+      "preview": "Intelligent conversational AI system with streaming FastAPI + Qwen-7B agent, featuring grounded reasoning, guardrails, and VAD-gated speech interaction.",
+      "tags": ["FastAPI", "LLM", "RAG", "Qwen-7B", "Voice AI", "Streaming"]
+    },
+    {
+      "id": "moody-eeg-classifier",
+      "title": "Moody: Real-Time EEG Emotion Classifier (BCI)",
+      "subtitle": "Advanced Brain-Computer Interface for Emotion Recognition",
+      "file": "moody-eeg-classifier.md",
+      "preview": "Advanced BCI system for real-time emotion classification from EEG signals, featuring SMOTE, ensemble learning, and 80-100% adjusted match rates with sliding window robustness.",
+      "tags": ["BCI", "EEG", "Machine Learning", "SMOTE", "Real-time Processing", "Emotion Recognition"]
     }
   ]
 }

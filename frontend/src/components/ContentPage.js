@@ -177,12 +177,23 @@ const ContentPage = ({ title, content, onBack }) => {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="max-w-4xl mx-auto"
+      className="max-w-4xl mx-auto px-6"
     >
-      {/* Content in a card */}
-      <Card className="prose prose-invert max-w-none">
-        <MarkdownRenderer content={content} />
-      </Card>
+      {/* Back button */}
+      <motion.button
+        onClick={onBack}
+        className={`flex items-center mb-6 ${typographyClasses.subtitle} hover:${typographyClasses.heading} transition-colors`}
+        whileHover={{ x: -5 }}
+        transition={{ duration: 0.2 }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+      </motion.button>
+
+      {/* Simple markdown renderer without card wrapper */}
+      <MarkdownRenderer content={content} />
     </motion.div>
   );
 };

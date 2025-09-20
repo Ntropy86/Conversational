@@ -48,11 +48,25 @@ const Button = ({
   };
   
   const getAcrylicStyle = () => {
+    let baseStyle;
     if (isDarkMode) {
-      return isHovered ? acrylicStyles.darkHover : acrylicStyles.dark;
+      baseStyle = isHovered ? acrylicStyles.darkHover : acrylicStyles.dark;
     } else {
-      return isHovered ? acrylicStyles.lightHover : acrylicStyles.light;
+      baseStyle = isHovered ? acrylicStyles.lightHover : acrylicStyles.light;
     }
+    
+    // Modify for secondary variant
+    if (variant === 'secondary') {
+      return {
+        ...baseStyle,
+        background: isDarkMode 
+          ? (isHovered ? "rgba(100, 100, 100, 0.2)" : "rgba(100, 100, 100, 0.1)")
+          : (isHovered ? "rgba(200, 200, 200, 0.3)" : "rgba(200, 200, 200, 0.2)"),
+        border: isDarkMode ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(0,0,0,0.1)"
+      };
+    }
+    
+    return baseStyle;
   };
   
   return (

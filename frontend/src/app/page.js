@@ -8,6 +8,7 @@ import Chip from '../components/Chip';
 import Button from '../components/Button';
 import AIMode from '../components/AIMode';
 import SectionTransition from '../components/SectionTransition';
+import SkillsRadar from '../components/SkillsRadar';
 import { useAIAgent } from '../context/AIAgentContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import TabManager from '../components/TabManager';
@@ -30,6 +31,10 @@ export default function Home() {
   const [loadedContent, setLoadedContent] = useState({});
   const [showTabLimitAlert, setShowTabLimitAlert] = useState(false);
   const [highlightAIButton, setHighlightAIButton] = useState(false);
+  
+  // Show more/less states
+  const [showAllExperience, setShowAllExperience] = useState(false);
+  const [showAllProjects, setShowAllProjects] = useState(false);
 
   // Load content metadata on mount
   useEffect(() => {
@@ -249,12 +254,12 @@ export default function Home() {
                   </section>
                 </SectionTransition>
 
-                {/* Quick Experience Preview */}
+                {/* Experience Section */}
                 <SectionTransition type="slide-up" className="mb-24">
-                  <section>
-                    <h2 className={`text-2xl mb-8 ${typographyClasses.heading}`}>Recent Experience</h2>
+                  <section id="experience">
+                    <h2 className={`text-2xl mb-8 ${typographyClasses.heading}`}>Experience</h2>
                     <div className="space-y-6">
-                      {experiences.slice(0, 2).map((exp) => (
+                      {experiences.slice(0, showAllExperience ? experiences.length : 2).map((exp) => (
                         <Card 
                           key={exp.id}
                           title={exp.title} 
@@ -274,29 +279,32 @@ export default function Home() {
                         </Card>
                       ))}
                     </div>
-                    {experiences.length > 2 && (
+                    {!showAllExperience && experiences.length > 2 && (
+                      <div className="text-center mt-8">
+                        <Button onClick={() => setShowAllExperience(true)}>
+                          Show More Experience
+                        </Button>
+                      </div>
+                    )}
+                    {showAllExperience && experiences.length > 2 && (
                       <div className="text-center mt-8">
                         <Button 
-                          onClick={() => {
-                            const element = document.getElementById('all-experience');
-                            if (element) {
-                              element.scrollIntoView({ behavior: 'smooth' });
-                            }
-                          }}
+                          variant="secondary"
+                          onClick={() => setShowAllExperience(false)}
                         >
-                          Explore All Experience
+                          Show Less
                         </Button>
                       </div>
                     )}
                   </section>
                 </SectionTransition>
 
-                {/* Quick Projects Preview */}
+                {/* Projects Section */}
                 <SectionTransition type="slide-up" className="mb-24">
-                  <section>
-                    <h2 className={`text-2xl mb-8 ${typographyClasses.heading}`}>Featured Projects</h2>
+                  <section id="projects">
+                    <h2 className={`text-2xl mb-8 ${typographyClasses.heading}`}>Projects</h2>
                     <div className="space-y-6">
-                      {projects.slice(0, 3).map((project) => (
+                      {projects.slice(0, showAllProjects ? projects.length : 2).map((project) => (
                         <Card 
                           key={project.id}
                           title={project.title} 
@@ -316,76 +324,23 @@ export default function Home() {
                         </Card>
                       ))}
                     </div>
-                    {projects.length > 3 && (
+                    {!showAllProjects && projects.length > 2 && (
                       <div className="text-center mt-8">
-                        <Button 
-                          onClick={() => {
-                            const element = document.getElementById('all-projects');
-                            if (element) {
-                              element.scrollIntoView({ behavior: 'smooth' });
-                            }
-                          }}
-                        >
-                          Explore All Projects
+                        <Button onClick={() => setShowAllProjects(true)}>
+                          Show More Projects
                         </Button>
                       </div>
                     )}
-                  </section>
-                </SectionTransition>
-
-                {/* All Experience Section */}
-                <SectionTransition type="slide-up" className="mb-24">
-                  <section id="all-experience">
-                    <h2 className={`text-2xl mb-8 ${typographyClasses.heading}`}>All Experience</h2>
-                    <div className="space-y-6">
-                      {experiences.map((exp) => (
-                        <Card 
-                          key={exp.id}
-                          title={exp.title} 
-                          subtitle={exp.subtitle} 
-                          hoverEffect={true}
-                          className="cursor-pointer"
-                          onClick={() => handleOpenContent('experience', exp.id)}
+                    {showAllProjects && projects.length > 2 && (
+                      <div className="text-center mt-8">
+                        <Button 
+                          variant="secondary"
+                          onClick={() => setShowAllProjects(false)}
                         >
-                          <p className={`mb-4 ${typographyClasses.paragraph}`}>
-                            {exp.preview}
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {exp.tags.map((tag, idx) => (
-                              <Chip key={idx}>{tag}</Chip>
-                            ))}
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </section>
-                </SectionTransition>
-
-                {/* All Projects Section */}
-                <SectionTransition type="slide-up" className="mb-24">
-                  <section id="all-projects">
-                    <h2 className={`text-2xl mb-8 ${typographyClasses.heading}`}>All Projects</h2>
-                    <div className="space-y-6">
-                      {projects.map((project) => (
-                        <Card 
-                          key={project.id}
-                          title={project.title} 
-                          subtitle={project.subtitle} 
-                          hoverEffect={true}
-                          className="cursor-pointer"
-                          onClick={() => handleOpenContent('project', project.id)}
-                        >
-                          <p className={`mb-4 ${typographyClasses.paragraph}`}>
-                            {project.preview}
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {project.tags.map((tag, idx) => (
-                              <Chip key={idx}>{tag}</Chip>
-                            ))}
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
+                          Show Less
+                        </Button>
+                      </div>
+                    )}
                   </section>
                 </SectionTransition>
 
@@ -393,49 +348,15 @@ export default function Home() {
                 <SectionTransition type="slide-up" className="mb-24">
                   <section id="skills">
                     <h2 className={`text-2xl mb-8 ${typographyClasses.heading}`}>Technical Skills</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Card title="Programming Languages" hoverEffect={true}>
-                        <div className="flex flex-wrap gap-2">
-                          <Chip>Python</Chip>
-                          <Chip>R</Chip>
-                          <Chip>Julia</Chip>
-                          <Chip>SQL</Chip>
-                          <Chip>JavaScript</Chip>
-                          <Chip>C++</Chip>
-                        </div>
-                      </Card>
-                      
-                      <Card title="ML/AI" hoverEffect={true}>
-                        <div className="flex flex-wrap gap-2">
-                          <Chip>PyTorch</Chip>
-                          <Chip>TensorFlow</Chip>
-                          <Chip>scikit-learn</Chip>
-                          <Chip>OpenCV</Chip>
-                          <Chip>NLTK</Chip>
-                          <Chip>XGBoost</Chip>
-                        </div>
-                      </Card>
-                      
-                      <Card title="Cloud & Big Data" hoverEffect={true}>
-                        <div className="flex flex-wrap gap-2">
-                          <Chip>AWS</Chip>
-                          <Chip>Docker</Chip>
-                          <Chip>PySpark</Chip>
-                          <Chip>Kubernetes</Chip>
-                          <Chip>MongoDB</Chip>
-                        </div>
-                      </Card>
-                      
-                      <Card title="Web Development" hoverEffect={true}>
-                        <div className="flex flex-wrap gap-2">
-                          <Chip>React</Chip>
-                          <Chip>Next.js</Chip>
-                          <Chip>Node.js</Chip>
-                          <Chip>FastAPI</Chip>
-                          <Chip>Express</Chip>
-                        </div>
-                      </Card>
-                    </div>
+                    
+                    {/* Radar Chart Visualization */}
+                    <SectionTransition delay={0.1}>
+                      <div className="mb-12">
+                        <SkillsRadar />
+                      </div>
+                    </SectionTransition>
+                    
+
                   </section>
                 </SectionTransition>
 

@@ -5,4 +5,6 @@ export { default as Link } from './Link';
 export { default as Chip } from './Chip';
 export { default as Input } from './Input';
 export { default as Toggle } from './Toggle';
+export { default as RadarChart } from './RadarChart';
+export { default as SkillsRadar } from './SkillsRadar';
 export { Heading, Subtitle, Paragraph } from './Typography';
