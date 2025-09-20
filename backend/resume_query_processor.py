@@ -239,10 +239,17 @@ class ResumeQueryProcessor:
         elif intent == "publications":
             items = self.resume_data.get("publications", [])
         elif intent == "skills":
-            # For skills, return structured skill data
+            # For skills, return structured skill data with proper IDs
             skills_data = self.resume_data.get("skills", {})
-            items = [{"title": category.replace("_", " ").title(), "skills": skill_list} 
-                    for category, skill_list in skills_data.items()]
+            items = [
+                {
+                    "id": category,  # Use the original key as ID
+                    "title": category.replace("_", " ").title(), 
+                    "skills": skill_list,
+                    "type": "skill"
+                } 
+                for category, skill_list in skills_data.items()
+            ]
         else:
             # Default to projects
             items = self.resume_data.get("projects", [])

@@ -138,6 +138,13 @@ export default function Home() {
     });
   };
 
+  // Reset tabs to overview only
+  const resetTabs = () => {
+    setTabs([{ id: 'overview', title: 'Overview', type: 'overview', closeable: false }]);
+    setActiveTabId('overview');
+    setLoadedContent({});
+  };
+
 
 
   // Get current tab and content
@@ -461,6 +468,7 @@ export default function Home() {
                     onClick={() => {
                       setShowTabLimitAlert(false);
                       setHighlightAIButton(false);
+                      resetTabs(); // Reset tabs when closing the popup
                     }}
                     className="bg-transparent border border-gray-600 hover:bg-gray-700"
                   >

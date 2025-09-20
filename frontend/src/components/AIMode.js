@@ -41,6 +41,9 @@ const AIMode = () => {
   const inputRef = useRef(null);
   const contentRef = useRef(null);
   
+  // Use ref to track voice mode intent persistently (survives re-renders)
+  const voiceModeIntentRef = useRef(false);
+  
   // VAD integration for voice input
   const vad = useVAD({
     positiveSpeechThreshold: 0.8,
@@ -52,8 +55,29 @@ const AIMode = () => {
     },
     onSpeechEnd: async (audio) => {
       console.log('Speech ended, samples:', audio.length);
-      if (voiceMode && isBackendConnected) {
-        await processAudioData(audio);
+      console.log('🔍 Current state check:', { 
+        voiceMode, 
+        voiceModeIntent: voiceModeIntentRef.current,
+        isBackendConnected, 
+        audioProcessing,
+        vadIsListening: vad.isListening 
+      });
+      
+      // Use persistent voiceMode intent ref (survives React re-renders)
+      const shouldProcessAudio = voiceModeIntentRef.current && isBackendConnected && !audioProcessing;
+      console.log('🎯 Should process audio:', shouldProcessAudio, '(based on persistent intent ref)');
+      
+      if (shouldProcessAudio) {
+        try {
+          console.log('🎯 Starting audio processing...');
+          const result = await processAudioData(audio);
+          console.log('✅ Audio processing completed:', result);
+          
+        } catch (error) {
+          console.error('❌ Error in audio processing:', error);
+        }
+      } else {
+        console.log('⏭️ Skipping audio processing - voiceModeIntent:', voiceModeIntentRef.current, 'backend:', isBackendConnected, 'processing:', audioProcessing);
       }
     },
     onVADMisfire: () => {
@@ -63,6 +87,38 @@ const AIMode = () => {
   
   // Make dock and input visible when scrolling
   const [isScrolled, setIsScrolled] = useState(false);
+  
+  // Log voiceMode changes for debugging
+  useEffect(() => {
+    console.log('🔄 voiceMode state changed to:', voiceMode);
+  }, [voiceMode]);
+  
+  // Handle audioProcessing state changes - pause/resume VAD
+  useEffect(() => {
+    console.log('🔄 audioProcessing state changed to:', audioProcessing);
+    
+    // Only manage VAD if we're in voice mode and VAD is loaded
+    if (!voiceModeIntentRef.current || !vad.isLoaded) {
+      console.log('⏭️ Skipping VAD management - voiceMode:', voiceModeIntentRef.current, 'vadLoaded:', vad.isLoaded);
+      return;
+    }
+    
+    if (audioProcessing) {
+      // Pause VAD during processing to prevent multiple concurrent requests
+      if (vad.isListening) {
+        console.log('⏸️ Pausing VAD due to audioProcessing=true...');
+        const success = vad.toggle(false);
+        console.log('🎯 VAD pause result:', success);
+      }
+    } else {
+      // Resume VAD when processing completes, but only if we're still in voice mode
+      if (voiceModeIntentRef.current && !vad.isListening) {
+        console.log('▶️ Resuming VAD due to audioProcessing=false...');
+        const success = vad.toggle(true);
+        console.log('🎯 VAD resume result:', success);
+      }
+    }
+  }, [audioProcessing, vad.isLoaded, vad.isListening, vad.toggle]);
   
   useEffect(() => {
     const handleScroll = () => {
@@ -130,27 +186,71 @@ const AIMode = () => {
 
   // Voice mode controls
   const startVoiceMode = () => {
+    console.log('🎤 startVoiceMode called:', { 
+      vadLoaded: vad.isLoaded, 
+      backendConnected: isBackendConnected, 
+      audioProcessing: audioProcessing,
+      currentVoiceMode: voiceMode
+    });
+    
+    // Don't start if already processing audio
+    if (audioProcessing) {
+      console.log('⏸️ Cannot start voice mode - audio is being processed');
+      return;
+    }
+    
     if (vad.isLoaded && isBackendConnected && !audioProcessing) {
+      console.log('✅ Setting voiceMode intent to true');
+      voiceModeIntentRef.current = true;
+      setVoiceMode(true);
+      
+      console.log('🟢 Starting VAD...');
       const success = vad.toggle(true);
-      if (success) {
-        setVoiceMode(true);
+      console.log('🎯 VAD toggle result:', success);
+      
+      if (!success) {
+        console.error('❌ Failed to start VAD, reverting voiceMode intent to false');
+        voiceModeIntentRef.current = false;
+        setVoiceMode(false);
       }
+    } else {
+      console.log('⏭️ Cannot start voice mode:', {
+        vadLoaded: vad.isLoaded,
+        backendConnected: isBackendConnected,
+        audioProcessing: audioProcessing
+      });
     }
   };
 
   const stopVoiceMode = () => {
+    console.log('🛑 stopVoiceMode called:', { vadListening: vad.isListening });
+    
+    console.log('✅ Setting voiceMode intent to false');
+    voiceModeIntentRef.current = false;
+    
     if (vad.isListening) {
+      console.log('🔴 Stopping VAD...');
       const success = vad.toggle(false);
+      console.log('🎯 VAD toggle stop result:', success);
       if (success) {
+        console.log('✅ Setting voiceMode to false');
         setVoiceMode(false);
+      } else {
+        console.error('❌ Failed to stop VAD');
       }
+    } else {
+      console.log('ℹ️ VAD not listening, just setting voiceMode to false');
+      setVoiceMode(false);
     }
   };
 
   const toggleVoiceMode = () => {
+    console.log('🔄 toggleVoiceMode called - current voiceMode:', voiceMode);
     if (voiceMode) {
+      console.log('➡️ Stopping voice mode...');
       stopVoiceMode();
     } else {
+      console.log('➡️ Starting voice mode...');
       startVoiceMode();
     }
   };
@@ -181,46 +281,61 @@ const AIMode = () => {
   );
 
   // Voice mode button
-  const VoiceButton = () => (
-    <motion.button 
-      onClick={toggleVoiceMode}
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.95 }}
-      disabled={!vad.isLoaded || !isBackendConnected || isAIResponding || audioProcessing}
-      className={`p-2 rounded-full flex items-center justify-center transition-colors ${
-        voiceMode 
-          ? 'bg-red-500 hover:bg-red-600' 
-          : 'bg-green-500 hover:bg-green-600'
-      } ${(!vad.isLoaded || !isBackendConnected) ? 'opacity-40' : ''}`}
-    >
-      {audioProcessing ? (
-        <motion.svg 
-          width="16" 
-          height="16" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="white" 
-          strokeWidth="2"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 8V16" strokeLinecap="round" />
-          <path d="M8 12H16" strokeLinecap="round" />
-        </motion.svg>
-      ) : voiceMode ? (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-          <rect x="6" y="6" width="12" height="12" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      ) : (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-          <path d="M12 15C13.6569 15 15 13.6569 15 12V6C15 4.34315 13.6569 3 12 3C10.3431 3 9 4.34315 9 6V12C9 13.6569 10.3431 15 12 15Z" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M12 19V22" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-    </motion.button>
-  );
+  const VoiceButton = () => {
+    // Determine button state and color
+    const getButtonState = () => {
+      if (audioProcessing) return { color: 'yellow', label: 'Processing' };
+      if (voiceMode) return { color: 'red', label: 'Stop' };
+      return { color: 'green', label: 'Start' };
+    };
+    
+    const buttonState = getButtonState();
+    
+    return (
+      <motion.button 
+        onClick={audioProcessing ? undefined : toggleVoiceMode}
+        whileHover={audioProcessing ? {} : { scale: 1.1 }}
+        whileTap={audioProcessing ? {} : { scale: 0.95 }}
+        disabled={!vad.isLoaded || !isBackendConnected || isAIResponding}
+        className={`p-2 rounded-full flex items-center justify-center transition-colors ${
+          buttonState.color === 'yellow' 
+            ? 'bg-yellow-500 hover:bg-yellow-600' 
+            : buttonState.color === 'red'
+            ? 'bg-red-500 hover:bg-red-600' 
+            : 'bg-green-500 hover:bg-green-600'
+        } ${(!vad.isLoaded || !isBackendConnected) ? 'opacity-40' : ''} ${
+          audioProcessing ? 'cursor-not-allowed' : 'cursor-pointer'
+        }`}
+        title={`${buttonState.label} voice mode`}
+      >
+        {audioProcessing ? (
+          <motion.svg 
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="white" 
+            strokeWidth="2"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" strokeLinecap="round" />
+          </motion.svg>
+        ) : voiceMode ? (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <rect x="6" y="6" width="12" height="12" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ) : (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <path d="M12 15C13.6569 15 15 13.6569 15 12V6C15 4.34315 13.6569 3 12 3C10.3431 3 9 4.34315 9 6V12C9 13.6569 10.3431 15 12 15Z" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 19V22" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </motion.button>
+    );
+  };
   
   return (
     <div className="min-h-screen">
@@ -323,7 +438,7 @@ const AIMode = () => {
               </div>
               {(audioProcessing || isAIResponding) && (
                 <div className="mt-2 text-blue-400">
-                  {audioProcessing ? 'Processing audio...' : 'AI is responding...'}
+                  {audioProcessing ? 'Processing your voice...' : 'AI is responding...'}
                 </div>
               )}
             </motion.div>
@@ -574,9 +689,9 @@ const AIMode = () => {
       )}
       
       {/* Dock element - fixed at bottom with Magic UI style */}
-      <div className={`fixed ${isScrolled ? 'bottom-14' : 'bottom-10'} left-1/2 transform -translate-x-1/2 z-40 transition-all duration-300 px-4`}>
+      <div className={`fixed ${isScrolled ? 'bottom-14' : 'bottom-10'} left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 px-4`}>
         <motion.div 
-          className="magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[12px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-x-auto"
+          className="magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[12px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-x-visible"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ scale: 1.03 }}
@@ -632,7 +747,7 @@ const AIMode = () => {
               }}
             >
               {/* Tooltip */}
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[9999]">
                 <div className="bg-black bg-opacity-80 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
                   {item.tooltip}
                 </div>

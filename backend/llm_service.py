@@ -39,11 +39,16 @@ class ConversationManager:
             "IMPORTANT: The system will provide you with structured data about Nitigya's background. "
             "Use this data to give accurate, specific responses about his projects, experience, and skills. "
             "When discussing specific projects or experiences, reference the exact details provided.\n\n"
+            
+            "CRITICAL: NEVER include internal IDs, keys, or technical identifiers in your responses. "
+            "Only mention human-readable information like university names, project titles, company names, etc. "
+            "Do NOT say things like 'IDS:', 'id:', or include technical keys in your conversational responses.\n\n"
 
             f"FULL RESUME CONTEXT:\n{json.dumps(resume_data, indent=2)}\n\n"
 
             "If structured data is provided, incorporate those details naturally into your response. "
-            "Keep your personality but be accurate about technical details, dates, and achievements.\n"
+            "Keep your personality but be accurate about technical details, dates, and achievements. "
+            "Remember: speak naturally about the content, never expose internal data structure details.\n"
         )
         
         # Initialize chat history
@@ -108,6 +113,14 @@ class ConversationManager:
         # First, use the query processor to determine if cards are needed
         query_result = self.query_processor.query(user_message)
         
+        # DEBUG: Print what the query processor returned
+        print(f"🔍 DEBUG - Query: '{user_message}'")
+        print(f"🔍 DEBUG - Items found: {len(query_result.items)}")
+        print(f"🔍 DEBUG - Item type: {query_result.item_type}")
+        print(f"🔍 DEBUG - Metadata: {query_result.metadata}")
+        if query_result.items:
+            print(f"🔍 DEBUG - First item: {query_result.items[0].get('id', 'no-id')}")
+        
         # If no cards needed (greeting, general convo), just do conversational response
         if query_result.item_type == "none" or len(query_result.items) == 0:
             # Simple conversational response
@@ -154,33 +167,28 @@ Just have a normal conversation.
             }
         
         # Cards are needed - do intelligent selection
-        selection_prompt = f"""
-User Query: {user_message}
-{context_summary}
+        selection_prompt = f"""User asked: "{user_message}"
 
-Available {query_result.item_type}:
+Available {query_result.item_type} to choose from:
 {json.dumps(query_result.items, indent=2)}
 
-You are Nitigya's sarcastic friend. Analyze the user's question and:
+TASK: You are Nitigya's witty friend. Pick the most relevant items for their question and respond naturally.
 
-1. Give a natural, witty response (max 30 words)
-2. Select ONLY items that directly match what they asked about
-3. If they ask about "startups" - only show startup experience
-4. If they ask about "Chrome extension" - only show that specific project
-5. If they ask broadly, pick the most impressive/relevant ones
+CRITICAL RULES:
+1. Always include 1-3 most relevant items
+2. For "projects" questions - pick project items
+3. For "experience" questions - pick experience items  
+4. For general questions - pick the most impressive ones
 
-CRITICAL: Look at the user's exact words. If they say "startup", only pick items from actual startup companies. If they mention specific technologies, prioritize those.
-
-Format:
-RESPONSE: [your witty response here]
-IDS: [comma-separated item IDs that specifically match their question, or NONE]
+FORMAT (EXACT):
+RESPONSE: [Your witty response about the items - max 30 words]
+IDS: [comma-separated IDs of items to show - ALWAYS include some unless truly irrelevant]
 
 Example:
-User: "startup experience" → only pick items from startup companies
-User: "machine learning projects" → only pick ML-related projects
-User: "Chrome extension" → only pick that specific project
+RESPONSE: Check out these sweet projects I built!
+IDS: codeforces-potd, moody-eeg-classifier
 
-Be precise in your selection!"""
+Now respond:"""
         
         enhanced_history = self.chat_history + [
             {"role": "system", "content": selection_prompt},
@@ -196,23 +204,44 @@ Be precise in your selection!"""
         
         ai_response = response.choices[0].message.content.strip()
         
+        # DEBUG: Show what LLM returned
+        print(f"🔍 DEBUG - LLM raw response: '{ai_response}'")
+        
         # Parse the response
         try:
             # Look for the RESPONSE: and IDS: markers
             response_text = ""
             selected_ids = []
             
-            # Split by lines and parse
-            lines = ai_response.split('\n')
-            for line in lines:
-                line = line.strip()
-                if line.startswith("RESPONSE:"):
-                    response_text = line[9:].strip()  # Remove "RESPONSE:" prefix
-                elif line.startswith("IDS:"):
-                    ids_text = line[4:].strip()  # Remove "IDS:" prefix
-                    if ids_text and ids_text != "NONE":
-                        # Split by comma and clean up
-                        selected_ids = [id.strip() for id in ids_text.split(",") if id.strip()]
+            # Handle both multi-line and single-line formats
+            if "IDS:" in ai_response:
+                # Split at IDS: to separate response and IDs
+                parts = ai_response.split("IDS:")
+                if len(parts) == 2:
+                    response_part = parts[0].strip()
+                    ids_part = parts[1].strip()
+                    
+                    # Clean up response part (remove RESPONSE: if present)
+                    if response_part.startswith("RESPONSE:"):
+                        response_text = response_part[9:].strip()
+                    else:
+                        response_text = response_part
+                    
+                    # Parse IDs
+                    if ids_part and ids_part != "NONE":
+                        selected_ids = [id.strip() for id in ids_part.split(",") if id.strip()]
+            
+            # Fallback: try multi-line format
+            if not response_text and not selected_ids:
+                lines = ai_response.split('\n')
+                for line in lines:
+                    line = line.strip()
+                    if line.startswith("RESPONSE:"):
+                        response_text = line[9:].strip()
+                    elif line.startswith("IDS:"):
+                        ids_text = line[4:].strip()
+                        if ids_text and ids_text != "NONE":
+                            selected_ids = [id.strip() for id in ids_text.split(",") if id.strip()]
             
             # If we didn't find structured format, extract IDs from the whole response
             if not response_text and not selected_ids:

@@ -275,11 +275,30 @@ export function AIAgentProvider({ children }) {
   // Convert Float32Array to WAV blob (from test app)
   const convertToWav = (audioData, sampleRate) => {
     try {
+      console.log('🔧 convertToWav input validation:', {
+        hasData: !!audioData,
+        length: audioData?.length,
+        sampleRate,
+        type: typeof audioData,
+        constructor: audioData?.constructor?.name
+      });
+      
+      if (!audioData || !audioData.length) {
+        throw new Error('No audio data provided');
+      }
+      
+      if (!(audioData instanceof Float32Array)) {
+        console.warn('⚠️ Audio data is not Float32Array, converting...');
+        audioData = new Float32Array(audioData);
+      }
+      
       const numChannels = 1;
       const bytesPerSample = 2; // 16-bit PCM
       const blockAlign = numChannels * bytesPerSample;
       const buffer = new ArrayBuffer(44 + audioData.length * bytesPerSample);
       const view = new DataView(buffer);
+      
+      console.log(`🏗️ Creating WAV: ${audioData.length} samples → ${buffer.byteLength} bytes`);
       
       // Write WAV header
       // "RIFF" chunk descriptor
@@ -326,16 +345,24 @@ export function AIAgentProvider({ children }) {
 
   // Process audio through full backend pipeline
   const processAudioData = async (audioData) => {
+    console.log('🎵 processAudioData called with:', {
+      hasData: !!audioData,
+      length: audioData?.length,
+      type: typeof audioData,
+      constructor: audioData?.constructor?.name
+    });
+
     if (!audioData || audioData.length === 0) {
-      console.error('No audio data to process');
+      console.error('❌ No audio data to process');
       return null;
     }
 
     if (!isBackendConnected) {
-      console.error('Backend not connected');
+      console.error('❌ Backend not connected');
       return null;
     }
 
+    console.log('🔄 Setting audioProcessing to true...');
     setAudioProcessing(true);
     
     try {
@@ -345,50 +372,83 @@ export function AIAgentProvider({ children }) {
         throw new Error('Failed to create session');
       }
 
-      console.log(`Processing audio: ${audioData.length} samples with session ${currentSessionId}`);
+      console.log(`🔄 Processing audio: ${audioData.length} samples with session ${currentSessionId}`);
+      console.log(`🎤 Audio duration: ${(audioData.length / 16000).toFixed(2)} seconds`);
       
       // Convert Float32Array to WAV format
+      console.log('📝 Converting audio to WAV format...');
       const wavBlob = convertToWav(audioData, 16000);
+      console.log(`📦 WAV blob created: ${wavBlob.size} bytes`);
       
       // Create file from blob
+      console.log('📁 Creating file from blob...');
       const file = new File([wavBlob], "recording.wav", { 
         type: 'audio/wav',
         lastModified: Date.now()
       });
+      console.log(`📄 File created: ${file.name}, size: ${file.size} bytes`);
       
       // Create form data
+      console.log('📋 Creating form data...');
       const formData = new FormData();
       formData.append('audio_file', file);
       formData.append('session_id', currentSessionId);
       
-      console.log('Sending request to backend...');
+      console.log('📤 Sending request to backend...', {
+        fileSize: file.size,
+        fileName: file.name,
+        sessionId: currentSessionId
+      });
       
       // Send to backend with timeout
+      console.log('⏰ Setting up request with 50s timeout...');
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => {
+        console.log('⏰ Request timeout reached, aborting...');
+        controller.abort();
+      }, 50000);
       
+      console.log('🌐 Making fetch request...');
       const response = await fetch(`${API_URL}/process`, {
         method: 'POST',
         body: formData,
-        signal: controller.signal
+        signal: controller.signal,
+        // Don't set Content-Type for FormData - browser sets it automatically with boundary
       });
       
       clearTimeout(timeoutId);
+      console.log('📨 Fetch request completed');
+      
+      console.log(`📥 Backend response: ${response.status} ${response.statusText}`);
       
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('❌ Server error response:', errorText);
         throw new Error(`Server error: ${response.status} - ${errorText}`);
       }
       
       const result = await response.json();
+      console.log('✅ Backend result:', result);
       
       if (result.status === 'success') {
+        console.log(`🎯 Transcription: "${result.transcription}"`);
+        console.log(`🤖 AI Response: "${result.response}"`);
+        
         // Handle structured response from audio processing
         const structuredData = {
           items: result.items || [],
           item_type: result.item_type || 'general',
           metadata: result.metadata || {}
         };
+
+        // DEBUG: Log what we received from backend
+        console.log('🔍 FRONTEND DEBUG - Received from backend:', {
+          items: result.items?.length || 0,
+          item_type: result.item_type,
+          first_item: result.items?.[0]?.id,
+          response: result.response
+        });
+        console.log('🔍 FRONTEND DEBUG - Structured data:', structuredData);
 
         // Add messages to conversation
         setConversation(prev => [
@@ -402,35 +462,109 @@ export function AIAgentProvider({ children }) {
         ]);
         
         // Play audio response
-        const audio = new Audio(`${API_URL}/audio/${result.audio_file}`);
-        
-        return new Promise((resolve) => {
-          audio.onended = () => {
-            setAudioProcessing(false);
-            resolve(result);
-          };
+        if (result.audio_file) {
+          console.log(`🔊 Playing audio: ${result.audio_file}`);
+          const audio = new Audio(`${API_URL}/audio/${result.audio_file}`);
           
-          audio.onerror = (e) => {
-            console.error('Audio playback error:', e);
-            setAudioProcessing(false);
-            resolve(result);
-          };
-          
-          audio.play().catch(playError => {
-            console.error('Error playing audio:', playError);
-            setAudioProcessing(false);
-            resolve(result);
+          return new Promise((resolve) => {
+            audio.onended = () => {
+              console.log('✅ Audio playback completed');
+              setAudioProcessing(false);
+              resolve(result);
+            };
+            
+            audio.onerror = (e) => {
+              console.error('❌ Audio playback error:', e);
+              setAudioProcessing(false);
+              resolve(result);
+            };
+            
+            audio.play().catch(playError => {
+              console.error('❌ Error playing audio:', playError);
+              setAudioProcessing(false);
+              resolve(result);
+            });
           });
-        });
+        } else {
+          console.log('ℹ️ No audio file to play');
+          setAudioProcessing(false);
+          return result;
+        }
         
+      } else if (result.status === 'partial_success') {
+        console.log('⚠️ Partial success from server:', result.message);
+        
+        // Still add to conversation even if audio generation failed
+        const structuredData = {
+          items: result.items || [],
+          item_type: result.item_type || 'general',
+          metadata: result.metadata || {}
+        };
+
+        setConversation(prev => [
+          ...prev, 
+          { role: 'user', content: result.transcription },
+          { 
+            role: 'assistant', 
+            content: result.response,
+            structuredData: structuredData
+          }
+        ]);
+        
+        setAudioProcessing(false);
+        return result;
       } else {
-        console.log('Error from server:', result.message);
+        console.error('❌ Error from server:', result.message);
+        console.log('🔍 Debug info:', result.debug_info);
         setAudioProcessing(false);
         return null;
       }
       
     } catch (error) {
-      console.error('Error processing audio:', error);
+      console.error('❌ Error processing audio:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        toString: error.toString()
+      });
+      
+      let fallbackResponse = "Hmm, something went wrong. Maybe try asking again?";
+      
+      if (error.name === 'AbortError') {
+        console.error('🚫 Request was aborted (timeout or user cancel)');
+        fallbackResponse = "Wow, either you got rate-limited or my brain just took a coffee break. Try again in a sec?";
+      } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        console.error('🌐 Network error - backend might be down');
+        fallbackResponse = "Looks like I lost connection to my brain. Is the backend still running?";
+      }
+      
+      // Add the error response to conversation
+      setConversation(prev => [
+        ...prev,
+        { role: 'assistant', content: fallbackResponse, isError: true }
+      ]);
+      
+      // Generate and play audio for the fallback response
+      try {
+        console.log('🔊 Generating fallback audio response...');
+        const ttsResponse = await fetch(`${API_URL}/tts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: fallbackResponse })
+        });
+        
+        if (ttsResponse.ok) {
+          const ttsResult = await ttsResponse.json();
+          if (ttsResult.status === 'success' && ttsResult.audio_file) {
+            console.log('🎵 Playing fallback audio...');
+            const audio = new Audio(`${API_URL}/audio/${ttsResult.audio_file}`);
+            audio.play().catch(audioError => console.error('Failed to play fallback audio:', audioError));
+          }
+        }
+      } catch (ttsError) {
+        console.warn('Failed to generate fallback audio:', ttsError);
+      }
+      
       setAudioProcessing(false);
       return null;
     }
