@@ -37,10 +37,10 @@ const Publications = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <h2 className={`text-3xl md:text-4xl mb-4 ${typographyClasses.heading}`}>
+        <h2 className={`text-2xl md:text-3xl lg:text-4xl mb-3 md:mb-4 ${typographyClasses.heading}`}>
           Publications
         </h2>
-        <p className={`mb-12 ${typographyClasses.body} max-w-2xl`}>
+        <p className={`mb-8 md:mb-12 text-sm md:text-base ${typographyClasses.body} max-w-2xl`}>
           Research contributions in brain-computer interfaces, machine learning, and educational robotics, 
           published in peer-reviewed journals and conferences.
         </p>
@@ -58,7 +58,7 @@ const Publications = () => {
         )}
 
         {!loading && !error && (
-          <div className="grid gap-8 md:gap-12">
+          <div className="grid gap-6 md:gap-8 lg:gap-12">
             {publications.map((publication, index) => (
               <motion.div
                 key={publication.id}
@@ -103,7 +103,7 @@ const PublicationCard = ({ publication }) => {
     }
     if (venue.includes('Biomedical Signal Processing and Control')) {
       return {
-        text: 'Q2 Journal',
+        text: 'Q1 Journal',
         detail: 'Impact Factor 4.9',
         color: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200'
       };
@@ -115,10 +115,10 @@ const PublicationCard = ({ publication }) => {
 
   return (
     <Card className="cursor-pointer hover:shadow-lg transition-all duration-300" onClick={handleCardClick}>
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         {/* Publication Type Badge */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+        <div className="flex items-start gap-2 flex-wrap">
+          <span className={`inline-block px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium ${
             publication.type === 'Journal Article' 
               ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
               : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -126,31 +126,31 @@ const PublicationCard = ({ publication }) => {
             {publication.type}
           </span>
           {venueReputation && (
-            <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${venueReputation.color}`}
+            <span className={`inline-block px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium ${venueReputation.color}`}
                   title={venueReputation.detail}>
               {venueReputation.text}
             </span>
           )}
-          <span className="text-sm text-gray-500 dark:text-gray-400">
+          <span className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-0.5 md:mt-0">
             {publication.date}
           </span>
         </div>
 
         {/* Title and Venue */}
         <div>
-          <h3 className={`text-xl md:text-2xl mb-2 ${typographyClasses.heading}`}>
+          <h3 className={`text-lg md:text-xl lg:text-2xl mb-2 leading-tight ${typographyClasses.heading}`}>
             {publication.title}
           </h3>
-          <p className={`text-sm mb-2 ${typographyClasses.subtitle} font-medium`}>
+          <p className={`text-xs md:text-sm mb-1 md:mb-2 ${typographyClasses.subtitle} font-medium`}>
             {publication.venue}
             {venueReputation && (
-              <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 font-normal">
+              <span className="ml-1 md:ml-2 text-xs text-gray-500 dark:text-gray-400 font-normal block md:inline">
                 ({venueReputation.detail})
               </span>
             )}
           </p>
           {(publication.doi || publication.link) && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-mono break-all">
               {publication.doi ? `DOI: ${publication.doi}` : 'Link: ' + publication.link}
             </p>
           )}
@@ -171,21 +171,21 @@ const PublicationCard = ({ publication }) => {
         )}
 
         {/* Action */}
-        <div className="flex justify-between items-center pt-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-3 md:pt-4 gap-3 sm:gap-0">
           <Link
             href={publication.doi || publication.link}
             external={true}
-            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm md:text-base font-medium min-h-[44px] flex items-center"
             onClick={(e) => e.stopPropagation()}
           >
             Read the Paper
           </Link>
           
           <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
-            <span className="text-xs">Click to view</span>
+            <span className="text-xs">Tap to view</span>
           </div>
         </div>
       </div>

@@ -362,9 +362,13 @@ export default function Home() {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.5, delay: 0.5 }}
-                        className="w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-[#3498DB] to-[#8B5C3C] flex items-center justify-center text-white font-bold text-lg md:text-xl lg:text-2xl shadow-lg flex-shrink-0"
+                        className="w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-full overflow-hidden shadow-lg flex-shrink-0 ring-2 ring-white/20"
                       >
-                        NK
+                        <img 
+                          src="/photo.jpeg" 
+                          alt="Nitigya Kargeti" 
+                          className="w-full h-full object-cover object-center"
+                        />
                       </motion.div>
                     </motion.div>
                     

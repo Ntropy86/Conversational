@@ -31,7 +31,7 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
       )}
       
       <motion.div
-        className={`magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[12px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-x-auto scrollbar-hide ${
+        className={`magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[12px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-visible ${
           highlightAI ? 'z-50' : ''
         }`}
         initial={{ opacity: 0, y: 20 }}

@@ -689,10 +689,10 @@ const AIMode = () => {
       )}
       
       {/* Dock element - fixed at bottom with Magic UI style */}
-      <div className={`fixed ${isScrolled ? 'bottom-14' : 'bottom-10'} left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 px-4 w-full max-w-screen`}>
-        <div className="flex justify-center">
+      <div className={`fixed ${isScrolled ? 'bottom-14' : 'bottom-10'} left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 px-4 w-full max-w-screen overflow-visible`}>
+        <div className="flex justify-center overflow-visible">
           <motion.div 
-            className="magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[12px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-x-auto scrollbar-hide"
+            className="magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[12px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-visible"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.03 }}

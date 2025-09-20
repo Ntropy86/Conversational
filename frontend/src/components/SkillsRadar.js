@@ -21,9 +21,9 @@ const SkillsRadar = ({ className = "" }) => {
       let size;
       
       if (viewportWidth < 400) {
-        size = Math.max(280, viewportWidth - 40); // iPhone SE and smaller
+        size = Math.max(350, viewportWidth - 20); // iPhone SE and smaller - bigger chart
       } else if (viewportWidth < 640) {
-        size = Math.max(320, viewportWidth - 60); // Small mobile
+        size = Math.max(380, viewportWidth - 40); // Small mobile - bigger chart
       } else if (viewportWidth < 768) {
         size = 450; // Standard mobile
       } else if (viewportWidth < 1024) {

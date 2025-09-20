@@ -216,8 +216,7 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
         variants={sidebarVariants}
         style={{
           backdropFilter: "blur(15px)",
-          WebkitBackdropFilter: "blur(15px)",
-          backgroundColor: 'rgba(30, 17, 8, 0.95)'
+          WebkitBackdropFilter: "blur(15px)"
         }}
         >
           <div className="flex flex-col h-full">
@@ -354,8 +353,8 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
            {children}
          </div>
        </motion.main>       {/* Dock */}
-       <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 px-4 w-full max-w-screen">
-         <div className="flex justify-center">
+       <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 px-4 w-full max-w-screen overflow-visible">
+         <div className="flex justify-center overflow-visible">
            <Dock onSectionNavigate={onSectionNavigate} highlightAI={highlightAI} />
          </div>
        </div>
