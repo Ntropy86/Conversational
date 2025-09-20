@@ -9,6 +9,7 @@ import Input from './Input';
 import Link from './Link';
 import Chip from './Chip';
 import { typographyClasses } from './Typography';
+import { MonitorIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon } from './Icons';
 
 const AIMode = () => {
   const { 
@@ -40,6 +41,13 @@ const AIMode = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Initialize Lucide icons
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.lucide) {
+      window.lucide.createIcons();
+    }
+  }, [conversation]);
   
   // Handle input submission
   const handleSendMessage = () => {
@@ -274,11 +282,18 @@ const AIMode = () => {
           }}
         >
           {[
-            { color: '#455561', icon: 'info', tooltip: 'About', section: 'about' },
-            { color: '#8B5C3C', icon: 'briefcase', tooltip: 'Experience', section: 'experience' },
-            { color: '#72433B', icon: 'grid', tooltip: 'Projects', section: 'projects' },
-            { color: '#3B6351', icon: 'code', tooltip: 'Skills', section: 'skills' },
-            { color: '#3B6351', icon: 'at-sign', tooltip: 'Contact', section: 'contact' }
+            { 
+              color: '#2ECC71', 
+              icon: MonitorIcon, 
+              tooltip: 'Regular Website', 
+              section: 'website-mode',
+              isWebsiteToggle: true
+            },
+            { color: '#3498DB', icon: UserIcon, tooltip: 'About', section: 'about' },
+            { color: '#8B5C3C', icon: BriefcaseIcon, tooltip: 'Experience', section: 'experience' },
+            { color: '#E67E22', icon: FolderIcon, tooltip: 'Projects', section: 'projects' },
+            { color: '#27AE60', icon: CodeIcon, tooltip: 'Skills', section: 'skills' },
+            { color: '#F39C12', icon: MailIcon, tooltip: 'Contact', section: 'contact' }
           ].map((item, idx) => (
             <motion.div 
               key={idx}
@@ -295,14 +310,19 @@ const AIMode = () => {
               }}
               whileTap={{ scale: 0.95 }}
               onClick={() => {
-                toggleAIMode();  // Turn off AI mode
-                // Wait a tiny bit for the mode to change, then scroll to section
-                setTimeout(() => {
-                  const element = document.getElementById(item.section);
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }, 100);
+                if (item.isWebsiteToggle) {
+                  // Just toggle AI mode, don't scroll
+                  toggleAIMode();
+                } else {
+                  toggleAIMode();  // Turn off AI mode
+                  // Wait a tiny bit for the mode to change, then scroll to section
+                  setTimeout(() => {
+                    const element = document.getElementById(item.section);
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }, 100);
+                }
               }}
             >
               {/* Tooltip */}
@@ -323,39 +343,7 @@ const AIMode = () => {
                   boxShadow: `0 0 15px ${item.color}80`
                 }}
               >
-                {item.icon === 'info' && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                  </svg>
-                )}
-                {item.icon === 'briefcase' && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                  </svg>
-                )}
-                {item.icon === 'grid' && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="7" height="7"></rect>
-                    <rect x="14" y="3" width="7" height="7"></rect>
-                    <rect x="14" y="14" width="7" height="7"></rect>
-                    <rect x="3" y="14" width="7" height="7"></rect>
-                  </svg>
-                )}
-                {item.icon === 'at-sign' && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="4"></circle>
-                    <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"></path>
-                  </svg>
-                )}
-                {item.icon === 'code' && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="16 18 22 12 16 6"></polyline>
-                    <polyline points="8 6 2 12 8 18"></polyline>
-                  </svg>
-                )}
+                <item.icon className="w-5 h-5 text-white" />
                 
                 {/* Subtle inner glow/ring effect */}
                 <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-300" 

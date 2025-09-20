@@ -6,9 +6,10 @@ import { useAIAgent } from '../context/AIAgentContext';
 import DynamicBackground from './DynamicBackground';
 import Link from './Link';
 import Button from './Button';
+import Dock from './Dock';
 import { typographyClasses } from './Typography';
 
-const MainLayout = ({ children }) => {
+const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
   const { isDarkMode } = useTheme();
   const { isAIMode, toggleAIMode } = useAIAgent();
   const [activeSection, setActiveSection] = useState('about');
@@ -170,7 +171,7 @@ const MainLayout = ({ children }) => {
         /> */}
       </div>
 
-      {/* Fixed Sidebar - removed border/divider */}
+      {/* Fixed Sidebar */}
       <AnimatePresence>
       <motion.aside 
         className={`fixed left-0 top-0 h-screen md:w-64 flex flex-col justify-between py-8 px-6 z-40 transition-all duration-300 ease-in-out ${
@@ -308,18 +309,23 @@ const MainLayout = ({ children }) => {
       </AnimatePresence>
       
       {/* Main content */}
-      <motion.main 
-        className="flex-1 py-12 px-6 md:px-20 overflow-y-auto md:ml-64"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="max-w-3xl mx-auto pt-16 md:pt-10">
-          {children}
-        </div>
-      </motion.main>
-    </div>
-  );
-};
+       <motion.main
+         className="flex-1 py-12 px-6 md:px-20 pb-24 overflow-y-auto md:ml-64"
+         initial={{ opacity: 0 }}
+         animate={{ opacity: 1 }}
+         transition={{ duration: 0.5 }}
+       >
+         <div className="max-w-3xl mx-auto pt-16 md:pt-10">
+           {children}
+         </div>
+       </motion.main>
+
+       {/* Dock */}
+       <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40">
+         <Dock onSectionNavigate={onSectionNavigate} highlightAI={highlightAI} />
+       </div>
+     </div>
+   );
+ };
 
 export default MainLayout;

@@ -1,0 +1,38 @@
+{
+  "experiences": [
+    {
+      "id": "graduate-researcher",
+      "title": "Graduate Student Researcher",
+      "subtitle": "People and Robots Lab, NSF-Funded | Mar 2024 - Jan 2025",
+      "file": "graduate-researcher.md",
+      "preview": "Engineered an AI-assisted educational robot system resulting in a publication at ACM CHI 2025 and demonstrating a 15% improvement in learning retention among child-parent pairs.",
+      "tags": ["Python", "GPT-4o", "PyTorch", "Statistical Analysis"]
+    },
+    {
+      "id": "cdac-intern", 
+      "title": "Research & Development Intern",
+      "subtitle": "Centre for Development of Advanced Computing (CDAC) | Sep 2022 - Mar 2023",
+      "file": "cdac-intern.md",
+      "preview": "Developed cutting-edge Brain-Computer Interface (BCI) systems and signal processing algorithms, contributing to advanced neurotechnology research.",
+      "tags": ["MATLAB", "Python", "Signal Processing", "Machine Learning", "BCI"]
+    }
+  ],
+  "projects": [
+    {
+      "id": "chicago-crime-forecasting",
+      "title": "Chicago Crime Data Forecasting & Hotspot Analysis", 
+      "subtitle": "Feb 2025",
+      "file": "chicago-crime-forecasting.md",
+      "preview": "Engineered a hybrid ARIMA-LSTM predictive model that improved crime pattern forecasting accuracy to 85%, enabling law-enforcement to optimize patrol resource allocation.",
+      "tags": ["ARIMA", "LSTM", "DBSCAN", "PySpark", "AWS EMR"]
+    },
+    {
+      "id": "hallucination-detection",
+      "title": "Hallucination Detection in Vision-Language Models",
+      "subtitle": "Dec 2024", 
+      "file": "hallucination-detection.md",
+      "preview": "Developed a novel framework for detecting and mitigating hallucinations in Vision-Language Models (VLMs), achieving 92% accuracy in identifying false visual descriptions.",
+      "tags": ["PyTorch", "Transformers", "Computer Vision", "NLP", "Deep Learning"]
+    }
+  ]
+}
