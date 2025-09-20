@@ -9,7 +9,7 @@ const SkillsRadar = ({ className = "" }) => {
   const { isDarkMode } = useTheme();
   const [highlightCategory, setHighlightCategory] = useState('all');
   const [isUserInteracting, setIsUserInteracting] = useState(false);
-  const [chartSize, setChartSize] = useState(600); // Static default size
+  const [chartSize, setChartSize] = useState(600); // Reasonable default size
   const cycleTimeoutRef = useRef(null);
   
   const categories = Object.keys(skillCategories);
@@ -17,7 +17,9 @@ const SkillsRadar = ({ className = "" }) => {
   // Update chart size after hydration to avoid SSR mismatch
   useEffect(() => {
     const updateSize = () => {
-      setChartSize(Math.min(700, Math.max(400, window.innerWidth - 40)));
+      const maxWidth = Math.min(window.innerWidth - 40, 700);
+      const minWidth = 400;
+      setChartSize(Math.max(minWidth, maxWidth));
     };
     
     updateSize();
@@ -70,7 +72,7 @@ const SkillsRadar = ({ className = "" }) => {
       {/* Category Tabs */}
       <div className="flex justify-center mb-6 px-2">
         <div className="relative w-full">
-          <div className="flex justify-center gap-0.5 sm:gap-1 bg-opacity-20 backdrop-blur-sm rounded-xl p-0.5 sm:p-1 border border-opacity-20 overflow-x-auto scrollbar-hide" 
+          <div className="flex flex-wrap justify-center gap-0.5 sm:gap-1 bg-opacity-20 backdrop-blur-sm rounded-xl p-1 sm:p-1.5 border border-opacity-20" 
                style={{ 
                  backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
                  borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
@@ -84,7 +86,7 @@ const SkillsRadar = ({ className = "" }) => {
                 <motion.button
                   key={category}
                   className={`
-                    relative px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-xs sm:text-sm font-medium rounded-lg transition-all duration-300 z-10 whitespace-nowrap flex-shrink-0
+                    relative px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-300 z-10 whitespace-nowrap
                     ${isActive ? 'text-white' : isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}
                   `}
                   onClick={() => handleCategoryClick(category)}
@@ -136,7 +138,7 @@ const SkillsRadar = ({ className = "" }) => {
             animated={true}
             highlightCategory={highlightCategory}
             categories={skillCategories}
-            className="w-full px-2"
+            className="w-full"
           />
         </motion.div>
       </div>

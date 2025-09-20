@@ -24,7 +24,7 @@ const RadarChart = ({
   const maxValue = 5;
   const centerX = size / 2;
   const centerY = size / 2;
-  const radius = Math.min(centerX, centerY) - (size < 500 ? 140 : 170);
+  const radius = Math.min(centerX, centerY) - (size < 500 ? 150 : 180);
   
   // Animation state
   const [animationProgress, setAnimationProgress] = useState(animated ? 0 : 1);
@@ -133,8 +133,8 @@ const RadarChart = ({
         const cos = Math.cos(angle);
         const sin = Math.sin(angle);
         
-        // Better text positioning with more space for long labels
-        const labelDistance = radius + (size < 400 ? 35 : size < 600 ? 50 : 65);
+        // Generous spacing to prevent any clipping
+        const labelDistance = radius + (size < 400 ? 45 : size < 600 ? 60 : 75);
         let labelX = centerX + cos * labelDistance;
         let labelY = centerY + sin * labelDistance;
         
@@ -164,48 +164,110 @@ const RadarChart = ({
         ctx.textBaseline = textBaseline;
         ctx.globalAlpha = opacity;
         
-        // Enhanced logo + text rendering with better text wrapping
+        // Enhanced logo + text rendering with intelligent wrapping
         const skillName = skill[0];
         const logoImg = loadedLogos.get(skillName);
         const logoSize = size < 400 ? 14 : 16;
         const logoTextGap = 6;
         
-        // Handle long text with smart wrapping
-        const maxTextWidth = size < 400 ? 80 : size < 600 ? 100 : 120;
-        let displayText = skillName;
+        // Dynamic max width based on position to prevent clipping
+        const edgeDistance = Math.min(
+          Math.abs(labelX - 0), 
+          Math.abs(labelX - size), 
+          Math.abs(labelY - 0), 
+          Math.abs(labelY - size)
+        );
+        const dynamicMaxWidth = Math.min(
+          size < 400 ? 90 : size < 600 ? 110 : 130,
+          edgeDistance * 1.5 // Adjust based on distance from edges
+        );
+        
+        // Smart text wrapping algorithm
+        let lines = [skillName];
         let isWrapped = false;
-        let line1 = skillName;
-        let line2 = '';
         
         // Check if text needs wrapping
-        if (ctx.measureText(skillName).width > maxTextWidth) {
-          // Try to split on common separators
-          const separators = ['/', ' ', '(', ')'];
-          let bestSplit = -1;
-          let bestSeparator = '';
+        if (ctx.measureText(skillName).width > dynamicMaxWidth) {
+          isWrapped = true;
           
-          for (const sep of separators) {
-            const index = skillName.indexOf(sep);
-            if (index > 0 && index < skillName.length - 1) {
-              const part1 = skillName.substring(0, index);
-              const part2 = skillName.substring(index + 1);
-              if (ctx.measureText(part1).width <= maxTextWidth && 
-                  ctx.measureText(part2).width <= maxTextWidth) {
-                line1 = part1;
-                line2 = part2;
-                isWrapped = true;
-                break;
+          // Try different splitting strategies in order of preference
+          const strategies = [
+            // Strategy 1: Split on forward slash
+            { separator: '/', keepSeparator: false },
+            // Strategy 2: Split on space
+            { separator: ' ', keepSeparator: false },
+            // Strategy 3: Split on parentheses
+            { separator: '(', keepSeparator: true },
+            { separator: ')', keepSeparator: false },
+            // Strategy 4: Split camelCase/PascalCase
+            { pattern: /([a-z])([A-Z])/, replacement: '$1\n$2' }
+          ];
+          
+          let bestSplit = null;
+          
+          for (const strategy of strategies) {
+            if (strategy.pattern) {
+              // Handle regex patterns for camelCase
+              const splitText = skillName.replace(strategy.pattern, strategy.replacement);
+              if (splitText.includes('\n')) {
+                const parts = splitText.split('\n');
+                if (parts.every(part => ctx.measureText(part).width <= dynamicMaxWidth)) {
+                  bestSplit = parts;
+                  break;
+                }
+              }
+            } else {
+              // Handle separator-based splitting
+              const index = skillName.indexOf(strategy.separator);
+              if (index > 0 && index < skillName.length - 1) {
+                const part1 = skillName.substring(0, index + (strategy.keepSeparator ? 1 : 0));
+                const part2 = skillName.substring(index + 1);
+                
+                if (ctx.measureText(part1).width <= dynamicMaxWidth && 
+                    ctx.measureText(part2).width <= dynamicMaxWidth) {
+                  bestSplit = [part1, part2];
+                  break;
+                }
               }
             }
           }
+          
+          // If no good split found, force break at character level
+          if (!bestSplit && skillName.length > 8) {
+            const midPoint = Math.floor(skillName.length / 2);
+            let breakPoint = midPoint;
+            
+            // Try to find a good break point near the middle
+            for (let i = midPoint - 2; i <= midPoint + 2; i++) {
+              if (i > 0 && i < skillName.length - 1) {
+                const char = skillName[i];
+                if (char === ' ' || char === '/' || char === '(' || char === ')') {
+                  breakPoint = i;
+                  break;
+                }
+              }
+            }
+            
+            bestSplit = [
+              skillName.substring(0, breakPoint),
+              skillName.substring(breakPoint)
+            ];
+          }
+          
+          if (bestSplit) {
+            lines = bestSplit;
+          } else {
+            lines = [skillName]; // Fallback to single line
+            isWrapped = false;
+          }
         }
         
-        const line1Width = ctx.measureText(line1).width;
-        const line2Width = isWrapped ? ctx.measureText(line2).width : 0;
-        const maxLineWidth = Math.max(line1Width, line2Width);
+        // Calculate positioning
+        const lineWidths = lines.map(line => ctx.measureText(line).width);
+        const maxLineWidth = Math.max(...lineWidths);
         const totalWidth = logoImg ? logoSize + logoTextGap + maxLineWidth : maxLineWidth;
         
-        // Simple positioning: logo first, then text
+        // Smart positioning based on text alignment
         let startX = labelX;
         if (textAlign === 'center') {
           startX = labelX - totalWidth / 2;
@@ -213,21 +275,28 @@ const RadarChart = ({
           startX = labelX - totalWidth;
         }
         
+        // Ensure we don't go off the edges
+        startX = Math.max(5, Math.min(startX, size - totalWidth - 5));
+        
         // Draw logo if available
         if (logoImg) {
-          const logoY = isWrapped ? labelY - 6 : labelY - logoSize / 2;
+          const logoY = isWrapped ? labelY - (lines.length * 6) : labelY - logoSize / 2;
           ctx.drawImage(logoImg, startX, logoY, logoSize, logoSize);
           startX += logoSize + logoTextGap;
         }
         
-        // Draw text
+        // Draw text lines
         ctx.textAlign = 'left'; // Always left align after positioning
-        if (isWrapped) {
+        if (isWrapped && lines.length > 1) {
           const lineHeight = 12;
-          ctx.fillText(line1, startX, labelY - lineHeight / 2);
-          ctx.fillText(line2, startX, labelY + lineHeight / 2);
+          const totalTextHeight = (lines.length - 1) * lineHeight;
+          const startY = labelY - totalTextHeight / 2;
+          
+          lines.forEach((line, lineIndex) => {
+            ctx.fillText(line, startX, startY + (lineIndex * lineHeight));
+          });
         } else {
-          ctx.fillText(skillName, startX, labelY);
+          ctx.fillText(lines[0], startX, labelY);
         }
         
         ctx.globalAlpha = 1;
@@ -401,15 +470,15 @@ const RadarChart = ({
         </div>
       )}
       
-      <div className="w-full flex justify-center relative overflow-hidden" ref={containerRef}>
+      <div className="w-full flex justify-center relative" ref={containerRef}>
         <canvas
           ref={canvasRef}
-          className="drop-shadow-lg max-w-full h-auto"
+          className="drop-shadow-lg"
           style={{
             width: `${size}px`,
             height: `${size}px`,
-            maxWidth: '100%',
-            maxHeight: '100vw'
+            maxWidth: 'none',
+            maxHeight: 'none'
           }}
         />
 
