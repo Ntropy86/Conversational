@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAIAgent } from '../context/AIAgentContext';
 import { useTheme } from '../context/ThemeContext';
-import useVAD from '../hooks/useVAD';
+import useUniversalVAD from '../hooks/useUniversalVAD';
 import Card from './Card';
 import ContentPage from './ContentPage';
 import DynamicBackground from './DynamicBackground';
@@ -45,8 +45,8 @@ const AIMode = () => {
   // Use ref to track voice mode intent persistently (survives re-renders)
   const voiceModeIntentRef = useRef(false);
   
-  // VAD integration for voice input
-  const vad = useVAD({
+  // Universal VAD integration for voice input (Safari compatible)
+  const vad = useUniversalVAD({
     positiveSpeechThreshold: 0.8,
     negativeSpeechThreshold: 0.2,
     minSpeechFrames: 3,
@@ -434,7 +434,15 @@ const AIMode = () => {
                 </div>
                 <div className="flex items-center space-x-1">
                   <div className={`w-2 h-2 rounded-full ${vad.isLoaded ? 'bg-green-400' : vad.isLoading ? 'bg-yellow-400' : 'bg-red-400'}`} />
-                  <span>Voice {vad.isLoaded ? 'Ready' : vad.isLoading ? 'Loading...' : 'Error'}</span>
+                  <span>
+                    Voice {vad.isLoaded ? 'Ready' : vad.isLoading ? 'Loading...' : 'Error'}
+                    {vad.vadType && vad.isLoaded && (
+                      <span className="text-xs text-gray-500 ml-1">
+                        ({vad.vadType === 'safari-compatible' ? 'Safari' : 
+                          vad.vadType === 'safari-fallback' ? 'Fallback' : 'Standard'})
+                      </span>
+                    )}
+                  </span>
                 </div>
               </div>
               {(audioProcessing || isAIResponding) && (
