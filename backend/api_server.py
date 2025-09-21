@@ -495,13 +495,31 @@ async def process_audio(
                 }
             )
             
-        # Process with LLM using structured response
+        # Process using the SAME pipeline as text queries
+        print(f"🔄 Processing transcribed text: '{transcription}' using smart_query pipeline")
+        
+        # Create a SmartRequest object from the transcription
+        smart_request = SmartRequest(
+            text=transcription,
+            session_id=session_id,
+            conversation_history=[],  # Let the conversation manager handle its own history
+            user_id=f"voice_{session_id}"  # Unique user_id for voice sessions
+        )
+        
+        # Use the EXACT SAME logic as smart_query
         llm_start = time.time()
         try:
-            structured_response = conversation.generate_structured_response(transcription)
-            response = structured_response["response"]
+            smart_response = await smart_query(smart_request)
             llm_time = time.time() - llm_start
-            print(f"LLM response: '{response}' (took {llm_time:.2f}s)")
+            
+            # Extract the response components
+            response = smart_response["response"]
+            structured_items = smart_response.get("items", [])
+            item_type = smart_response.get("item_type", "general")
+            metadata = smart_response.get("metadata", {})
+            
+            print(f"✅ Smart query response: '{response}' (took {llm_time:.2f}s)")
+            
         except Exception as e:
             print(f"LLM processing error: {e}")
             return JSONResponse(
@@ -527,9 +545,9 @@ async def process_audio(
                     "status": "partial_success",
                     "transcription": transcription,
                     "response": response,
-                    "items": structured_response["items"],
-                    "item_type": structured_response["item_type"],
-                    "metadata": structured_response["metadata"],
+                    "items": structured_items,
+                    "item_type": item_type,
+                    "metadata": metadata,
                     "message": "Audio response generation failed",
                     "error": str(e)
                 }
@@ -553,9 +571,9 @@ async def process_audio(
                     "status": "partial_success",
                     "transcription": transcription,
                     "response": response,
-                    "items": structured_response["items"],
-                    "item_type": structured_response["item_type"],
-                    "metadata": structured_response["metadata"],
+                    "items": structured_items,
+                    "item_type": item_type,
+                    "metadata": metadata,
                     "message": "Audio file save failed"
                 }
             )
@@ -568,9 +586,9 @@ async def process_audio(
                 "session_id": session_id,
                 "transcription": transcription,
                 "response": response,
-                "items": structured_response["items"],
-                "item_type": structured_response["item_type"],
-                "metadata": structured_response["metadata"],
+                "items": structured_items,
+                "item_type": item_type,
+                "metadata": metadata,
                 "audio_file": output_file,
                 "timing": {
                     "transcribe_ms": round(transcribe_time * 1000, 2),

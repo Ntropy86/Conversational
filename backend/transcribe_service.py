@@ -24,7 +24,8 @@ def transcribe_audio(audio_np):
     # Create temp file from audio data
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as temp_file:
         sf.write(temp_file.name, audio_np, 16000)
-        segments, _ = model.transcribe(temp_file.name, language="en")
+        whisper_model = get_whisper_model()
+        segments, _ = whisper_model.transcribe(temp_file.name, language="en")
         transcription = " ".join([seg.text.strip() for seg in segments]).strip()
         return transcription
 
