@@ -316,19 +316,11 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 + (index * 0.1), duration: 0.3, type: "spring", stiffness: 300 }}
+                    className="relative z-[100]"
                   >
-                    <a 
-                      href={link.href} 
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:opacity-80" 
-                      aria-label={link.name}
-                      onClick={() => {
-                        console.log(`Clicking ${link.name} link: ${link.href}`);
-                      }}
-                    >
+                    <Link href={link.href} external className="hover:opacity-80" aria-label={link.name}>
                       {link.icon}
-                    </a>
+                    </Link>
                   </motion.div>
                 ))}
               </motion.div>
@@ -362,10 +354,8 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
            {children}
          </div>
        </motion.main>       {/* Dock */}
-       <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 px-4 w-full max-w-screen overflow-visible">
-         <div className="flex justify-center overflow-visible">
-           <Dock onSectionNavigate={onSectionNavigate} highlightAI={highlightAI} />
-         </div>
+       <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 overflow-visible">
+         <Dock onSectionNavigate={onSectionNavigate} highlightAI={highlightAI} />
        </div>
      </div>
    );
