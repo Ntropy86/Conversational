@@ -246,7 +246,7 @@ IDS: people-robots-lab, spenza-inc"""
             response_text = ""
             selected_ids = []
             
-            # Handle both multi-line and single-line formats
+            # ROBUST PARSING: Handle complex multi-line responses
             if "IDS:" in ai_response:
                 # Split at IDS: to separate response and IDs
                 parts = ai_response.split("IDS:")
@@ -254,11 +254,17 @@ IDS: people-robots-lab, spenza-inc"""
                     response_part = parts[0].strip()
                     ids_part = parts[1].strip()
                     
-                    # Clean up response part (remove RESPONSE: if present)
-                    if response_part.startswith("RESPONSE:"):
-                        response_text = response_part[9:].strip()
+                    # IMPROVED: Extract response text intelligently
+                    if "RESPONSE:" in response_part:
+                        # Extract everything after RESPONSE:
+                        response_lines = response_part.split("RESPONSE:")
+                        if len(response_lines) >= 2:
+                            response_text = response_lines[-1].strip()  # Take last part after RESPONSE:
+                        else:
+                            response_text = response_part.strip()
                     else:
-                        response_text = response_part
+                        # If no RESPONSE: marker, use the whole response part
+                        response_text = response_part.strip()
                     
                     # Parse IDs
                     if ids_part and ids_part != "NONE":
@@ -267,6 +273,8 @@ IDS: people-robots-lab, spenza-inc"""
             # Fallback: try multi-line format
             if not response_text and not selected_ids:
                 lines = ai_response.split('\n')
+                response_lines = []
+                
                 for line in lines:
                     line = line.strip()
                     if line.startswith("RESPONSE:"):
@@ -274,7 +282,14 @@ IDS: people-robots-lab, spenza-inc"""
                     elif line.startswith("IDS:"):
                         ids_text = line[4:].strip()
                         if ids_text and ids_text != "NONE":
-                            selected_ids = [id.strip() for id in ids_text.split(",") if id.strip()]
+                            selected_ids = [id.strip() for id in ids_text.split(",") if id.strip()]  
+                    elif not line.startswith("IDS:") and line and not response_text:
+                        # Collect non-structured lines as potential response
+                        response_lines.append(line)
+                
+                # If no structured RESPONSE: found, use collected lines
+                if not response_text and response_lines:
+                    response_text = " ".join(response_lines)
             
             # If we didn't find structured format, extract IDs from the whole response
             if not response_text and not selected_ids:

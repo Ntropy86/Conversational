@@ -2,27 +2,31 @@
 import { useState, useEffect } from 'react';
 import useVAD from './useVAD';
 import useSafariVAD from './useSafariVAD';
+import { isSafari, getBrowserInfo } from '../utils/browserDetection';
 
 const useUniversalVAD = (options = {}) => {
   const [browserType, setBrowserType] = useState(null);
   
-  // Detect browser type
+  // Detect browser type using proper browser detection
   useEffect(() => {
     const detectBrowser = () => {
-      const ua = navigator.userAgent.toLowerCase();
+      const { browser, isSafari: safariDetected } = getBrowserInfo();
       
-      if (ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1) {
+      if (safariDetected) {
         setBrowserType('safari');
         console.log('🧭 Detected Safari - using Safari-compatible VAD');
-      } else if (ua.indexOf('firefox') !== -1) {
+      } else if (browser === 'Firefox') {
         setBrowserType('firefox');
         console.log('🦊 Detected Firefox - using standard VAD');
-      } else if (ua.indexOf('chrome') !== -1 || ua.indexOf('chromium') !== -1) {
+      } else if (browser === 'Chrome') {
         setBrowserType('chrome');
-        console.log('🔍 Detected Chrome/Chromium - using standard VAD');
+        console.log('🔍 Detected Chrome - using standard VAD');
+      } else if (browser === 'Edge') {
+        setBrowserType('edge');
+        console.log('� Detected Edge - using standard VAD');
       } else {
         setBrowserType('other');
-        console.log('❓ Unknown browser - trying standard VAD first');
+        console.log(`❓ Detected ${browser} - trying standard VAD first`);
       }
     };
     

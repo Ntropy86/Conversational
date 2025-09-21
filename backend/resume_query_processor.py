@@ -336,23 +336,6 @@ class ResumeQueryProcessor:
         if any(re.search(pattern, query_lower.strip()) for pattern in greeting_patterns):
             return "greeting"
         
-        # Check for "Do you know X?" or "Are you familiar with X?" type questions
-        # These should be treated as skills/technology queries
-        know_patterns = [
-            r"(?i)do you know\s+(\w+)",
-            r"(?i)are you familiar with\s+(\w+)",
-            r"(?i)can you\s+(\w+)",
-            r"(?i)do you have experience with\s+(\w+)"
-        ]
-        
-        for pattern in know_patterns:
-            match = re.search(pattern, query_lower)
-            if match:
-                # Check if the mentioned technology is in our mappings
-                mentioned_tech = match.group(1)
-                if mentioned_tech in self.tech_mappings or any(mentioned_tech in keywords for keywords in self.tech_mappings.values()):
-                    return "skills"  # Treat as a skills query
-        
         intent_scores = {}
         for intent, patterns in self.intent_patterns.items():
             score = sum(1 for pattern in patterns if re.search(pattern, query))
@@ -397,6 +380,263 @@ class ResumeQueryProcessor:
                     break
         
         return list(set(found_techs))
+
+    def extract_date_filters(self, query: str) -> Dict[str, Any]:
+        """Extract date/year filters from the query"""
+        date_filters = {
+            "years": [],
+            "date_range": None,
+            "date_modifier": None  # "from", "in", "during", "after", "before"
+        }
+        
+        # Extract specific years (4-digit numbers and 2-digit shorthand)
+        year_matches = re.findall(r'\b(20[0-9]{2})\b', query)
+        
+        # Handle 2-digit year shorthand like "23" for "2023"
+        short_year_patterns = [
+            r'\bfrom\s+(\d{2})\b',
+            r'\bin\s+(\d{2})\b', 
+            r'\bduring\s+(\d{2})\b',
+            r'\bof\s+(\d{2})\b',
+            r'\s(\d{2})\?',  # "from 23?"
+        ]
+        
+        for pattern in short_year_patterns:
+            matches = re.findall(pattern, query.lower())
+            for short_year in matches:
+                short_year_int = int(short_year)
+                if 20 <= short_year_int <= 30:  # Years 2020-2030
+                    full_year = f"20{short_year}"
+                    year_matches.append(full_year)
+        
+        date_filters["years"] = list(set(year_matches))
+        
+        # Extract date modifiers and relative time references
+        query_lower = query.lower()
+        if re.search(r'\bfrom\s+(\d{4})\s+only\b', query_lower):
+            date_filters["date_modifier"] = "from_only"
+        elif re.search(r'\bin\s+(\d{4})\s+only\b', query_lower):
+            date_filters["date_modifier"] = "in_only"
+        elif re.search(r'\bduring\s+(\d{4})\b', query_lower):
+            date_filters["date_modifier"] = "during"
+        elif re.search(r'\bafter\s+(\d{4})\b', query_lower):
+            date_filters["date_modifier"] = "after"
+        elif re.search(r'\bbefore\s+(\d{4})\b', query_lower):
+            date_filters["date_modifier"] = "before"
+        elif re.search(r'\bfrom\s+(\d{4})\b', query_lower):
+            date_filters["date_modifier"] = "from"
+        elif re.search(r'\bin\s+(\d{4})\b', query_lower):
+            date_filters["date_modifier"] = "in"
+        elif re.search(r'\blast\s+two\s+years?\b', query_lower):
+            # Handle "last two years" - calculate from current year
+            current_year = 2025  # Since we're in 2025
+            date_filters["years"] = [str(current_year - 1), str(current_year)]
+            date_filters["date_modifier"] = "last_two_years"
+        elif re.search(r'\blast\s+year\b', query_lower):
+            # Handle "last year"
+            date_filters["years"] = ["2024"]
+            date_filters["date_modifier"] = "last_year"
+        
+        return date_filters
+
+    def filter_by_date(self, items: List[Dict], date_filters: Dict[str, Any]) -> List[Dict]:
+        """Filter items by date criteria"""
+        if not date_filters["years"]:
+            return items
+        
+        filtered_items = []
+        target_years = [int(year) for year in date_filters["years"]]
+        date_modifier = date_filters["date_modifier"]
+        
+        for item in items:
+            # Get date information from item
+            dates_field = item.get("dates", item.get("date", ""))
+            if not dates_field:
+                continue
+                
+            # Parse date ranges (e.g., "Mar. 2024 – Jan. 2025" or "Feb 2025")
+            if "–" in dates_field or "-" in dates_field:
+                # Date range
+                separator = "–" if "–" in dates_field else "-"
+                parts = dates_field.split(separator)
+                if len(parts) == 2:
+                    start_part = parts[0].strip()
+                    end_part = parts[1].strip()
+                    
+                    # Extract years from start and end
+                    start_year_match = re.search(r'(20[0-9]{2})', start_part)
+                    end_year_match = re.search(r'(20[0-9]{2})', end_part)
+                    
+                    if start_year_match and end_year_match:
+                        start_year = int(start_year_match.group(1))
+                        end_year = int(end_year_match.group(1))
+                        
+                        # Apply date filtering logic
+                        if date_modifier == "from_only":
+                            # Only items that START in one of the target years
+                            if start_year in target_years:
+                                filtered_items.append(item)
+                        elif date_modifier == "in_only":
+                            # Only items that are ENTIRELY within target years
+                            if start_year in target_years and end_year in target_years:
+                                filtered_items.append(item)
+                        elif date_modifier == "last_two_years":
+                            # Items that overlap with the last two years
+                            if any(start_year <= target_year <= end_year for target_year in target_years):
+                                filtered_items.append(item)
+                        elif date_modifier == "during" or date_modifier == "in":
+                            # Items that overlap with any target year
+                            if any(start_year <= target_year <= end_year for target_year in target_years):
+                                filtered_items.append(item)
+                        elif date_modifier == "from":
+                            # Items that start in target year or later
+                            if start_year >= min(target_years):
+                                filtered_items.append(item)
+                        elif date_modifier == "after":
+                            # Items that start after target year
+                            if start_year > max(target_years):
+                                filtered_items.append(item)
+                        elif date_modifier == "before":
+                            # Items that end before target year
+                            if end_year < min(target_years):
+                                filtered_items.append(item)
+                        else:
+                            # Default: items that overlap with any target year
+                            if any(start_year <= target_year <= end_year for target_year in target_years):
+                                filtered_items.append(item)
+            else:
+                # Single date (e.g., "Feb 2025")
+                year_match = re.search(r'(20[0-9]{2})', dates_field)
+                if year_match:
+                    item_year = int(year_match.group(1))
+                    
+                    if item_year in target_years:
+                        filtered_items.append(item)
+        
+        return filtered_items
+
+    def extract_date_filters(self, query: str) -> Dict[str, Any]:
+        """Extract date/year filters from the query"""
+        date_filters = {
+            "years": [],
+            "date_range": None,
+            "date_modifier": None  # "from", "in", "during", "after", "before"
+        }
+        
+        # Extract specific years (4-digit numbers and 2-digit shorthand)
+        year_matches = re.findall(r'\b(20[0-9]{2})\b', query)
+        
+        # Handle 2-digit year shorthand like "23" for "2023"
+        short_year_patterns = [
+            r'\bfrom\s+(\d{2})\b',
+            r'\bin\s+(\d{2})\b', 
+            r'\bduring\s+(\d{2})\b',
+            r'\bof\s+(\d{2})\b',
+            r'\s(\d{2})\?',  # "from 23?"
+        ]
+        
+        for pattern in short_year_patterns:
+            matches = re.findall(pattern, query.lower())
+            for short_year in matches:
+                short_year_int = int(short_year)
+                if 20 <= short_year_int <= 30:  # Years 2020-2030
+                    full_year = f"20{short_year}"
+                    year_matches.append(full_year)
+        
+        date_filters["years"] = list(set(year_matches))
+        
+        # Extract date modifiers
+        query_lower = query.lower()
+        if re.search(r'\bfrom\s+(\d{2,4})\s+only\b', query_lower):
+            date_filters["date_modifier"] = "from_only"
+        elif re.search(r'\bin\s+(\d{2,4})\s+only\b', query_lower):
+            date_filters["date_modifier"] = "in_only"
+        elif re.search(r'\bduring\s+(\d{2,4})\b', query_lower):
+            date_filters["date_modifier"] = "during"
+        elif re.search(r'\bafter\s+(\d{2,4})\b', query_lower):
+            date_filters["date_modifier"] = "after"
+        elif re.search(r'\bbefore\s+(\d{2,4})\b', query_lower):
+            date_filters["date_modifier"] = "before"
+        elif re.search(r'\bfrom\s+(\d{2,4})\b', query_lower):
+            date_filters["date_modifier"] = "from"
+        elif re.search(r'\bin\s+(\d{2,4})\b', query_lower):
+            date_filters["date_modifier"] = "in"
+        
+        return date_filters
+
+    def filter_by_date(self, items: List[Dict], date_filters: Dict[str, Any]) -> List[Dict]:
+        """Filter items by date criteria"""
+        if not date_filters["years"]:
+            return items
+        
+        filtered_items = []
+        target_year = date_filters["years"][0] if date_filters["years"] else None
+        date_modifier = date_filters["date_modifier"]
+        
+        for item in items:
+            # Get date information from item
+            dates_field = item.get("dates", item.get("date", ""))
+            if not dates_field:
+                continue
+                
+            # Parse date ranges (e.g., "Mar. 2024 – Jan. 2025" or "Feb 2025")
+            if "–" in dates_field or "-" in dates_field:
+                # Date range
+                separator = "–" if "–" in dates_field else "-"
+                parts = dates_field.split(separator)
+                if len(parts) == 2:
+                    start_part = parts[0].strip()
+                    end_part = parts[1].strip()
+                    
+                    # Extract years from start and end
+                    start_year_match = re.search(r'(20[0-9]{2})', start_part)
+                    end_year_match = re.search(r'(20[0-9]{2})', end_part)
+                    
+                    if start_year_match and end_year_match:
+                        start_year = int(start_year_match.group(1))
+                        end_year = int(end_year_match.group(1))
+                        target_year_int = int(target_year)
+                        
+                        # Apply date filtering logic
+                        if date_modifier == "from_only":
+                            # Only items that START in the target year
+                            if start_year == target_year_int:
+                                filtered_items.append(item)
+                        elif date_modifier == "in_only":
+                            # Only items that are ENTIRELY within the target year
+                            if start_year == target_year_int and end_year == target_year_int:
+                                filtered_items.append(item)
+                        elif date_modifier == "during" or date_modifier == "in":
+                            # Items that overlap with the target year
+                            if start_year <= target_year_int <= end_year:
+                                filtered_items.append(item)
+                        elif date_modifier == "from":
+                            # Items that start in target year or later
+                            if start_year >= target_year_int:
+                                filtered_items.append(item)
+                        elif date_modifier == "after":
+                            # Items that start after target year
+                            if start_year > target_year_int:
+                                filtered_items.append(item)
+                        elif date_modifier == "before":
+                            # Items that end before target year
+                            if end_year < target_year_int:
+                                filtered_items.append(item)
+                        else:
+                            # Default: items that overlap with target year
+                            if start_year <= target_year_int <= end_year:
+                                filtered_items.append(item)
+            else:
+                # Single date (e.g., "Feb 2025")
+                year_match = re.search(r'(20[0-9]{2})', dates_field)
+                if year_match:
+                    item_year = int(year_match.group(1))
+                    target_year_int = int(target_year)
+                    
+                    if item_year == target_year_int:
+                        filtered_items.append(item)
+        
+        return filtered_items
 
     def filter_by_technology(self, items: List[Dict], tech_filters: List[str]) -> List[Dict]:
         """Filter items by technology keywords with precise matching"""
@@ -591,9 +831,10 @@ class ResumeQueryProcessor:
             if context_result:
                 return context_result
         
-        # Extract intent and technology filters
+        # Extract intent, technology filters, and date filters
         intent = self.extract_intent(question)
         tech_filters = self.extract_technologies(question)
+        date_filters = self.extract_date_filters(question)
         
         # For greetings or general conversation, return empty results
         if intent in ["greeting", "general"]:
@@ -609,15 +850,19 @@ class ResumeQueryProcessor:
             )
         
         # INDUSTRY-STANDARD MULTI-KEYWORD EXTRACTION: Search across ALL relevant content types
-        if tech_filters or intent in ["publications", "blog"]:
+        if tech_filters or date_filters["years"] or intent in ["publications", "blog"]:
             all_items = []
             content_type_counts = {}
             
-            # Determine which content types to search based on intent + tech filters
+            # Determine which content types to search based on intent + tech filters + date filters
             content_types_to_search = []
             
             # Always search projects, experience, AND publications for tech filters
             if tech_filters:
+                content_types_to_search.extend(["projects", "experience", "publications"])
+            
+            # Add content types for date filters
+            if date_filters["years"]:
                 content_types_to_search.extend(["projects", "experience", "publications"])
             
             # Add specific intent-based content types
@@ -636,6 +881,10 @@ class ResumeQueryProcessor:
                 # Apply technology filters if we have them
                 if tech_filters and content_type not in ["education"]:  # Don't filter education by tech
                     items = self.filter_by_technology(items, tech_filters)
+                
+                # Apply date filters if we have them
+                if date_filters["years"]:
+                    items = self.filter_by_date(items, date_filters)
                 
                 # Tag items with their source
                 for item in items:
@@ -689,6 +938,7 @@ class ResumeQueryProcessor:
                     item_type=primary_type,
                     metadata={
                         "tech_filters": tech_filters,
+                        "date_filters": date_filters,
                         "original_query": question,
                         "total_results": len(sorted_items),
                         "needs_cards": len(sorted_items) > 0,
@@ -793,6 +1043,10 @@ class ResumeQueryProcessor:
         if tech_filters and intent not in ["skills", "education", "publications", "blog"]:
             items = self.filter_by_technology(items, tech_filters)
         
+        # Apply date filters for single-type queries
+        if date_filters["years"] and intent not in ["skills", "education"]:
+            items = self.filter_by_date(items, date_filters)
+        
         # Sort projects by date as default (LLM will do context-based selection)
         if intent == "projects":
             items = self.sort_projects_by_date(items)
@@ -806,6 +1060,7 @@ class ResumeQueryProcessor:
             item_type=intent,
             metadata={
                 "tech_filters": tech_filters,
+                "date_filters": date_filters,
                 "original_query": question,
                 "total_results": len(items),
                 "needs_cards": len(items) > 0

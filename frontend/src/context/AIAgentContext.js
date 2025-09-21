@@ -444,7 +444,7 @@ export function AIAgentProvider({ children }) {
     }
   };
 
-  // Process audio through full backend pipeline
+  // Process audio through unified pipeline (same as text after transcription)
   const processAudioData = async (audioData) => {
     console.log('🎵 processAudioData called with:', {
       hasData: !!audioData,
@@ -476,7 +476,7 @@ export function AIAgentProvider({ children }) {
       console.log(`🔄 Processing audio: ${audioData.length} samples with session ${currentSessionId}`);
       console.log(`🎤 Audio duration: ${(audioData.length / 16000).toFixed(2)} seconds`);
       
-      // Convert Float32Array to WAV format
+      // Step 1: Convert audio to transcription only
       console.log('📝 Converting audio to WAV format...');
       const wavBlob = convertToWav(audioData, 16000);
       console.log(`📦 WAV blob created: ${wavBlob.size} bytes`);
@@ -489,137 +489,172 @@ export function AIAgentProvider({ children }) {
       });
       console.log(`📄 File created: ${file.name}, size: ${file.size} bytes`);
       
-      // Create form data
-      console.log('📋 Creating form data...');
+      // Create form data for transcription only
+      console.log('📋 Creating form data for transcription...');
       const formData = new FormData();
       formData.append('audio_file', file);
       formData.append('session_id', currentSessionId);
       
-      console.log('📤 Sending request to backend...', {
-        fileSize: file.size,
-        fileName: file.name,
-        sessionId: currentSessionId
-      });
+      console.log('📤 Sending transcription request to backend...');
       
-      // Send to backend with timeout
-      console.log('⏰ Setting up request with 50s timeout...');
+      // Send to test transcription endpoint (transcription only)
+      console.log('⏰ Setting up transcription request with 30s timeout...');
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
-        console.log('⏰ Request timeout reached, aborting...');
+        console.log('⏰ Transcription timeout reached, aborting...');
         controller.abort();
-      }, 50000);
+      }, 30000);
       
-      console.log('🌐 Making fetch request...');
-      const response = await fetch(`${API_URL}/process`, {
+      console.log('🌐 Making transcription fetch request...');
+      const transcriptionResponse = await fetch(`${API_URL}/test/transcribe`, {
         method: 'POST',
         body: formData,
         signal: controller.signal,
-        // Don't set Content-Type for FormData - browser sets it automatically with boundary
       });
       
       clearTimeout(timeoutId);
-      console.log('📨 Fetch request completed');
+      console.log('📨 Transcription request completed');
       
-      console.log(`📥 Backend response: ${response.status} ${response.statusText}`);
+      console.log(`📥 Transcription response: ${transcriptionResponse.status} ${transcriptionResponse.statusText}`);
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Server error response:', errorText);
-        throw new Error(`Server error: ${response.status} - ${errorText}`);
+      if (!transcriptionResponse.ok) {
+        const errorText = await transcriptionResponse.text();
+        console.error('❌ Transcription error response:', errorText);
+        throw new Error(`Transcription error: ${transcriptionResponse.status} - ${errorText}`);
       }
       
-      const result = await response.json();
-      console.log('✅ Backend result:', result);
+      const transcriptionResult = await transcriptionResponse.json();
+      console.log('✅ Transcription result:', transcriptionResult);
       
-      if (result.status === 'success') {
-        console.log(`🎯 Transcription: "${result.transcription}"`);
-        console.log(`🤖 AI Response: "${result.response}"`);
-        
-        // Handle structured response from audio processing
-        const structuredData = {
-          items: result.items || [],
-          item_type: result.item_type || 'general',
-          metadata: result.metadata || {}
-        };
+      if (!transcriptionResult.transcription) {
+        throw new Error('Failed to get transcription from audio');
+      }
+      
+      const userMessage = transcriptionResult.transcription;
+      console.log(`🎯 Transcribed text: "${userMessage}"`);
+      
+      // Step 2: Add user message to conversation immediately
+      setConversation(prev => [
+        ...prev,
+        { role: 'user', content: userMessage }
+      ]);
+      
+      // Step 3: Process through the same smart pipeline as text input
+      console.log('🧠 Processing through smart pipeline (same as text)...');
+      
+      // Get user_id from localStorage or generate new one
+      let userId = localStorage.getItem('ai_user_id');
+      if (!userId) {
+        userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('ai_user_id', userId);
+      }
 
-        // DEBUG: Log what we received from backend
-        console.log('🔍 FRONTEND DEBUG - Received from backend:', {
-          items: result.items?.length || 0,
-          item_type: result.item_type,
-          first_item: result.items?.[0]?.id,
-          response: result.response
+      // Use the same smart endpoint as text input
+      const smartResponse = await fetch(`${API_URL}/smart/query`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: userMessage,
+          session_id: currentSessionId,
+          conversation_history: conversation.slice(-10), // Send last 10 messages for context
+          user_id: userId
+        })
+      });
+
+      if (!smartResponse.ok) {
+        throw new Error(`Smart endpoint error: ${smartResponse.status}`);
+      }
+
+      const smartResult = await smartResponse.json();
+      console.log('✅ Smart pipeline result:', smartResult);
+      
+      // Check if response suggests consultation
+      const needsConsultation = smartResult.response && smartResult.response.toLowerCase().includes("let's set up a consultation");
+      const isConsultationType = smartResult.item_type === "consultation";
+      
+      if (needsConsultation || isConsultationType) {
+        console.log('🎯 Triggering contact popup - voice response includes consultation request');
+        setShowContactPopup(true);
+      }
+      
+      // Handle response with structured data (same as text)
+      const structuredData = {
+        items: smartResult.items || [],
+        item_type: smartResult.item_type || 'general',
+        metadata: smartResult.metadata || {}
+      };
+
+      // Add AI response to conversation with structured data and enhancement support
+      const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      setConversation(prev => [
+        ...prev,
+        { 
+          role: 'assistant', 
+          content: smartResult.response,
+          structuredData: structuredData,
+          messageId: messageId,
+          enhancementPending: smartResult.llm_enhancement?.status === 'pending'
+        }
+      ]);
+
+      // Start background enhancement if available (same as text)
+      if (smartResult.llm_enhancement && smartResult.llm_enhancement.status === 'pending') {
+        checkForEnhancement(smartResult.llm_enhancement.task_id, messageId);
+      }
+
+      // Step 4: Generate and play audio response
+      console.log('🔊 Generating audio response...');
+      try {
+        const ttsResponse = await fetch(`${API_URL}/test/tts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            text: smartResult.response,
+            session_id: currentSessionId
+          })
         });
-        console.log('🔍 FRONTEND DEBUG - Structured data:', structuredData);
-
-        // Add messages to conversation
-        setConversation(prev => [
-          ...prev, 
-          { role: 'user', content: result.transcription },
-          { 
-            role: 'assistant', 
-            content: result.response,
-            structuredData: structuredData
-          }
-        ]);
         
-        // Play audio response
-        if (result.audio_file) {
-          console.log(`🔊 Playing audio: ${result.audio_file}`);
-          const audio = new Audio(`${API_URL}/audio/${result.audio_file}`);
+        if (ttsResponse.ok) {
+          // /test/tts returns audio file directly, not JSON
+          const audioBlob = await ttsResponse.blob();
+          const audioUrl = URL.createObjectURL(audioBlob);
+          console.log(`🔊 Playing AI response audio from blob`);
+          const audio = new Audio(audioUrl);
           
           return new Promise((resolve) => {
             audio.onended = () => {
-              console.log('✅ Audio playback completed');
+              console.log('✅ Voice response audio playback completed');
+              URL.revokeObjectURL(audioUrl); // Clean up blob URL
               setAudioProcessing(false);
-              resolve(result);
+              resolve(smartResult);
             };
             
             audio.onerror = (e) => {
-              console.error('❌ Audio playback error:', e);
+              console.error('❌ Voice response audio playback error:', e);
+              URL.revokeObjectURL(audioUrl); // Clean up blob URL
               setAudioProcessing(false);
-              resolve(result);
+              resolve(smartResult);
             };
             
             audio.play().catch(playError => {
-              console.error('❌ Error playing audio:', playError);
+              console.error('❌ Error playing voice response audio:', playError);
+              URL.revokeObjectURL(audioUrl); // Clean up blob URL
               setAudioProcessing(false);
-              resolve(result);
+              resolve(smartResult);
             });
           });
-        } else {
-          console.log('ℹ️ No audio file to play');
-          setAudioProcessing(false);
-          return result;
         }
-        
-      } else if (result.status === 'partial_success') {
-        console.log('⚠️ Partial success from server:', result.message);
-        
-        // Still add to conversation even if audio generation failed
-        const structuredData = {
-          items: result.items || [],
-          item_type: result.item_type || 'general',
-          metadata: result.metadata || {}
-        };
-
-        setConversation(prev => [
-          ...prev, 
-          { role: 'user', content: result.transcription },
-          { 
-            role: 'assistant', 
-            content: result.response,
-            structuredData: structuredData
-          }
-        ]);
-        
-        setAudioProcessing(false);
-        return result;
-      } else {
-        console.error('❌ Error from server:', result.message);
-        console.log('🔍 Debug info:', result.debug_info);
-        setAudioProcessing(false);
-        return null;
+      } catch (ttsError) {
+        console.warn('⚠️ TTS generation failed, continuing without audio:', ttsError);
       }
+      
+      // If no audio or TTS failed, just finish processing
+      console.log('✅ Voice processing completed (no audio response)');
+      setAudioProcessing(false);
+      return smartResult;
       
     } catch (error) {
       console.error('❌ Error processing audio:', {
@@ -648,19 +683,23 @@ export function AIAgentProvider({ children }) {
       // Generate and play audio for the fallback response
       try {
         console.log('🔊 Generating fallback audio response...');
-        const ttsResponse = await fetch(`${API_URL}/tts`, {
+        const ttsResponse = await fetch(`${API_URL}/test/tts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: fallbackResponse })
         });
         
         if (ttsResponse.ok) {
-          const ttsResult = await ttsResponse.json();
-          if (ttsResult.status === 'success' && ttsResult.audio_file) {
-            console.log('🎵 Playing fallback audio...');
-            const audio = new Audio(`${API_URL}/audio/${ttsResult.audio_file}`);
-            audio.play().catch(audioError => console.error('Failed to play fallback audio:', audioError));
-          }
+          const audioBlob = await ttsResponse.blob();
+          const audioUrl = URL.createObjectURL(audioBlob);
+          console.log('🎵 Playing fallback audio...');
+          const audio = new Audio(audioUrl);
+          audio.onended = () => URL.revokeObjectURL(audioUrl);
+          audio.onerror = () => URL.revokeObjectURL(audioUrl);
+          audio.play().catch(audioError => {
+            console.error('Failed to play fallback audio:', audioError);
+            URL.revokeObjectURL(audioUrl);
+          });
         }
       } catch (ttsError) {
         console.warn('Failed to generate fallback audio:', ttsError);
