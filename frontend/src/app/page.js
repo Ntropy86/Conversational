@@ -1,14 +1,33 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useTheme } from '../context/ThemeContext';
 import MainLayout from '../components/MainLayout';
 import { typographyClasses } from '../components/Typography';
 import Card from '../components/Card';
 import Chip from '../components/Chip';
 import Button from '../components/Button';
-import AIMode from '../components/AIMode';
+import dynamic from 'next/dynamic';
 import SectionTransition from '../components/SectionTransition';
-import SkillsRadar from '../components/SkillsRadar';
+
+// Lazy load heavy components
+const AIMode = dynamic(() => import('../components/AIMode'), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+    </div>
+  )
+});
+
+const SkillsRadar = dynamic(() => import('../components/SkillsRadar'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-96 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
+    </div>
+  )
+});
 import { useAIAgent } from '../context/AIAgentContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import TabManager from '../components/TabManager';
@@ -376,11 +395,16 @@ export default function Home() {
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ duration: 0.5, delay: 0.5 }}
-                          className="w-28 h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden shadow-2xl ring-4 ring-white/10"
+                          className="w-28 h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden shadow-2xl ring-4 ring-white/10 flex-shrink-0"
+                          style={{ aspectRatio: '1/1' }}
                         >
-                          <img 
+                          <Image 
                             src="/photo.jpeg" 
                             alt="Nitigya Kargeti" 
+                            width={144}
+                            height={144}
+                            sizes="(max-width: 768px) 112px, (max-width: 1024px) 128px, 144px"
+                            priority={true}
                             className="w-full h-full object-cover object-center"
                           />
                         </motion.div>

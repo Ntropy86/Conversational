@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAIAgent } from '../context/AIAgentContext';
 import { useTheme } from '../context/ThemeContext';
@@ -16,6 +16,24 @@ import { typographyClasses } from './Typography';
 import { MonitorIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon, BookOpenIcon, FileTextIcon } from './Icons';
 import { loadMarkdownContent } from '../services/contentService';
 import { isSafari, isVoiceCompatible } from '../utils/browserDetection';
+
+// Move dock items outside component to prevent re-creation
+const DOCK_ITEMS = [
+  { 
+    color: '#2ECC71', 
+    icon: MonitorIcon, 
+    tooltip: 'Regular Website', 
+    section: 'website-mode',
+    isWebsiteToggle: true
+  },
+  { color: '#3498DB', icon: UserIcon, tooltip: 'About', section: 'about' },
+  { color: '#8B5C3C', icon: BriefcaseIcon, tooltip: 'Experience', section: 'experience' },
+  { color: '#E67E22', icon: FolderIcon, tooltip: 'Projects', section: 'projects' },
+  { color: '#6C63FF', icon: BookOpenIcon, tooltip: 'Publications', section: 'publications' },
+  { color: '#FF6B9D', icon: FileTextIcon, tooltip: 'Blog', section: 'blog' },
+  { color: '#27AE60', icon: CodeIcon, tooltip: 'Skills', section: 'skills' },
+  { color: '#F39C12', icon: MailIcon, tooltip: 'Contact', section: 'contact' }
+];
 
 const AIMode = () => {
   const { 
@@ -145,20 +163,20 @@ const AIMode = () => {
   }, [conversation]);
   
   // Handle input submission
-  const handleSendMessage = () => {
+  const handleSendMessage = useCallback(() => {
     if (inputMessage.trim() !== '') {
       addUserMessage(inputMessage);
       generateAIResponse(inputMessage);
       setInputMessage('');
     }
-  };
+  }, [inputMessage, addUserMessage, generateAIResponse]);
 
   // Handle Enter key press
-  const handleKeyPress = (e) => {
+  const handleKeyPress = useCallback((e) => {
     if (e.key === 'Enter') {
       handleSendMessage();
     }
-  };
+  }, [handleSendMessage]);
 
   // Load content for a specific item
   const loadContent = async (item) => {
@@ -793,25 +811,11 @@ const AIMode = () => {
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
               background: 'rgba(30, 17, 8, 0.2)',
               maxWidth: '100%',
-              minWidth: 'fit-content'
+              minWidth: 'fit-content',
+              willChange: 'transform'
             }}
           >
-          {[
-            { 
-              color: '#2ECC71', 
-              icon: MonitorIcon, 
-              tooltip: 'Regular Website', 
-              section: 'website-mode',
-              isWebsiteToggle: true
-            },
-            { color: '#3498DB', icon: UserIcon, tooltip: 'About', section: 'about' },
-            { color: '#8B5C3C', icon: BriefcaseIcon, tooltip: 'Experience', section: 'experience' },
-            { color: '#E67E22', icon: FolderIcon, tooltip: 'Projects', section: 'projects' },
-            { color: '#6C63FF', icon: BookOpenIcon, tooltip: 'Publications', section: 'publications' },
-            { color: '#FF6B9D', icon: FileTextIcon, tooltip: 'Blog', section: 'blog' },
-            { color: '#27AE60', icon: CodeIcon, tooltip: 'Skills', section: 'skills' },
-            { color: '#F39C12', icon: MailIcon, tooltip: 'Contact', section: 'contact' }
-          ].map((item, idx) => (
+          {DOCK_ITEMS.map((item, idx) => (
             <motion.div 
               key={idx}
               className="magic-ui-dock-item relative mx-0.5 sm:mx-1 md:mx-2 cursor-pointer group flex-shrink-0"
