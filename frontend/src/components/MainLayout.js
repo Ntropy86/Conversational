@@ -7,11 +7,12 @@ import DynamicBackground from './DynamicBackground';
 import Link from './Link';
 import Button from './Button';
 import Dock from './Dock';
+import ContactPopup from './ContactPopup';
 import { typographyClasses } from './Typography';
 
 const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
   const { isDarkMode } = useTheme();
-  const { isAIMode, toggleAIMode } = useAIAgent();
+  const { isAIMode, toggleAIMode, showContactPopup, setShowContactPopup } = useAIAgent();
   const [activeSection, setActiveSection] = useState('about');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -357,6 +358,12 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
        <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 overflow-visible">
          <Dock onSectionNavigate={onSectionNavigate} highlightAI={highlightAI} />
        </div>
+
+       {/* Contact Popup */}
+       <ContactPopup 
+         isOpen={showContactPopup} 
+         onClose={() => setShowContactPopup(false)} 
+       />
      </div>
    );
  };

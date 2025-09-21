@@ -36,6 +36,7 @@ export function AIAgentProvider({ children }) {
   const [isAIResponding, setIsAIResponding] = useState(false);
   const [isBackendConnected, setIsBackendConnected] = useState(false);
   const [audioProcessing, setAudioProcessing] = useState(false);
+  const [showContactPopup, setShowContactPopup] = useState(false);
   
   // Load conversation from localStorage on mount
   useEffect(() => {
@@ -246,6 +247,11 @@ export function AIAgentProvider({ children }) {
       }
 
       const result = await response.json();
+      
+      // Check if response suggests consultation
+      if (result.response && result.response.toLowerCase().includes("let's set up a consultation")) {
+        setShowContactPopup(true);
+      }
       
       // Handle immediate response (NLP-based)
       const structuredData = {
@@ -679,7 +685,9 @@ export function AIAgentProvider({ children }) {
       isBackendConnected,
       audioProcessing,
       processAudioData,
-      checkBackendConnection
+      checkBackendConnection,
+      showContactPopup,
+      setShowContactPopup
     }}>
       {children}
     </AIAgentContext.Provider>
