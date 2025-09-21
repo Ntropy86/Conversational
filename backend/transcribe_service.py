@@ -1,13 +1,23 @@
 # transcribe_service.py
+import os
 import tempfile
 import soundfile as sf
 import numpy as np
 from faster_whisper import WhisperModel
 
-# Choose model size based on your hardware (tiny, base, small, medium, large-v3)
-print("Loading Whisper model...")
-model = WhisperModel("base", device="cpu", compute_type="int8")  # Start with smaller model
-print("Whisper model loaded successfully")
+# Global model instance (lazy loaded)
+_whisper_model = None
+
+def get_whisper_model():
+    """Lazy load Whisper model to save memory on startup"""
+    global _whisper_model
+    if _whisper_model is None:
+        # Use smaller models for production deployment
+        model_size = "tiny" if os.environ.get("ENVIRONMENT") == "production" else "base"
+        print(f"Loading Whisper model ({model_size})...")
+        _whisper_model = WhisperModel(model_size, device="cpu", compute_type="int8")
+        print("Whisper model loaded successfully")
+    return _whisper_model
 
 def transcribe_audio(audio_np):
     """Transcribe audio data to text"""
