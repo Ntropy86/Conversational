@@ -10,6 +10,7 @@ import DynamicBackground from './DynamicBackground';
 import Input from './Input';
 import Link from './Link';
 import Chip from './Chip';
+import Button from './Button';
 import { typographyClasses } from './Typography';
 import { MonitorIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon, BookOpenIcon, FileTextIcon } from './Icons';
 import { loadMarkdownContent } from '../services/contentService';
@@ -498,9 +499,23 @@ const AIMode = () => {
                 ) : (
                   // Assistant messages
                   <div className="w-full mb-16 text-left">
-                    <p className="text-xl sm:text-2xl text-gray-400 mb-8">
-                      {message.content}
-                    </p>
+                    <div className="flex items-start gap-3 mb-8">
+                      <p className="text-xl sm:text-2xl text-gray-400 flex-1">
+                        {message.content}
+                      </p>
+                      {message.enhancementPending && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                          <span className="text-xs text-blue-400">Enhancing...</span>
+                        </div>
+                      )}
+                      {message.enhanced && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                          <span className="text-xs text-green-400">Enhanced</span>
+                        </div>
+                      )}
+                    </div>
                     
                     {/* Structured data cards */}
                     {message.structuredData && message.structuredData.items && message.structuredData.items.length > 0 && (
@@ -586,6 +601,20 @@ const AIMode = () => {
                             View All {message.structuredData.item_type.charAt(0).toUpperCase() + message.structuredData.item_type.slice(1)}
                           </Link>
                         </div>
+                      </div>
+                    )}
+
+                    {/* Special handling for rate limit - show resume button */}
+                    {message.structuredData && message.structuredData.item_type === 'rate_limit' && (
+                      <div className="text-center mt-8">
+                        <Button 
+                          onClick={() => {
+                            window.open('/resume', '_blank');
+                          }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-all duration-200 font-medium"
+                        >
+                          📄 View My Resume
+                        </Button>
                       </div>
                     )}
                   </div>

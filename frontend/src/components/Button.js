@@ -74,7 +74,7 @@ const Button = ({
       className={`${getButtonStyles()} ${className}`}
       style={getAcrylicStyle()}
       whileHover={{ 
-        scale: window?.innerWidth < 640 ? 1.02 : 1.05,
+        scale: 1.05,
         transition: { type: "spring", stiffness: 400, damping: 10 } 
       }}
       whileTap={{ 

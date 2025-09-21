@@ -74,7 +74,7 @@ const Card = ({
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       whileHover={hoverEffect ? { 
-        y: window?.innerWidth < 640 ? -2 : -5,
+        y: -5,
         transition: { duration: 0.2 }
       } : {}}
       initial={{ opacity: 0, y: 20 }}

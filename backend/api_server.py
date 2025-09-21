@@ -19,6 +19,7 @@ from audio_cleanup import init_cleanup_service, cleanup_audio_file, mark_audio_a
 from transcribe_service import transcribe_audio
 from llm_service import ConversationManager
 from tts_service import generate_speech_async  # Use the async version directly
+from resume_query_processor import ResumeQueryProcessor
 
 app = FastAPI(title="AI Assistant API")
 
@@ -101,11 +102,34 @@ async def test_llm(request: TextRequest):
     
     # Process with LLM using structured response with conversation context
     start_time = time.time()
-    structured_response = conversation.generate_structured_response(
-        request.text, 
-        conversation_history=request.conversation_history
-    )
-    processing_time = time.time() - start_time
+    try:
+        structured_response = conversation.generate_structured_response(
+            request.text, 
+            conversation_history=request.conversation_history
+        )
+        processing_time = time.time() - start_time
+    except Exception as e:
+        print(f"⚠️  LLM failed: {e}")
+        # Fallback to basic NLP processor
+        processor = ResumeQueryProcessor()
+        result = processor.query(request.text)
+        
+        # Format result to match expected structure
+        fallback_text = "LLM is busy right now, but I was smart while designing this, so here you go:"
+        if result.item_type == "none":
+            fallback_text = "I'm having trouble processing that right now. Try asking me about his projects, experience, or skills!"
+        
+        structured_response = {
+            "response": fallback_text,
+            "items": result.items,
+            "item_type": result.item_type,
+            "metadata": {
+                **result.metadata,
+                "fallback_mode": True,
+                "llm_error": str(e)
+            }
+        }
+        processing_time = time.time() - start_time
     
     return {
         "session_id": session_id,
@@ -114,6 +138,227 @@ async def test_llm(request: TextRequest):
         "item_type": structured_response["item_type"],
         "metadata": structured_response["metadata"],
         "processing_time_ms": round(processing_time * 1000, 2)
+    }
+
+# Store for tracking user requests and background tasks
+user_request_counts = {}
+background_tasks = {}
+
+class SmartRequest(BaseModel):
+    text: str
+    session_id: str = None
+    conversation_history: list = []
+    user_id: str = None  # For rate limiting
+
+@app.post("/smart/query")
+async def smart_query(request: SmartRequest):
+    """Smart query with immediate NLP response and optional background LLM enhancement"""
+    start_time = time.time()
+    
+    # Generate user_id for rate limiting if not provided
+    user_id = request.user_id or str(uuid.uuid4())
+    
+    # Track request count for rate limiting
+    if user_id not in user_request_counts:
+        user_request_counts[user_id] = 0
+    user_request_counts[user_id] += 1
+    
+    # Check if user exceeded rate limit (3 requests)
+    if user_request_counts[user_id] > 3:
+        return {
+            "session_id": request.session_id or str(uuid.uuid4()),
+            "response": "Hey there! 👋 This is a completely free product and I want to keep it that way, so let's not exhaust my LLM credits please 😅 If you like what you see, check out my resume and let's connect! You can find my contact info in the header.",
+            "items": [],
+            "item_type": "rate_limit",
+            "metadata": {
+                "rate_limited": True,
+                "request_count": user_request_counts[user_id],
+                "message": "Rate limit reached - please view resume and connect!"
+            },
+            "processing_time_ms": round((time.time() - start_time) * 1000, 2),
+            "user_id": user_id,
+            "llm_enhancement": None
+        }
+    
+    # For first 2 queries: Try LLM with 5-second timeout (premium experience)
+    # For subsequent queries: Immediate NLP + background enhancement (fast experience)
+    session_id = request.session_id or str(uuid.uuid4())
+    
+    if user_request_counts[user_id] <= 2:
+        # PREMIUM EXPERIENCE: Wait for LLM with timeout for first 2 queries
+        try:
+            # Use existing session or create a new one
+            if session_id not in conversations:
+                conversations[session_id] = ConversationManager()
+            
+            conversation = conversations[session_id]
+            
+            # Try LLM with 5-second timeout
+            structured_response = await asyncio.wait_for(
+                conversation.generate_structured_response_async(
+                    request.text, 
+                    conversation_history=request.conversation_history
+                ),
+                timeout=5.0  # 5-second timeout for premium experience
+            )
+            
+            return {
+                "session_id": session_id,
+                "response": structured_response["response"],
+                "items": structured_response["items"],
+                "item_type": structured_response["item_type"],
+                "metadata": {
+                    **structured_response["metadata"],
+                    "premium_llm_response": True,
+                    "request_count": user_request_counts[user_id]
+                },
+                "processing_time_ms": round((time.time() - start_time) * 1000, 2),
+                "user_id": user_id,
+                "llm_enhancement": None
+            }
+            
+        except asyncio.TimeoutError:
+            print(f"⏰ LLM timeout for user {user_id} query {user_request_counts[user_id]} - falling back to NLP")
+        except Exception as e:
+            print(f"⚠️ LLM error for user {user_id}: {e} - falling back to NLP")
+    
+    # FAST EXPERIENCE: Immediate NLP response + background enhancement
+    # (Used for: timeouts on first 2 queries, or all queries after 2nd)
+    processor = ResumeQueryProcessor()
+    nlp_result = processor.query(request.text, conversation_history=request.conversation_history)
+    
+    # Improve the NLP response to be more friendly
+    friendly_response = nlp_result.response_text
+    if friendly_response.startswith("Found ") and "matching your query" in friendly_response:
+        # Make generic responses more personality-driven
+        if nlp_result.item_type == "projects":
+            friendly_response = "Let me show you some of his awesome projects!"
+        elif nlp_result.item_type == "experience":
+            friendly_response = "Here's where he's worked and made his mark!"
+        elif nlp_result.item_type == "skills":
+            friendly_response = "This guy's got some serious technical chops!"
+        elif nlp_result.item_type == "publications":
+            friendly_response = "Check out his research contributions!"
+        elif nlp_result.item_type == "blog":
+            friendly_response = "Here are some insights he's shared with the world!"
+    
+    # Prepare immediate response
+    immediate_response = {
+        "session_id": session_id,
+        "response": friendly_response,
+        "items": nlp_result.items,
+        "item_type": nlp_result.item_type,
+        "metadata": {
+            **nlp_result.metadata,
+            "fast_nlp_response": True,
+            "llm_enhancement_pending": True,
+            "request_count": user_request_counts[user_id]
+        },
+        "processing_time_ms": round((time.time() - start_time) * 1000, 2),
+        "user_id": user_id,
+        "llm_enhancement": None
+    }
+    
+    # Start background LLM enhancement task (don't await it)
+    task_id = str(uuid.uuid4())
+    background_tasks[task_id] = {
+        "status": "pending",
+        "result": None,
+        "created_at": time.time()
+    }
+    
+    # Fire-and-forget background task
+    asyncio.create_task(enhance_with_llm(
+        task_id, 
+        request, 
+        session_id
+    ))
+    
+    immediate_response["llm_enhancement"] = {
+        "task_id": task_id,
+        "status": "pending",
+        "check_url": f"/smart/enhancement/{task_id}"
+    }
+    
+    return immediate_response
+
+async def enhance_with_llm(task_id: str, request: SmartRequest, session_id: str):
+    """Background task to enhance response with LLM"""
+    try:
+        # Use existing session or create a new one
+        if session_id not in conversations:
+            conversations[session_id] = ConversationManager()
+        
+        conversation = conversations[session_id]
+        
+        # Try LLM with timeout
+        try:
+            structured_response = await asyncio.wait_for(
+                conversation.generate_structured_response_async(
+                    request.text, 
+                    conversation_history=request.conversation_history
+                ),
+                timeout=30.0  # 30 second timeout for background task
+            )
+            
+            background_tasks[task_id] = {
+                "status": "completed",
+                "result": {
+                    "response": structured_response["response"],
+                    "items": structured_response["items"],
+                    "item_type": structured_response["item_type"],
+                    "metadata": {
+                        **structured_response["metadata"],
+                        "llm_enhanced": True
+                    }
+                },
+                "created_at": background_tasks[task_id]["created_at"],
+                "completed_at": time.time()
+            }
+        except asyncio.TimeoutError:
+            background_tasks[task_id] = {
+                "status": "timeout",
+                "result": None,
+                "created_at": background_tasks[task_id]["created_at"],
+                "completed_at": time.time()
+            }
+        except Exception as e:
+            background_tasks[task_id] = {
+                "status": "failed",
+                "result": None,
+                "error": str(e),
+                "created_at": background_tasks[task_id]["created_at"],
+                "completed_at": time.time()
+            }
+    except Exception as e:
+        background_tasks[task_id] = {
+            "status": "failed",
+            "result": None,
+            "error": str(e),
+            "created_at": background_tasks.get(task_id, {}).get("created_at", time.time()),
+            "completed_at": time.time()
+        }
+
+@app.get("/smart/enhancement/{task_id}")
+async def get_enhancement(task_id: str):
+    """Get the status/result of a background LLM enhancement"""
+    if task_id not in background_tasks:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    task = background_tasks[task_id]
+    
+    # Clean up old completed tasks (older than 5 minutes)
+    if task["status"] in ["completed", "failed", "timeout"]:
+        if time.time() - task.get("completed_at", 0) > 300:  # 5 minutes
+            del background_tasks[task_id]
+            raise HTTPException(status_code=410, detail="Task result expired")
+    
+    return {
+        "task_id": task_id,
+        "status": task["status"],
+        "result": task.get("result"),
+        "error": task.get("error"),
+        "processing_time_seconds": task.get("completed_at", time.time()) - task["created_at"]
     }
 
 @app.post("/test/llm-stream")

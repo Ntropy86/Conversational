@@ -204,7 +204,7 @@ export function AIAgentProvider({ children }) {
     }
   };
   
-  // Generate AI response using real backend API
+  // Generate AI response using smart progressive system
   const generateAIResponse = async (userMessage) => {
     if (!isBackendConnected) {
       console.error('Backend not connected');
@@ -220,8 +220,15 @@ export function AIAgentProvider({ children }) {
         throw new Error('Failed to create session');
       }
 
-      // Send request to backend LLM service with conversation context
-      const response = await fetch(`${API_URL}/test/llm`, {
+      // Get user_id from localStorage or generate new one
+      let userId = localStorage.getItem('ai_user_id');
+      if (!userId) {
+        userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('ai_user_id', userId);
+      }
+
+      // Send request to smart endpoint for immediate response
+      const response = await fetch(`${API_URL}/smart/query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -229,7 +236,8 @@ export function AIAgentProvider({ children }) {
         body: JSON.stringify({
           text: userMessage,
           session_id: currentSessionId,
-          conversation_history: conversation.slice(-10) // Send last 10 messages for context
+          conversation_history: conversation.slice(-10), // Send last 10 messages for context
+          user_id: userId
         })
       });
 
@@ -239,22 +247,31 @@ export function AIAgentProvider({ children }) {
 
       const result = await response.json();
       
-      // Handle structured response from backend
+      // Handle immediate response (NLP-based)
       const structuredData = {
         items: result.items || [],
         item_type: result.item_type || 'general',
         metadata: result.metadata || {}
       };
 
-      // Add assistant response to conversation with structured data
+      // Add immediate response to conversation with structured data
+      const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
       setConversation(prev => [
         ...prev,
         { 
           role: 'assistant', 
           content: result.response,
-          structuredData: structuredData
+          structuredData: structuredData,
+          messageId: messageId,
+          enhancementPending: result.llm_enhancement?.status === 'pending'
         }
       ]);
+
+      // Start background enhancement if available
+      if (result.llm_enhancement && result.llm_enhancement.status === 'pending') {
+        checkForEnhancement(result.llm_enhancement.task_id, messageId);
+      }
 
     } catch (error) {
       console.error('Error generating AI response:', error);
@@ -270,6 +287,80 @@ export function AIAgentProvider({ children }) {
     }
     
     setIsAIResponding(false);
+  };
+
+  // Check for background LLM enhancement
+  const checkForEnhancement = async (taskId, messageId) => {
+    try {
+      // Poll for enhancement with exponential backoff
+      const maxAttempts = 6; // ~30 seconds total (1+2+4+8+15s)
+      let attempt = 0;
+      
+      while (attempt < maxAttempts) {
+        const delay = Math.min(1000 * Math.pow(2, attempt), 15000); // Cap at 15 seconds
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        try {
+          const enhancementResponse = await fetch(`${API_URL}/smart/enhancement/${taskId}`);
+          
+          if (enhancementResponse.status === 404 || enhancementResponse.status === 410) {
+            console.log('Enhancement task not found or expired');
+            break;
+          }
+          
+          if (!enhancementResponse.ok) {
+            attempt++;
+            continue;
+          }
+          
+          const enhancementResult = await enhancementResponse.json();
+          
+          if (enhancementResult.status === 'completed' && enhancementResult.result) {
+            // Update the conversation with enhanced response
+            setConversation(prev => prev.map(msg => 
+              msg.messageId === messageId 
+                ? {
+                    ...msg,
+                    content: enhancementResult.result.response,
+                    structuredData: {
+                      items: enhancementResult.result.items || [],
+                      item_type: enhancementResult.result.item_type || 'general',
+                      metadata: enhancementResult.result.metadata || {}
+                    },
+                    enhancementPending: false,
+                    enhanced: true
+                  }
+                : msg
+            ));
+            break;
+          } else if (enhancementResult.status === 'failed' || enhancementResult.status === 'timeout') {
+            console.log('Enhancement failed or timed out, keeping original response');
+            // Mark as no longer pending
+            setConversation(prev => prev.map(msg => 
+              msg.messageId === messageId 
+                ? { ...msg, enhancementPending: false }
+                : msg
+            ));
+            break;
+          }
+          
+          attempt++;
+        } catch (pollError) {
+          console.error('Error polling for enhancement:', pollError);
+          attempt++;
+        }
+      }
+      
+      // If we exhausted all attempts, mark as no longer pending
+      setConversation(prev => prev.map(msg => 
+        msg.messageId === messageId 
+          ? { ...msg, enhancementPending: false }
+          : msg
+      ));
+      
+    } catch (error) {
+      console.error('Error in background enhancement:', error);
+    }
   };
 
   // Convert Float32Array to WAV blob (from test app)

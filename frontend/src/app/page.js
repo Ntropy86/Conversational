@@ -15,7 +15,7 @@ import TabManager from '../components/TabManager';
 import ContentPage from '../components/ContentPage';
 import Publications from '../components/Publications';
 import Blog from '../components/Blog';
-import { getExperienceContent, getProjectContent, getExperienceList, getProjectList, getBlogContent } from '../services/contentService';
+import { getExperienceContent, getProjectContent, getExperienceList, getProjectList, getBlogContent, getPublicationContent, getSkillsContent, getPublicationList, getSkillsList } from '../services/contentService';
 
 // Experience Card Component
 const ExperienceCard = ({ experience, onClick }) => {
@@ -166,6 +166,13 @@ export default function Home() {
   const [showAllExperience, setShowAllExperience] = useState(false);
   const [showAllProjects, setShowAllProjects] = useState(false);
 
+  // Scroll to top when opening content tabs
+  useEffect(() => {
+    if (activeTabId !== 'overview') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [activeTabId]);
+
   // Load content metadata on mount
   useEffect(() => {
     async function loadData() {
@@ -221,6 +228,10 @@ export default function Home() {
         content = await getProjectContent(id);
       } else if (type === 'blog') {
         content = await getBlogContent(id);
+      } else if (type === 'publication') {
+        content = await getPublicationContent(id);
+      } else if (type === 'skills') {
+        content = await getSkillsContent(id);
       }
       
       console.log(`Content loaded:`, content ? 'success' : 'failed', content?.title);
@@ -343,45 +354,41 @@ export default function Home() {
                 {/* About Section */}
                 <SectionTransition className="mb-16 md:mb-24" type="fade-in">
                   <section id="about" className="mb-16 md:mb-24">
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: 0.2 }}
-                    >
-                      <h2 className={`text-base md:text-lg mb-2 ${typographyClasses.heading}`}>Hi, my name is</h2>
-                    </motion.div>
-                    
-                    <motion.div
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: 0.3 }}
-                      className="flex items-center justify-between flex-wrap gap-4"
-                    >
-                      <h1 className={`text-3xl md:text-4xl lg:text-5xl mb-2 md:mb-4 ${typographyClasses.heading} flex-1 min-w-0`}>Nitigya Kargeti</h1>
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5, delay: 0.5 }}
-                        className="w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-full overflow-hidden shadow-lg flex-shrink-0 ring-2 ring-white/20"
-                      >
-                        <img 
-                          src="/photo.jpeg" 
-                          alt="Nitigya Kargeti" 
-                          className="w-full h-full object-cover object-center"
-                        />
-                      </motion.div>
-                    </motion.div>
-                    
-                    <motion.div
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: 0.4 }}
-                    >
-                      <h3 className={`text-xl md:text-2xl lg:text-3xl mb-4 md:mb-6 ${typographyClasses.heading}`}>I build intelligent systems.</h3>
-                    </motion.div>
+                    {/* Grid Layout: Text on left, Image on right */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-center">
+                      {/* Left Column - Text Content */}
+                      <div className="lg:col-span-2">
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5, delay: 0.2 }}
+                          className="space-y-2 md:space-y-3"
+                        >
+                          <h2 className={`text-base md:text-lg ${typographyClasses.heading}`}>Hi, my name is</h2>
+                          <h1 className={`text-3xl md:text-4xl lg:text-5xl ${typographyClasses.heading}`}>Nitigya Kargeti</h1>
+                          <h3 className={`text-xl md:text-2xl lg:text-3xl ${typographyClasses.heading}`}>I build intelligent systems.</h3>
+                        </motion.div>
+                      </div>
+
+                      {/* Right Column - Image */}
+                      <div className="flex justify-center lg:justify-end">
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.5, delay: 0.5 }}
+                          className="w-28 h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden shadow-2xl ring-4 ring-white/10"
+                        >
+                          <img 
+                            src="/photo.jpeg" 
+                            alt="Nitigya Kargeti" 
+                            className="w-full h-full object-cover object-center"
+                          />
+                        </motion.div>
+                      </div>
+                    </div>
                     
                     <motion.div 
-                      className="mb-8"
+                      className="mb-8 mt-6 md:mt-8"
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6, delay: 0.5 }}

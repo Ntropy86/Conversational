@@ -103,7 +103,7 @@ const SkillsRadar = ({ className = "" }) => {
                     ${isActive ? 'text-white' : isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}
                   `}
                   onClick={() => handleCategoryClick(category)}
-                  whileHover={{ scale: window?.innerWidth < 640 ? 1.02 : 1.05 }}
+                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   {isActive && (

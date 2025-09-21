@@ -112,8 +112,8 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
             }}
             initial={{ scale: 1 }}
             whileHover={{ 
-              scale: window?.innerWidth < 640 ? 1.1 : 1.2,
-              y: window?.innerWidth < 640 ? -4 : -8,
+              scale: 1.2,
+              y: -8,
               boxShadow: `0 0 15px ${item.color}80`,
               transition: { 
                 type: "spring", 

@@ -61,3 +61,12 @@ export async function getPublicationContent(id) {
 export async function getBlogContent(id) {
   return await loadMarkdownContent('blog', id);
 }
+
+export async function getSkillsList() {
+  const metadata = await getContentMetadata();
+  return metadata.skills || {};
+}
+
+export async function getSkillsContent(id) {
+  return await loadMarkdownContent('skills', id);
+}

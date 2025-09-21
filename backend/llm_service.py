@@ -141,7 +141,9 @@ RULES:
 Just have a normal conversation.
 """
             
-            enhanced_history = self.chat_history + [
+            # Truncate conversation history for casual chat too
+            truncated_history = self.chat_history[-4:] if len(self.chat_history) > 4 else self.chat_history
+            enhanced_history = truncated_history + [
                 {"role": "system", "content": conversation_prompt},
                 {"role": "user", "content": user_message}
             ]
@@ -167,30 +169,60 @@ Just have a normal conversation.
             }
         
         # Cards are needed - do intelligent selection
-        selection_prompt = f"""User asked: "{user_message}"
+        # Truncate items to prevent token limit issues
+        max_items = 8 if len(query_result.items) > 8 else len(query_result.items)
+        truncated_items = query_result.items[:max_items]
+        
+        # Simplify item data to reduce tokens
+        simplified_items = []
+        for item in truncated_items:
+            simplified_item = {
+                "id": item.get("id", ""),
+                "title": item.get("title", ""),
+                "company": item.get("company", ""),
+                "role": item.get("role", ""),
+                "description": item.get("description", "")[:200] + "..." if len(item.get("description", "")) > 200 else item.get("description", "")
+            }
+            simplified_items.append(simplified_item)
+        
+        # Handle fallback scenarios with special context
+        fallback_context = ""
+        if query_result.metadata.get('fallback_search'):
+            requested_techs = query_result.metadata.get('requested_technologies', [])
+            found_similar = query_result.metadata.get('similar_technologies_found', [])
+            fallback_context = f"""
+IMPORTANT - FALLBACK SCENARIO:
+User asked about: {', '.join(requested_techs)}
+No direct experience found, showing related work with: {', '.join(found_similar)}
+Your response should acknowledge this gap and explain the similarity.
+"""
+        
+        selection_prompt = f"""User: "{user_message}"
+{fallback_context}
+{query_result.item_type.title()} options:
+{json.dumps(simplified_items, indent=1)}
 
-Available {query_result.item_type} to choose from:
-{json.dumps(query_result.items, indent=2)}
+Pick 1-3 most relevant items. Respond with witty comment (max 25 words).
 
-TASK: You are Nitigya's witty friend. Pick the most relevant items for their question and respond naturally.
+RULES:
+- If this is a fallback scenario, acknowledge the user asked about technologies he doesn't have
+- Explain what similar work he does have
+- Be honest about what's missing
+- Don't hallucinate or make up experience
 
-CRITICAL RULES:
-1. Always include 1-3 most relevant items
-2. For "projects" questions - pick project items
-3. For "experience" questions - pick experience items  
-4. For general questions - pick the most impressive ones
-
-FORMAT (EXACT):
-RESPONSE: [Your witty response about the items - max 30 words]
-IDS: [comma-separated IDs of items to show - ALWAYS include some unless truly irrelevant]
+FORMAT:
+RESPONSE: [witty comment]
+IDS: [comma-separated IDs]
 
 Example:
-RESPONSE: Check out these sweet projects I built!
-IDS: codeforces-potd, moody-eeg-classifier
-
-Now respond:"""
+RESPONSE: This guy's been around the block!
+IDS: people-robots-lab, spenza-inc"""
         
-        enhanced_history = self.chat_history + [
+        # Truncate conversation history to prevent token limits
+        max_history = 4  # Keep only last 4 messages (2 exchanges)
+        truncated_history = self.chat_history[-max_history:] if len(self.chat_history) > max_history else self.chat_history
+        
+        enhanced_history = truncated_history + [
             {"role": "system", "content": selection_prompt},
             {"role": "user", "content": user_message}
         ]
@@ -290,6 +322,19 @@ Now respond:"""
                 "cards_shown": len(selected_items) > 0
             }
         }
+
+    async def generate_structured_response_async(self, user_message: str, conversation_history: list = None) -> Dict:
+        """Async version of generate_structured_response for background processing"""
+        import asyncio
+        
+        # Run the synchronous method in a thread pool to avoid blocking
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, 
+            self.generate_structured_response, 
+            user_message, 
+            conversation_history
+        )
 
 # Test function - make sure we use the SAME conversation manager for both tests
 def test_llm(input_text=None):

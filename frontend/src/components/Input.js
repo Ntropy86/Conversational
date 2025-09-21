@@ -63,7 +63,7 @@ const Input = forwardRef(({
           placeholder={placeholder}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className={`${inputClasses} ${customEndButton ? 'pr-24' : ''}`}
+          className={`${inputClasses} ${customEndButton ? 'pr-32' : ''}`}
           style={currentStyle}
           {...props}
         />
