@@ -30,8 +30,9 @@ const useUniversalVAD = (options = {}) => {
   }, []);
   
   // Choose VAD implementation based on browser
-  const standardVAD = useVAD(options);
-  const safariVAD = useSafariVAD(options);
+  const shouldUseSafari = browserType === 'safari';
+  const standardVAD = useVAD(shouldUseSafari ? {} : options); // Don't initialize if we'll use Safari
+  const safariVAD = useSafariVAD(shouldUseSafari ? options : {});
   
   // Return appropriate VAD based on browser and loading state
   if (browserType === 'safari') {
@@ -43,13 +44,27 @@ const useUniversalVAD = (options = {}) => {
   }
   
   // For other browsers, check if standard VAD failed to load
-  if (standardVAD.error && !standardVAD.isLoaded) {
+  if (browserType && standardVAD.error && !standardVAD.isLoaded) {
     console.log('⚠️ Standard VAD failed, falling back to Safari VAD');
     return {
       ...safariVAD,
       browserType,
       vadType: 'safari-fallback',
       fallbackReason: standardVAD.error
+    };
+  }
+  
+  // Don't return anything until browser is detected
+  if (!browserType) {
+    return {
+      isLoaded: false,
+      isLoading: true,
+      isListening: false,
+      isSpeaking: false,
+      error: null,
+      toggle: () => false,
+      browserType: null,
+      vadType: 'detecting'
     };
   }
   
