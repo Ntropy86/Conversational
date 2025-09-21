@@ -12,7 +12,7 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: PYTHON_VERSION
-        value: "3.10"
+        value: "3.10.12"
       - key: PORT
         value: "10000"
     healthCheckPath: /
