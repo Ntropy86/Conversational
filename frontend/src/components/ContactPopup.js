@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
 
 const ContactPopup = ({ isOpen, onClose }) => {
   const contactInfo = {
@@ -35,7 +34,7 @@ const ContactPopup = ({ isOpen, onClose }) => {
                 onClick={onClose}
                 className="absolute top-4 right-4 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
               >
-                <X size={20} className="text-gray-500 dark:text-gray-400" />
+                <span className="text-gray-500 dark:text-gray-400 text-xl leading-none">×</span>
               </button>
 
               {/* Content */}
