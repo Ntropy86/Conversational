@@ -336,6 +336,23 @@ class ResumeQueryProcessor:
         if any(re.search(pattern, query_lower.strip()) for pattern in greeting_patterns):
             return "greeting"
         
+        # Check for "Do you know X?" or "Are you familiar with X?" type questions
+        # These should be treated as skills/technology queries
+        know_patterns = [
+            r"(?i)do you know\s+(\w+)",
+            r"(?i)are you familiar with\s+(\w+)",
+            r"(?i)can you\s+(\w+)",
+            r"(?i)do you have experience with\s+(\w+)"
+        ]
+        
+        for pattern in know_patterns:
+            match = re.search(pattern, query_lower)
+            if match:
+                # Check if the mentioned technology is in our mappings
+                mentioned_tech = match.group(1)
+                if mentioned_tech in self.tech_mappings or any(mentioned_tech in keywords for keywords in self.tech_mappings.values()):
+                    return "skills"  # Treat as a skills query
+        
         intent_scores = {}
         for intent, patterns in self.intent_patterns.items():
             score = sum(1 for pattern in patterns if re.search(pattern, query))

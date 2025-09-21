@@ -11,9 +11,11 @@ import Input from './Input';
 import Link from './Link';
 import Chip from './Chip';
 import Button from './Button';
+import SafariVoiceWarning from './SafariVoiceWarning';
 import { typographyClasses } from './Typography';
 import { MonitorIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon, BookOpenIcon, FileTextIcon } from './Icons';
 import { loadMarkdownContent } from '../services/contentService';
+import { isSafari, isVoiceCompatible } from '../utils/browserDetection';
 
 const AIMode = () => {
   const { 
@@ -39,11 +41,16 @@ const AIMode = () => {
   const [currentView, setCurrentView] = useState('conversation'); // 'conversation' or 'content'
   const [currentContent, setCurrentContent] = useState(null);
   const [contentLoading, setContentLoading] = useState(false);
+  const [showSafariWarning, setShowSafariWarning] = useState(false);
   const inputRef = useRef(null);
   const contentRef = useRef(null);
   
   // Use ref to track voice mode intent persistently (survives re-renders)
   const voiceModeIntentRef = useRef(false);
+  
+  // Check if current browser supports voice features
+  const browserSupportedVoice = isVoiceCompatible();
+  const isSafariBrowser = isSafari();
   
   // Universal VAD integration for voice input (Safari compatible)
   const vad = useUniversalVAD({
@@ -191,8 +198,17 @@ const AIMode = () => {
       vadLoaded: vad.isLoaded, 
       backendConnected: isBackendConnected, 
       audioProcessing: audioProcessing,
-      currentVoiceMode: voiceMode
+      currentVoiceMode: voiceMode,
+      browserSupported: browserSupportedVoice,
+      isSafari: isSafariBrowser
     });
+    
+    // Check if browser supports voice features
+    if (!browserSupportedVoice || isSafariBrowser) {
+      console.log('⚠️ Voice not supported in this browser, showing warning');
+      setShowSafariWarning(true);
+      return;
+    }
     
     // Don't start if already processing audio
     if (audioProcessing) {
@@ -285,6 +301,7 @@ const AIMode = () => {
   const VoiceButton = () => {
     // Determine button state and color
     const getButtonState = () => {
+      if (!browserSupportedVoice || isSafariBrowser) return { color: 'gray', label: 'Unsupported' };
       if (audioProcessing) return { color: 'yellow', label: 'Processing' };
       if (voiceMode) return { color: 'red', label: 'Stop' };
       return { color: 'green', label: 'Start' };
@@ -295,19 +312,25 @@ const AIMode = () => {
     return (
       <motion.button 
         onClick={audioProcessing ? undefined : toggleVoiceMode}
-        whileHover={audioProcessing ? {} : { scale: 1.1 }}
-        whileTap={audioProcessing ? {} : { scale: 0.95 }}
-        disabled={!vad.isLoaded || !isBackendConnected || isAIResponding}
+        whileHover={audioProcessing || (!browserSupportedVoice || isSafariBrowser) ? {} : { scale: 1.1 }}
+        whileTap={audioProcessing || (!browserSupportedVoice || isSafariBrowser) ? {} : { scale: 0.95 }}
+        disabled={!vad.isLoaded || !isBackendConnected || isAIResponding || !browserSupportedVoice || isSafariBrowser}
         className={`p-2 rounded-full flex items-center justify-center transition-colors ${
-          buttonState.color === 'yellow' 
+          buttonState.color === 'gray'
+            ? 'bg-gray-500 hover:bg-gray-600'
+            : buttonState.color === 'yellow' 
             ? 'bg-yellow-500 hover:bg-yellow-600' 
             : buttonState.color === 'red'
             ? 'bg-red-500 hover:bg-red-600' 
             : 'bg-green-500 hover:bg-green-600'
-        } ${(!vad.isLoaded || !isBackendConnected) ? 'opacity-40' : ''} ${
-          audioProcessing ? 'cursor-not-allowed' : 'cursor-pointer'
+        } ${(!vad.isLoaded || !isBackendConnected || !browserSupportedVoice || isSafariBrowser) ? 'opacity-40' : ''} ${
+          audioProcessing || (!browserSupportedVoice || isSafariBrowser) ? 'cursor-not-allowed' : 'cursor-pointer'
         }`}
-        title={`${buttonState.label} voice mode`}
+        title={
+          !browserSupportedVoice || isSafariBrowser 
+            ? 'Voice not supported in this browser' 
+            : `${buttonState.label} voice mode`
+        }
       >
         {audioProcessing ? (
           <motion.svg 
@@ -323,6 +346,13 @@ const AIMode = () => {
             <circle cx="12" cy="12" r="3" />
             <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" strokeLinecap="round" />
           </motion.svg>
+        ) : !browserSupportedVoice || isSafariBrowser ? (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <path d="M12 15C13.6569 15 15 13.6569 15 12V6C15 4.34315 13.6569 3 12 3C10.3431 3 9 4.34315 9 6V12C9 13.6569 10.3431 15 12 15Z" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 19V22" strokeLinecap="round" strokeLinejoin="round" />
+            <line x1="1" y1="1" x2="23" y2="23" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         ) : voiceMode ? (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
             <rect x="6" y="6" width="12" height="12" strokeLinecap="round" strokeLinejoin="round" />
@@ -341,6 +371,12 @@ const AIMode = () => {
   return (
     <div className="min-h-screen">
       <DynamicBackground isDarkMode={true} />
+      
+      {/* Safari Voice Warning */}
+      <SafariVoiceWarning 
+        isVisible={showSafariWarning}
+        onDismiss={() => setShowSafariWarning(false)}
+      />
       
       {/* Content View - when viewing specific markdown content */}
       {currentView === 'content' && currentContent && (
@@ -401,7 +437,11 @@ const AIMode = () => {
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder={voiceMode ? "Listening... speak now" : "Type your message..."}
+              placeholder={
+                voiceMode ? "Listening... speak now" : 
+                (!browserSupportedVoice || isSafariBrowser) ? "Type your message (voice not available in Safari)..." :
+                "Type your message..."
+              }
               customEndButton={
                 <div className="flex items-center space-x-2">
                   <VoiceButton />
@@ -433,10 +473,21 @@ const AIMode = () => {
                   <span>Backend {isBackendConnected ? 'Connected' : 'Disconnected'}</span>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <div className={`w-2 h-2 rounded-full ${vad.isLoaded ? 'bg-green-400' : vad.isLoading ? 'bg-yellow-400' : 'bg-red-400'}`} />
+                  <div className={`w-2 h-2 rounded-full ${
+                    !browserSupportedVoice || isSafariBrowser ? 'bg-orange-400' :
+                    vad.isLoaded ? 'bg-green-400' : 
+                    vad.isLoading ? 'bg-yellow-400' : 'bg-red-400'
+                  }`} />
                   <span>
-                    Voice {vad.isLoaded ? 'Ready' : vad.isLoading ? 'Loading...' : 'Error'}
-                    {vad.vadType && vad.isLoaded && (
+                    Voice {
+                      !browserSupportedVoice || isSafariBrowser ? 'Unsupported' :
+                      vad.isLoaded ? 'Ready' : 
+                      vad.isLoading ? 'Loading...' : 'Error'
+                    }
+                    {isSafariBrowser && (
+                      <span className="text-xs text-orange-400 ml-1">(Safari)</span>
+                    )}
+                    {vad.vadType && vad.isLoaded && browserSupportedVoice && !isSafariBrowser && (
                       <span className="text-xs text-gray-500 ml-1">
                         ({vad.vadType === 'safari-compatible' ? 'Safari' : 
                           vad.vadType === 'safari-fallback' ? 'Fallback' : 'Standard'})
@@ -713,7 +764,11 @@ const AIMode = () => {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={voiceMode ? "Listening... speak now" : "Type your message..."}
+            placeholder={
+              voiceMode ? "Listening... speak now" : 
+              (!browserSupportedVoice || isSafariBrowser) ? "Type your message (voice not available in Safari)..." :
+              "Type your message..."
+            }
             customEndButton={
               <div className="flex items-center space-x-1">
                 <VoiceButton />
