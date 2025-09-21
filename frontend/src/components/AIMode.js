@@ -842,8 +842,8 @@ const AIMode = () => {
                 }
               }}
             >
-              {/* Tooltip - hide on very small screens */}
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[9999] hidden xs:block">
+              {/* Tooltip */}
+              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[9999]">
                 <div className="bg-black bg-opacity-80 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
                   {item.tooltip}
                 </div>
