@@ -14,7 +14,7 @@ import re
 import asyncio
 
 # Import your existing components
-from vad_service import record_until_silence
+# from vad_service import record_until_silence  # Not needed for web API
 from audio_cleanup import init_cleanup_service, cleanup_audio_file, mark_audio_active, mark_audio_inactive
 from transcribe_service import transcribe_audio
 from llm_service import ConversationManager

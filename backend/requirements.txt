@@ -11,7 +11,7 @@ torch>=2.0.0
 torchaudio>=2.0.0
 numpy>=1.24.0
 soundfile>=0.12.0
-sounddevice>=0.4.6
+# sounddevice>=0.4.6  # Optional: only needed for live microphone recording
 
 # Speech Recognition
 faster-whisper>=0.9.0

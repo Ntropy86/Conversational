@@ -3,9 +3,18 @@ import torch
 import torch.hub
 import numpy as np
 import queue
-import sounddevice as sd
 import threading
 import soundfile as sf
+
+# Optional import for live microphone (not needed for web deployment)
+try:
+    import sounddevice as sd
+    SOUNDDEVICE_AVAILABLE = True
+    print("✅ sounddevice loaded - live microphone available")
+except ImportError:
+    sd = None
+    SOUNDDEVICE_AVAILABLE = False
+    print("⚠️  sounddevice not available - using file upload mode only")
 
 # VAD parameters
 SAMPLE_RATE = 16000
@@ -35,6 +44,9 @@ def audio_callback(indata, frames, time, status):
 
 def record_until_silence():
     """Record audio until silence is detected after speech"""
+    if not SOUNDDEVICE_AVAILABLE:
+        raise RuntimeError("sounddevice not available - cannot record from microphone. Use file upload instead.")
+    
     silence_count = 0
     recording = []
     started = False
