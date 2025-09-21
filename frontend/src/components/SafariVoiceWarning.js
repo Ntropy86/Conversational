@@ -14,10 +14,10 @@ const SafariVoiceWarning = ({ isVisible, onDismiss }) => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.95 }}
           transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 25 }}
-          className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md mx-4"
+          className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-sm sm:max-w-md mx-3 sm:mx-4"
         >
           <div 
-            className="relative bg-gradient-to-br from-orange-500/20 to-red-500/20 backdrop-blur-lg border border-orange-400/30 rounded-xl p-4 shadow-2xl"
+            className="relative bg-gradient-to-br from-orange-500/20 to-red-500/20 backdrop-blur-lg border border-orange-400/30 rounded-xl p-3 sm:p-4 shadow-2xl"
             style={{
               boxShadow: '0 8px 32px rgba(255, 165, 0, 0.2), 0 0 0 1px rgba(255, 165, 0, 0.1)'
             }}
@@ -45,7 +45,7 @@ const SafariVoiceWarning = ({ isVisible, onDismiss }) => {
                 <h3 className={`text-orange-400 font-medium mb-1 ${typographyClasses.subtitle}`}>
                   Voice Not Available in Safari
                 </h3>
-                <p className={`text-gray-300 text-sm leading-relaxed ${typographyClasses.paragraph}`}>
+                <p className={`text-gray-300 text-xs sm:text-sm leading-relaxed ${typographyClasses.paragraph}`}>
                   Voice features have some compatibility issues with Safari. 
                   For the best experience, please try <span className="text-orange-300 font-medium">Chrome</span> or <span className="text-orange-300 font-medium">Firefox</span>.
                 </p>

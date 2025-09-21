@@ -416,22 +416,22 @@ const AIMode = () => {
             className={`text-white mb-4 text-center ${typographyClasses.heading}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            style={{ fontSize: '48px', fontWeight: 300 }}
+            style={{ fontSize: 'clamp(32px, 8vw, 48px)', fontWeight: 300 }}
           >
             Hi!
           </motion.h2>
           <motion.h3 
-            className={`text-white mb-16 text-center ${typographyClasses.heading}`}
+            className={`text-white mb-8 sm:mb-16 text-center ${typographyClasses.heading}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
-            style={{ fontSize: '36px', fontWeight: 300 }}
+            style={{ fontSize: 'clamp(24px, 6vw, 36px)', fontWeight: 300 }}
           >
             What can I tell about Nitigya?
           </motion.h3>
           
           {/* Single input and chatter text for welcome screen */}
-          <div className="w-full max-w-[500px] px-4">
+          <div className="w-full max-w-[500px] px-4 sm:px-6">
             <Input
               ref={inputRef}
               value={inputMessage}
@@ -506,11 +506,11 @@ const AIMode = () => {
           
           {/* Text above dock - only on welcome screen */}
           <motion.div 
-            className={`text-center absolute bottom-36 px-4 ${typographyClasses.subtitle}`}
+            className={`text-center absolute bottom-28 sm:bottom-36 px-4 ${typographyClasses.subtitle}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            style={{ fontSize: '12px' }}
+            style={{ fontSize: 'clamp(10px, 2.5vw, 12px)' }}
           >
             or you can click elements on the dock as well.
           </motion.div>
@@ -538,7 +538,7 @@ const AIMode = () => {
             </motion.button>
           </div>
           
-          <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 pb-32 md:pb-40">
+          <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 pb-24 sm:pb-32 md:pb-40">
             {/* ALL messages displayed consistently */}
             {conversation.map((message, index) => (
               <motion.div 
@@ -550,16 +550,16 @@ const AIMode = () => {
               >
                 {message.role === 'user' ? (
                   // ALL user messages displayed as right-aligned bubbles
-                  <div className="flex justify-end mb-6">
-                    <div className="max-w-[85%] sm:max-w-[70%] bg-transparent rounded-2xl px-4 sm:px-6 py-3 sm:py-4 border border-[#493c3c]">
-                      <p className={typographyClasses.paragraph}>{message.content}</p>
+                  <div className="flex justify-end mb-4 sm:mb-6">
+                    <div className="max-w-[90%] sm:max-w-[85%] md:max-w-[70%] bg-transparent rounded-2xl px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 border border-[#493c3c]">
+                      <p className={`${typographyClasses.paragraph} text-sm sm:text-base`}>{message.content}</p>
                     </div>
                   </div>
                 ) : (
                   // Assistant messages
                   <div className="w-full mb-16 text-left">
-                    <div className="flex items-start gap-3 mb-8">
-                      <p className="text-xl sm:text-2xl text-gray-400 flex-1">
+                    <div className="flex items-start gap-2 sm:gap-3 mb-6 sm:mb-8">
+                      <p className="text-lg sm:text-xl md:text-2xl text-gray-400 flex-1 leading-relaxed">
                         {message.content}
                       </p>
                       {message.enhancementPending && (
@@ -578,7 +578,7 @@ const AIMode = () => {
                     
                     {/* Structured data cards */}
                     {message.structuredData && message.structuredData.items && message.structuredData.items.length > 0 && (
-                      <div className="space-y-6">
+                      <div className="space-y-4 sm:space-y-6">
                         {message.structuredData.items.map((item, idx) => (
                           <Card 
                             key={item.id || idx}
@@ -597,7 +597,7 @@ const AIMode = () => {
                           >
                             {/* Technologies/Skills chips */}
                             {item.technologies && (
-                              <div className="mb-3 flex flex-wrap gap-2">
+                              <div className="mb-2 sm:mb-3 flex flex-wrap gap-1 sm:gap-2">
                                 {item.technologies.map((tech, techIdx) => (
                                   <Chip key={techIdx}>{tech}</Chip>
                                 ))}
@@ -633,7 +633,7 @@ const AIMode = () => {
                             
                             {/* Skills section special handling */}
                             {item.skills && (
-                              <div className="flex flex-wrap gap-2">
+                              <div className="flex flex-wrap gap-1 sm:gap-2">
                                 {item.skills.map((skill, skillIdx) => (
                                   <Chip key={skillIdx} className="text-xs">{skill}</Chip>
                                 ))}
@@ -758,7 +758,7 @@ const AIMode = () => {
       
       {/* Input field - ONLY shown in conversation mode */}
       {currentView === 'conversation' && conversation.length > 0 && (
-        <div className={`fixed ${isScrolled ? 'bottom-40' : 'bottom-36'} left-1/2 transform -translate-x-1/2 w-full max-w-[500px] px-4 z-20 transition-all duration-300`}>
+        <div className={`fixed ${isScrolled ? 'bottom-32 sm:bottom-40' : 'bottom-28 sm:bottom-36'} left-1/2 transform -translate-x-1/2 w-full max-w-[500px] px-3 sm:px-4 z-20 transition-all duration-300`}>
           <Input
             ref={inputRef}
             value={inputMessage}
@@ -781,13 +781,13 @@ const AIMode = () => {
       )}
       
       {/* Dock element - fixed at bottom with Magic UI style */}
-      <div className={`fixed ${isScrolled ? 'bottom-14' : 'bottom-10'} left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 px-4 w-full max-w-screen overflow-visible`}>
+      <div className={`fixed ${isScrolled ? 'bottom-14' : 'bottom-10'} left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 px-2 sm:px-4 w-full max-w-screen overflow-visible`}>
         <div className="flex justify-center overflow-visible">
           <motion.div 
-            className="magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[12px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-visible"
+            className="magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[10px] sm:rounded-[12px] md:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-visible"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.03 }}
+            whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             style={{
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
@@ -817,8 +817,8 @@ const AIMode = () => {
               className="magic-ui-dock-item relative mx-0.5 sm:mx-1 md:mx-2 cursor-pointer group flex-shrink-0"
               initial={{ scale: 1 }}
               whileHover={{ 
-                scale: 1.2,
-                y: -8,
+                scale: 1.15,
+                y: -6,
                 transition: { 
                   type: "spring", 
                   stiffness: 300, 
@@ -842,25 +842,25 @@ const AIMode = () => {
                 }
               }}
             >
-              {/* Tooltip */}
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[9999]">
+              {/* Tooltip - hide on very small screens */}
+              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[9999] hidden xs:block">
                 <div className="bg-black bg-opacity-80 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
                   {item.tooltip}
                 </div>
               </div>
               
-              {/* Button with glow effect */}
+              {/* Button with glow effect - optimized for mobile touch */}
               <motion.div
-                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center relative"
+                className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center relative touch-manipulation"
                 style={{ 
                   backgroundColor: item.color,
-                  boxShadow: `0 0 10px ${item.color}40`
+                  boxShadow: `0 0 8px ${item.color}40`
                 }}
                 whileHover={{
-                  boxShadow: `0 0 15px ${item.color}80`
+                  boxShadow: `0 0 12px ${item.color}80`
                 }}
               >
-                <item.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                <item.icon className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white" />
                 
                 {/* Subtle inner glow/ring effect */}
                 <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-300" 
