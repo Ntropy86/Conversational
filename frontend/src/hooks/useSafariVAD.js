@@ -48,6 +48,13 @@ const useSafariVAD = (options = {}) => {
   useEffect(() => {
     let mounted = true;
     
+    // Don't initialize if disabled
+    if (options.disabled) {
+      setIsLoading(false);
+      setIsLoaded(false);
+      return;
+    }
+    
     const initSafariVAD = async () => {
       try {
         setIsLoading(true);

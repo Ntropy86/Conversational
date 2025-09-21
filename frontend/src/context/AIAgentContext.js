@@ -249,7 +249,11 @@ export function AIAgentProvider({ children }) {
       const result = await response.json();
       
       // Check if response suggests consultation
-      if (result.response && result.response.toLowerCase().includes("let's set up a consultation")) {
+      const needsConsultation = result.response && result.response.toLowerCase().includes("let's set up a consultation");
+      const isConsultationType = result.item_type === "consultation";
+      
+      if (needsConsultation || isConsultationType) {
+        console.log('🎯 Triggering contact popup - response includes consultation request');
         setShowContactPopup(true);
       }
       
