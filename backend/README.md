@@ -1,11 +1,13 @@
 # Conversational AI Backend
 
-[![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Python](https://img.shields.io/badge/Python-3.9+-blue?logo=python)](https://python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Groq](https://img.shields.io/badge/Groq-Qwen2.5--7B-orange)](https://groq.com/)
+[![Whisper](https://img.shields.io/badge/OpenAI-Whisper-green)](https://openai.com/whisper/)
+[![ElevenLabs](https://img.shields.io/badge/ElevenLabs-TTS-purple)](https://elevenlabs.io/)
+[![ONNX](https://img.shields.io/badge/ONNX-Runtime-blue?logo=onnx)](https://onnxruntime.ai/)
 
-A sophisticated conversational AI backend that provides intelligent resume querying, voice activity detection, speech synthesis, and structured content delivery. Built with FastAPI, this system integrates multiple AI services including Groq LLM, Whisper ASR, and Edge TTS to create a seamless conversational experience.
+**_High-performance backend_** for **_conversational AI portfolio_** with **_real-time voice processing_**, **_intelligent content discovery_**, and **_natural language understanding_**. Built by [Nitigya](https://github.com/Ntropy86).
 
 ## Table of Contents
 
@@ -25,101 +27,61 @@ A sophisticated conversational AI backend that provides intelligent resume query
 
 ## Features
 
-### Core Functionality
-- **Conversational AI Interface**: Natural language processing with personality-driven responses
-- **Voice Activity Detection**: Real-time speech detection using Silero VAD
-- **Speech Recognition**: High-accuracy transcription with faster-whisper
-- **Text-to-Speech**: Natural voice synthesis using Edge TTS
-- **Intelligent Content Retrieval**: Context-aware resume content selection
-- **Structured Response Generation**: Dynamic card-based content delivery
+**_Core AI Services_**
+- **_Groq Qwen2.5-7B-Instant_** integration for **_intelligent responses_**
+- **_Whisper ASR_** with **_<200ms transcription latency_**
+- **_ElevenLabs TTS_** for **_natural speech synthesis_**
+- **_ONNX Runtime_** optimization for **_faster inference_**
 
-### Advanced Capabilities
-- **Multi-modal Communication**: Seamless voice and text interactions
-- **Session Management**: Persistent conversation contexts
-- **Audio File Management**: Automatic cleanup and optimization
-- **Error Recovery**: Robust timeout and fallback mechanisms
-- **Real-time Processing**: Low-latency audio pipeline
-- **Content Intelligence**: Smart filtering and relevance ranking
+**_Voice Processing Pipeline_**
+- **_Real-time VAD_** with **_browser-specific implementations_**
+- **_Audio preprocessing_** and **_noise reduction_**
+- **_Unified pipeline_** for **_voice and text processing_**
+- **_Automatic cleanup_** and **_file management_**
 
-## Architecture Overview
+**_Smart Content Discovery_**
+- **_NLP-based query processing_** with **_intent recognition_**
+- **_RAG implementation_** for **_contextual responses_**
+- **_Dynamic date parsing_** ("from 23" → "from 2023")
+- **_Technology filtering_** with **_semantic similarity_**
 
-The backend follows a modular microservices-inspired architecture with clear separation of concerns:
+## Architecture
 
+**_Real-Time Processing Pipeline_**
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   API Gateway   │────│  Audio Pipeline │────│  Content Engine │
-│   (FastAPI)     │    │  (VAD/ASR/TTS)  │    │  (LLM/Query)    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │  Data Storage   │
-                    │ (JSON/Sessions) │
-                    └─────────────────┘
+[Voice] → [VAD] → [Whisper] → [Groq Qwen2.5] → [ElevenLabs] → [Audio Response]
+           ↓        ↓           ↓                 ↓
+        [Silence  [<200ms    [Context         [Natural
+         Detection] Latency]  Assembly]       Speech]
 ```
 
-**<BOLD>Architecture diagram showing complete system flow from client request through audio processing to intelligent content delivery</BOLD>**
+**_Service Architecture_**
+- **`/transcribe`** - **_Whisper ONNX_** processing
+- **`/ask`** - **_Groq LLM_** with **_RAG context_**
+- **`/tts`** - **_ElevenLabs_** voice synthesis
+- **`/vad`** - **_Browser-compatible_** silence detection
 
-## Installation
+## Quick Start
 
-### Prerequisites
-- Python 3.9 or higher
-- FFmpeg (for audio processing)
-- Git
+**_Prerequisites_**
+- **Python 3.9+**
+- **FFmpeg** (audio processing)
 
-### System Dependencies
-
-#### Ubuntu/Debian
+**_Installation_**
 ```bash
-sudo apt update
-sudo apt install python3-pip python3-venv ffmpeg git
-```
-
-#### macOS
-```bash
-brew install python ffmpeg git
-```
-
-#### Windows
-Download and install:
-- [Python 3.9+](https://www.python.org/downloads/)
-- [FFmpeg](https://ffmpeg.org/download.html)
-- [Git](https://git-scm.com/download/win)
-
-### Python Environment Setup
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd Conversational/backend
-```
-
-2. **Create virtual environment**
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
-
-3. **Install dependencies**
-```bash
+git clone <repository>
+cd backend
 pip install -r requirements.txt
 ```
 
-4. **Verify installation**
+**_Environment Setup_**
 ```bash
-python -c "import torch; print('PyTorch:', torch.__version__)"
-python -c "from faster_whisper import WhisperModel; print('Whisper: Ready')"
-```
+# Create .env file
+GROQ_API_KEY="your_groq_api_key"
+ELEVENLABS_API_KEY="your_elevenlabs_key"
 
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file in the backend directory:
-
-```env
-# Required: Groq API Configuration
+# Start server
+python api_server.py
 GROQ_API_KEY=your_groq_api_key_here
 
 # Optional: Service Configuration
