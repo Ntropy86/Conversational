@@ -1,12 +1,13 @@
 ---
 title: "SET-PAiREd: Designing for Parental Involvement in Learning with an AI-Assisted Educational Robot"
-authors: "H.-R. Ho, N. Kargeti, Z. Liu, B. Mutlu"
-venue: "ACM CHI Conference on Human Factors in Computing Systems"
+authors: "Hui-Ru Ho, Nitigya Kargeti, Ziqi Liu, Bilge Mutlu"
+venue: "ACM CHI 2025"
 year: 2025
 type: "Conference Paper"
 doi: "https://doi.org/10.1145/3706598.3713330"
-tags: ["educational robotics", "parental involvement", "AI-assisted learning", "HCI", "child-robot interaction"]
-preview: "Investigating how AI-assisted educational robots can facilitate meaningful parental involvement in children's learning processes through the SET-PAiREd framework."
+pdf: "https://dl.acm.org/doi/pdf/10.1145/3706598.3713330"
+tags: ["HCI", "human-robot interaction", "parent-in-the-loop", "early childhood", "scenario design", "educational robotics", "field study"]
+preview: "Introduces SET scenario cards and the PAiREd interface to flexibly include parents in AI-assisted early-learning; reports an in-home study with 20 families (ages 3–5)."
 ---
 
 # SET-PAiREd: Designing for Parental Involvement in Learning with an AI-Assisted Educational Robot

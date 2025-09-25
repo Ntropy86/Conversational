@@ -1396,42 +1396,87 @@ class ResumeQueryProcessor:
                 for category, skill_list in skills_data.items()
             ]
         else:
-            # INTELLIGENT DEFAULT: Return a MIX of content types, not just projects
+            # INTELLIGENT DEFAULT: Return a MIX of content types with rotation to avoid repetition
             import random
+            import time
             
             # Get all available content
             projects = self.resume_data.get("projects", [])
             experiences = self.resume_data.get("experience", [])
             publications = self.resume_data.get("publications", [])
+            blog = self.resume_data.get("blog", [])
             
             # Create a balanced mix based on query context
             items = []
             
+            # Use time-based seed to ensure variety across sessions but consistency within sessions
+            # This creates a rotating selection that changes over time
+            time_seed = int(time.time() // 3600)  # Changes every hour
+            random.seed(time_seed + hash(question.lower()) % 100)
+            
             # For general queries, show variety to make it interesting
             if any(word in question.lower() for word in ["what", "tell me", "show me", "who", "hello", "hi"]):
-                # Mix different types for engaging overview
-                items.extend(random.sample(projects, min(2, len(projects))))
-                items.extend(random.sample(experiences, min(1, len(experiences))))
-                items.extend(random.sample(publications, min(1, len(publications))))
+                # GUARANTEED variety: rotate through different combinations
+                all_content_pools = [
+                    ("projects", projects),
+                    ("experience", experiences), 
+                    ("publications", publications),
+                    ("blog", blog)
+                ]
                 
-                # Randomize the order so it's not always the same
-                random.shuffle(items)
+                # Filter out empty pools
+                available_pools = [(name, pool) for name, pool in all_content_pools if pool]
                 
-                # Tag items with their source for proper display
-                for item in items:
-                    if item in projects:
-                        item["content_source"] = "projects"
-                    elif item in experiences:
-                        item["content_source"] = "experience"
-                    elif item in publications:
-                        item["content_source"] = "publications"
-                        
+                # Ensure we get at least one item from each major category
+                selected_items = []
+                for pool_name, pool in available_pools[:3]:  # Take first 3 non-empty pools
+                    if pool:
+                        item = random.choice(pool).copy()  # Copy to avoid modifying original
+                        item["content_source"] = pool_name
+                        selected_items.append(item)
+                
+                # Add one more random item from any remaining pool
+                if len(available_pools) > 3:
+                    extra_pool_name, extra_pool = random.choice(available_pools[3:])
+                    if extra_pool:
+                        item = random.choice(extra_pool).copy()
+                        item["content_source"] = extra_pool_name  
+                        selected_items.append(item)
+                
+                items = selected_items
+                random.shuffle(items)  # Final shuffle for order variety
                 intent = "mixed"  # Override intent to mixed
             else:
-                # For ambiguous queries, default to projects but with variety
-                items = random.sample(projects, min(3, len(projects)))
-                for item in items:
-                    item["content_source"] = "projects"
+                # For ambiguous queries, still provide variety but lean towards projects
+                # Rotate between different project selections
+                if len(projects) >= 3:
+                    # Use different starting points to rotate through projects
+                    start_idx = (time_seed + hash(question)) % len(projects)
+                    selected_projects = []
+                    for i in range(3):
+                        idx = (start_idx + i) % len(projects)
+                        item = projects[idx].copy()
+                        item["content_source"] = "projects"
+                        selected_projects.append(item)
+                    items = selected_projects
+                else:
+                    # If fewer than 3 projects, mix with other content
+                    items = []
+                    for project in projects:
+                        item = project.copy()
+                        item["content_source"] = "projects"
+                        items.append(item)
+                    
+                    # Fill remaining slots with experiences
+                    remaining_slots = 3 - len(items)
+                    if remaining_slots > 0 and experiences:
+                        for i in range(min(remaining_slots, len(experiences))):
+                            item = experiences[i].copy()
+                            item["content_source"] = "experience"
+                            items.append(item)
+            
+            # Reset random seed to avoid affecting other operations
+            random.seed()
         
         # Apply technology filters for single-type queries
         if tech_filters and intent not in ["skills", "education", "publications", "blog"]:

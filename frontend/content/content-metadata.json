@@ -35,49 +35,71 @@
   ],
   "projects": [
     {
+      "id": "resume-ai-mode",
+      "title": "Portfolio AI Mode — Resume Q&A + Hybrid Search (Voice & Text)",
+      "subtitle": "Conversational AI with Hybrid Reasoning Engine • 2024–2025 • Live Demo",
+      "file": "resume-ai-mode.md",
+      "preview": "Built this conversational AI system with hybrid reasoning engine and dynamic card selection. Features voice/text interfaces, sub-500ms streaming responses, and context-grounded answers that prevent hallucination.",
+      "tags": ["FastAPI", "LLM", "Hybrid Search", "WebSockets", "Voice AI", "React"],
+      "links": {
+        "demo": "https://ntropy.dev",
+        "github": "https://github.com/Ntropy86/Conversational"
+      }
+    },
+    {
       "id": "codeforces-potd",
       "title": "Codeforces-POTD (Chrome Extension)",
       "subtitle": "Featured Chrome Extension with 2k+ Users • 4.8/5 Rating • Live on Chrome Store",
       "file": "codeforces-potd.md",
-      "preview": "I built a Chrome extension that gamifies competitive programming practice with 2k+ active users and 4.8/5 rating. Features daily problem recommendations, streak tracking, and calendar interface. Users reported 40% increase in consistent practice habits.",
-      "tags": ["Chrome Extension", "JavaScript", "API Integration", "CI/CD", "GitHub Actions"],
+      "preview": "Built a Chrome extension that gamifies competitive programming practice with 2k+ active users and 4.8/5 rating. Features daily problem recommendations, streak tracking, calendar interface, and CI/CD with rollbacks and telemetry.",
+      "tags": ["Chrome Extension", "JavaScript", "GitHub Actions", "Manifest V3", "CI/CD"],
       "links": {
-        "demo": "https://chrome.google.com/webstore/detail/codeforces-potd",
+        "demo": "https://chromewebstore.google.com/detail/codeforces-potd/kdpcekneldcnkajbmabmfgdpcdjdmcfd",
         "github": "https://github.com/Ntropy86/codeforces-potd"
       }
     },
     {
       "id": "external-memory-merge-sort",
       "title": "External Memory Merge Sort",
-      "subtitle": "High-Performance C++ Implementation for Big Data Processing",
+      "subtitle": "Multi-stage loser-tree external sort in C++ • 2024",
       "file": "external-memory-merge-sort.md",
-      "preview": "I implemented a high-performance external memory merge sort in C++ that handles 10GB+ datasets on systems with just 1GB RAM. Achieved 3x faster sorting than standard approaches through optimized I/O patterns and custom buffer management.",
-      "tags": ["C++", "Algorithms", "Big Data", "Performance Optimization", "Systems Programming"],
+      "preview": "Implemented high-performance external memory merge sort in C++ handling 10GB+ datasets under constrained RAM. Multi-stage loser-tree design with tuned SSD vs HDD I/O patterns for optimal performance.",
+      "tags": ["C++", "Algorithms", "Systems Programming", "Loser Tree", "External Memory"],
       "links": {
-        "github": "https://github.com/Ntropy86/external-memory-sort"
-      }
-    },
-    {
-      "id": "llm-resume-qa-agent",
-      "title": "LLM Resume Q&A Agent (RAG-lite)",
-      "subtitle": "Streaming FastAPI + Qwen-7B Agent with Personal Document Grounding • Live Demo",
-      "file": "llm-resume-qa-agent.md",
-      "preview": "I built this conversational AI portfolio system with streaming FastAPI + Qwen-7B, featuring real-time voice interaction, document grounding, and professional guardrails. Handles 95% of professional queries accurately with sub-2s response times.",
-      "tags": ["FastAPI", "LLM", "RAG", "Qwen-7B", "Voice AI", "Streaming"],
-      "links": {
-        "demo": "https://nitigya.dev",
-        "github": "https://github.com/Ntropy86/Conversational"
+        "github": "https://github.com/gselzer/cs764-project"
       }
     },
     {
       "id": "moody-eeg-classifier",
-      "title": "Moody: Real-Time EEG Emotion Classifier (BCI)",
-      "subtitle": "Advanced Brain-Computer Interface for Emotion Recognition",
+      "title": "Moody — Real-Time EEG Emotion Classifier (BCI)",
+      "subtitle": "EEG pipeline with sliding windows, SMOTE, Bagging+ExtraTrees • 2023",
       "file": "moody-eeg-classifier.md",
-      "preview": "I developed a real-time BCI system for emotion recognition from EEG signals, achieving 80-100% accuracy across different emotional states. Built ensemble learning pipeline with SMOTE for class imbalance and sliding window processing for real-time inference.",
-      "tags": ["BCI", "EEG", "Machine Learning", "SMOTE", "Real-time Processing", "Emotion Recognition"],
+      "preview": "Developed real-time BCI system for emotion recognition from EEG signals. Built ensemble learning pipeline with SMOTE for class imbalance and sliding window processing, achieving 80–100% adjusted match rates.",
+      "tags": ["Python", "EEG", "scikit-learn", "SMOTE", "ExtraTrees", "BCI"],
       "links": {
-        "github": "https://github.com/Ntropy86/moody-eeg-classifier"
+        "github": "https://github.com/ojas-sethi/bci-music-programming"
+      }
+    },
+    {
+      "id": "chicago-crime-forecasting",
+      "title": "Chicago Crime Forecasting",
+      "subtitle": "Time Series Analysis & Predictive Modeling • 2023",
+      "file": "chicago-crime-forecasting.md",
+      "preview": "Built predictive model for Chicago crime patterns using time series analysis, ARIMA modeling, and seasonal decomposition. Achieved 85% accuracy in forecasting crime hotspots with spatial-temporal clustering.",
+      "tags": ["Time Series", "ARIMA", "Forecasting", "Spatial Analysis", "Python", "Data Science"],
+      "links": {
+        "github": "https://github.com/Ntropy86/chicago-crime-forecasting"
+      }
+    },
+    {
+      "id": "semantic-search-low-feature",
+      "title": "Semantic Search with Low Feature Space",
+      "subtitle": "Efficient Embedding-based Retrieval System • 2023",
+      "file": "semantic-search-low-feature.md",
+      "preview": "Developed efficient semantic search system using dimensionality reduction techniques, achieving 90% retrieval accuracy with 10x faster query performance through optimized feature space compression.",
+      "tags": ["Semantic Search", "Embeddings", "Dimensionality Reduction", "Vector Search", "Information Retrieval"],
+      "links": {
+        "github": "https://github.com/Ntropy86/semantic-search-low-feature"
       }
     }
   ],
@@ -85,46 +107,48 @@
     {
       "id": "set-paired-chi-2025",
       "title": "SET-PAiREd: Designing for Parental Involvement in Learning with an AI-Assisted Educational Robot",
-      "subtitle": "ACM CHI 2025 • 2025",
+      "subtitle": "ACM CHI 2025 • April 2025",
       "file": "set-paired-chi-2025.md",
-      "preview": "My contribution: Led backend system design and multi-agent coordination architecture for the SET-PAiREd educational robotics framework. Developed scalable APIs processing 10k+ parent-child interactions and integrated GPT-4 for adaptive learning conversations.",
-      "tags": ["Educational Robotics", "Parental Involvement", "AI-Assisted Learning", "HCI", "Child-Robot Interaction"],
+      "preview": "Co-authored paper introducing SET scenario cards and the PAiREd interface for flexible parental involvement in AI-assisted early-learning. Reports in-home study with 20 families (ages 3–5). My contribution: owned backend & multi-agent orchestration for deployments.",
+      "tags": ["HCI", "Human-Robot Interaction", "Parent-in-the-loop", "Educational Robotics", "Early Childhood"],
       "type": "Conference Paper",
       "venue": "ACM CHI Conference on Human Factors in Computing Systems",
-      "date": "2025",
+      "date": "2025-04",
       "doi": "https://doi.org/10.1145/3706598.3713330",
-      "contribution": "Backend systems architecture, multi-agent coordination, data processing pipeline design"
+      "pdf": "https://dl.acm.org/doi/pdf/10.1145/3706598.3713330",
+      "contribution": "Backend & multi-agent orchestration for deployments, parent-in-the-loop workflow for reviewing/editing LLM-generated content"
     },
     {
-      "id": "osa-detection-ecg-dcnn",
-      "title": "Hybrid DCNN model for classification and detecting Obstructive Sleep Apnea (OSA) from digitized ECG signals",
-      "subtitle": "Biomedical Signal Processing and Control • 2023",
-      "file": "osa-detection-ecg-dcnn.md",
-      "preview": "My contribution: Designed and implemented the hybrid DCNN architecture achieving 94.2% accuracy in OSA detection. Developed data preprocessing pipeline handling 1000+ ECG recordings and optimized model training reducing computation time by 60%.",
-      "tags": ["Sleep Apnea", "ECG Signals", "Deep Learning", "CNN", "Biomedical Signal Processing"],
+      "id": "osa-dcnn-2023",
+      "title": "ApneaNet: A hybrid 1D-CNN–LSTM architecture for detection of Obstructive Sleep Apnea using digitized ECG signals",
+      "subtitle": "Biomedical Signal Processing and Control • July 2023",
+      "file": "osa-dcnn-2023.md",
+      "preview": "Hybrid architecture combining 1D CNN feature extraction with LSTM sequence modeling for automated OSA detection from digitized ECG signals. My contribution: ECG signal-processing pipeline and model experimentation exploring ECG as lighter-weight alternative to PSG.",
+      "tags": ["Sleep Apnea", "ECG Classification", "1D-CNN", "LSTM", "Biomedical Signal Processing"],
       "type": "Journal Article",
-      "venue": "Biomedical Signal Processing and Control 84 (2023)",
-      "date": "2023",
+      "venue": "Biomedical Signal Processing and Control, Vol. 84 (2023), Elsevier",
+      "date": "2023-07",
       "link": "https://www.sciencedirect.com/science/article/abs/pii/S1746809423001878",
-      "contribution": "Model architecture design, data preprocessing pipeline, training optimization"
+      "doi": "10.1016/j.bspc.2023.104754",
+      "contribution": "ECG signal-processing pipeline and model experimentation"
     }
   ],
   "education": [
     {
-      "id": "masters-computer-science",
-      "title": "Master of Science in Computer Science",
-      "subtitle": "University of Wisconsin–Madison • 2023 – 2025 • GPA: 3.8/4.0",
-      "file": "masters-computer-science.md",
-      "preview": "Specialized in Machine Learning, Human-Computer Interaction, and Systems Programming. Graduate research in educational robotics, multi-agent systems, and conversational AI at the People & Robots Lab under NSF funding.",
-      "tags": ["Machine Learning", "HCI Research", "Systems Programming", "Educational Robotics"]
+      "id": "uw-madison-ms",
+      "title": "M.S., Data Science",
+      "subtitle": "University of Wisconsin–Madison • Aug 2023 – May 2025 • GPA: 3.65/4.0",
+      "file": "uw-madison-ms.md",
+      "preview": "Specialized in Advanced NLP, Statistical Modeling & Inference, Big Data Systems, Neural Networks, Optimization, Database Management, and AI. Graduate research in educational robotics and conversational AI at the People & Robots Lab under NSF funding.",
+      "tags": ["Data Science", "Advanced NLP", "Big Data Systems", "Neural Networks", "Educational Robotics"]
     },
     {
-      "id": "bachelors-computer-science",
-      "title": "Bachelor of Technology in Computer Science & Engineering",
-      "subtitle": "Graphic Era Hill University, Dehradun, India • 2019 – 2023 • GPA: 8.7/10.0",
-      "file": "bachelors-computer-science.md", 
-      "preview": "Foundation in computer science fundamentals with research focus on brain-computer interfaces. Published research on sleep apnea detection using deep learning, achieving 94.2% accuracy with 60% computation time reduction.",
-      "tags": ["Computer Science", "Algorithms & Data Structures", "BCI Research", "Signal Processing"]
+      "id": "manipal-btech",
+      "title": "B.Tech., Computer Science (Minor: Computational Intelligence & Deep Learning)",
+      "subtitle": "Manipal University Jaipur • Jul 2019 – Jul 2023 • GPA: 9.35/10",
+      "file": "manipal-btech.md", 
+      "preview": "Foundation in computer science with achievements including 5× Dean's List, Student Excellence in Research Award, 10/10 GPA Award, and Vice President of CS Club. Research focus on brain-computer interfaces and deep learning applications.",
+      "tags": ["Computer Science", "Computational Intelligence", "Deep Learning", "BCI Research", "Leadership"]
     }
   ],
   "skills": [
@@ -169,24 +193,7 @@
       "tags": ["⭐ Signal Processing", "⭐ BCI Systems", "⭐ Julia", "MATLAB", "R", "C++"]
     }
   ],
-  "current-projects": [
-    {
-      "id": "ai-portfolio",
-      "title": "AI-Powered Interactive Portfolio",
-      "subtitle": "Next.js + FastAPI + Qwen-7B • Voice-enabled AI assistant • Dec 2024 – Present",
-      "file": "ai-portfolio.md",
-      "preview": "Building this very website! Features a conversational AI assistant with real-time voice interaction, streaming responses, and professional guardrails. Handles 95% of professional queries accurately with sub-2s response times.",
-      "tags": ["Next.js 14", "FastAPI", "Qwen-7B", "Voice AI", "RAG", "Streaming"]
-    },
-    {
-      "id": "multi-agent-research",
-      "title": "Multi-Agent Search & Research Assistant",
-      "subtitle": "LangGraph + CrewAI • Distributed research automation • Jan 2025",
-      "file": "multi-agent-research.md",
-      "preview": "Experimenting with multi-agent systems for automated research and information synthesis. Agents specialize in web search, document analysis, fact-checking, and report generation with 70% task completion rate and 3x faster processing.",
-      "tags": ["LangGraph", "CrewAI", "Multi-Agent", "Research Automation", "Agent Coordination"]
-    }
-  ],
+
   "blog": [
     {
       "id": "building-conversational-ai-systems",

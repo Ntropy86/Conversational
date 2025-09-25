@@ -1,9 +1,9 @@
-# Master of Science in Computer Science
-## University of Wisconsin–Madison • 2023 – 2025
+# M.S., Data Science
+## University of Wisconsin–Madison • Aug 2023 – May 2025
 
 ### Academic Excellence
-- **GPA:** 3.8/4.0
-- **Specialization:** Machine Learning, Human-Computer Interaction, Systems Programming
+- **GPA:** 3.65/4.0
+- **Specialization:** Advanced NLP, Statistical Modeling, Big Data Systems, Neural Networks
 - **Research Focus:** Educational robotics, multi-agent systems, conversational AI
 
 ### Graduate Research
@@ -14,10 +14,13 @@
 - Developed multi-agent coordination systems improving learning outcomes by 25%
 
 ### Key Coursework
-- **Machine Learning & AI:** Advanced algorithms, neural networks, deep learning
-- **Human-Computer Interaction:** User experience design, accessibility, research methods
-- **Systems Programming:** Distributed systems, parallel computing, performance optimization
-- **Data Science:** Statistical modeling, big data analytics, visualization
+- **Advanced NLP:** Natural language processing, transformers, language models
+- **Statistical Modeling & Inference:** Bayesian methods, hypothesis testing, causal inference
+- **Big Data Systems:** Distributed computing, Spark, scalable data processing
+- **Neural Networks:** Deep learning architectures, optimization, computer vision
+- **Optimization:** Convex optimization, gradient methods, constrained optimization
+- **Database Management:** Query optimization, distributed databases, NoSQL systems
+- **AI:** Machine learning theory, reinforcement learning, multi-agent systems
 
 ### Research Contributions
 - **Published Research:** CHI 2025 conference paper on educational robotics

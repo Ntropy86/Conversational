@@ -1,10 +1,11 @@
-# Bachelor of Technology in Computer Science & Engineering
-## Graphic Era Hill University, Dehradun, India • 2019 – 2023
+# B.Tech., Computer Science (Minor: Computational Intelligence & Deep Learning)
+## Manipal University Jaipur • Jul 2019 – Jul 2023
 
 ### Academic Excellence
-- **GPA:** 8.7/10.0 (Distinction)
-- **Specialization:** Computer Science fundamentals, algorithms, software engineering
-- **Research Focus:** Brain-computer interfaces, signal processing, biomedical applications
+- **GPA:** 9.35/10 (Outstanding)
+- **Achievements:** 5× Dean's List, Student Excellence in Research Award, 10/10 GPA Award
+- **Leadership:** Vice President, CS Club
+- **Specialization:** Computer Science with focus on Computational Intelligence & Deep Learning
 
 ### Undergraduate Research
 **Published Research in Biomedical Signal Processing**

@@ -1,20 +1,20 @@
 ---
-title: "Hybrid DCNN model for classification and detecting Obstructive Sleep Apnea (OSA) from digitized ECG signals"
-authors: "K. Srivastava, N. Kargeti, et al."
-venue: "Biomedical Signal Processing and Control"
+title: "ApneaNet: A hybrid 1D-CNN–LSTM architecture for detection of Obstructive Sleep Apnea using digitized ECG signals"
+authors: "G. Srivastava, A. Chauhan, N. Kargeti, N. Pradhan, V. S. Dhaka"
+venue: "Biomedical Signal Processing and Control, Vol. 84 (2023), Elsevier"
 year: 2023
-volume: 84
-type: "Journal Paper"
+type: "Journal Article"
 link: "https://www.sciencedirect.com/science/article/abs/pii/S1746809423001878"
-tags: ["sleep apnea", "ECG signals", "deep learning", "CNN", "biomedical signal processing"]
-preview: "A novel hybrid deep convolutional neural network approach for automated detection and classification of obstructive sleep apnea using digitized ECG signals."
+doi: "10.1016/j.bspc.2023.104754"
+tags: ["sleep apnea", "ECG classification", "time-series modeling", "convolutional features", "temporal dependencies", "biomedical signal processing"]
+preview: "Hybrid architecture combining 1D CNN feature extraction with LSTM sequence modeling for automated OSA detection from digitized ECG signals."
 ---
 
-# Hybrid DCNN model for classification and detecting Obstructive Sleep Apnea (OSA) from digitized ECG signals
+# ApneaNet: A hybrid 1D-CNN–LSTM architecture for detection of Obstructive Sleep Apnea using digitized ECG signals
 
 ## Abstract
 
-Obstructive Sleep Apnea (OSA) is a prevalent sleep disorder characterized by repeated breathing interruptions during sleep, significantly impacting quality of life and increasing cardiovascular disease risk. This study presents a novel hybrid Deep Convolutional Neural Network (DCNN) model for automated OSA detection and classification using digitized electrocardiogram (ECG) signals.
+Obstructive Sleep Apnea (OSA) is a prevalent sleep disorder characterized by repeated breathing interruptions during sleep, significantly impacting quality of life and increasing cardiovascular disease risk. This study presents ApneaNet, a novel hybrid architecture combining 1D CNN feature extraction with LSTM sequence modeling for automated OSA detection from digitized electrocardiogram (ECG) signals.
 
 ## Introduction
 
