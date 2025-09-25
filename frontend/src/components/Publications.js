@@ -31,16 +31,13 @@ const Publications = () => {
   }, []);
 
   return (
-    <section id="publications" className="py-20">
+    <section id="publications">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <h2 className={`text-2xl md:text-3xl lg:text-4xl mb-3 md:mb-4 ${typographyClasses.heading}`}>
-          Publications
-        </h2>
-        <p className={`mb-8 md:mb-12 text-sm md:text-base ${typographyClasses.body} max-w-2xl`}>
+        <p className={`mb-6 md:mb-8 text-sm md:text-base ${typographyClasses.body} max-w-2xl`}>
           Research contributions in brain-computer interfaces, machine learning, and educational robotics, 
           published in peer-reviewed journals and conferences.
         </p>

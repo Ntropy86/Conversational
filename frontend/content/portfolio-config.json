@@ -1,0 +1,156 @@
+{
+  "siteConfig": {
+    "title": "Nitigya Kargeti",
+    "subtitle": "Full‑Stack & ML Developer",
+    "tagline": "Building full‑stack ML applications: from APIs to embeddings to user interfaces",
+    "description": "I'm a Full‑Stack & ML Developer who specializes in building end-to-end intelligent systems. I recently completed graduate research at UW‑Madison's People & Robots Lab, where I developed scalable backend systems for educational robotics and multi-agent AI applications.",
+    "contact": {
+      "email": "kargeti@wisc.edu",
+      "phone": "+1 (608) 217-8515",
+      "location": "Palo Alto, CA",
+      "linkedin": "https://www.linkedin.com/in/nitigyak",
+      "github": "https://github.com/Ntropy86",
+      "scholar": "https://scholar.google.com/citations?user=tBFE15IAAAAJ&hl=en"
+    }
+  },
+  "sections": [
+    {
+      "id": "about",
+      "title": "About",
+      "enabled": true,
+      "order": 1,
+      "showInNavigation": true,
+      "className": "mb-16 md:mb-24"
+    },
+    {
+      "id": "experience",
+      "title": "Experience", 
+      "enabled": true,
+      "order": 2,
+      "showInNavigation": true,
+      "className": "mb-16 md:mb-24",
+      "subtitle": "My professional journey includes graduate research at UW‑Madison, startup engineering at a B2B SaaS company, and research contributions at India's premier computing and defense institutes. Each role deepened my expertise in building scalable systems and deploying ML models in production.",
+      "showMoreButton": true,
+      "initialDisplayCount": 2
+    },
+    {
+      "id": "projects",
+      "title": "Projects",
+      "enabled": true,
+      "order": 3,
+      "showInNavigation": true,
+      "className": "mb-24",
+      "subtitle": "A collection of impactful projects spanning web development, machine learning, systems programming, and AI applications, each solving real-world problems with innovative approaches.",
+      "showMoreButton": true,
+      "initialDisplayCount": 2
+    },
+    {
+      "id": "current-projects",
+      "title": "Current Projects",
+      "enabled": true,
+      "order": 4,
+      "showInNavigation": true,
+      "className": "mb-24",
+      "subtitle": "What I'm building right now—works in progress, experiments, and explorations that showcase my current learning and development focus."
+    },
+    {
+      "id": "education",
+      "title": "Education",
+      "enabled": true,
+      "order": 5,
+      "showInNavigation": true,
+      "className": "mb-16 md:mb-24",
+      "subtitle": "Academic foundation in computer science and specialized training in machine learning, systems programming, and research methodologies."
+    },
+    {
+      "id": "publications",
+      "title": "Publications",
+      "enabled": true,
+      "order": 6,
+      "showInNavigation": true,
+      "className": "mb-24"
+    },
+    {
+      "id": "blog",
+      "title": "Blog",
+      "enabled": true,
+      "order": 7,
+      "showInNavigation": true,
+      "className": "mb-24"
+    },
+    {
+      "id": "skills",
+      "title": "Technical Skills",
+      "enabled": true,
+      "order": 8,
+      "showInNavigation": true,
+      "className": "mb-16 md:mb-24",
+      "subtitle": "Core technologies I use for production work, organized by domain expertise. ⭐ indicates primary skills I'm most confident deploying in production environments.",
+      "showRadarChart": true
+    },
+    {
+      "id": "contact",
+      "title": "Get In Touch",
+      "enabled": true,
+      "order": 9,
+      "showInNavigation": true,
+      "className": "mb-16 md:mb-24",
+      "subtitle": "Always interested in discussing new opportunities, collaborations, or just having a conversation about technology, AI, and building impactful solutions.",
+      "jobSearchMessage": "I'm actively seeking Full‑Stack & ML Developer roles building intelligent search, agent systems, and conversational AI applications. Open to remote, hybrid, or on-site opportunities (H1B visa sponsorship welcome)."
+    }
+  ],
+  "skillCategories": [
+    {
+      "id": "backend",
+      "title": "Backend & APIs",
+      "icon": "server",
+      "primarySkills": ["FastAPI", "Python", "PostgreSQL"],
+      "secondarySkills": ["MongoDB", "Node.js", "Redis"]
+    },
+    {
+      "id": "ml-ai",
+      "title": "ML & AI",
+      "icon": "brain",
+      "primarySkills": ["PyTorch", "LLM Integration", "RAG"],
+      "secondarySkills": ["TensorFlow", "LangChain", "OpenCV"]
+    },
+    {
+      "id": "data",
+      "title": "Data & Analytics",
+      "icon": "chart",
+      "primarySkills": ["SQL", "Statistical Modeling", "PySpark"],
+      "secondarySkills": ["ETL Pipelines", "A/B Testing", "Plotly"]
+    },
+    {
+      "id": "frontend",
+      "title": "Frontend & UI",
+      "icon": "layout",
+      "primarySkills": ["Next.js", "React", "TypeScript"],
+      "secondarySkills": ["Tailwind CSS", "Framer Motion", "Chrome Extensions"]
+    },
+    {
+      "id": "cloud",
+      "title": "Cloud & DevOps",
+      "icon": "cloud",
+      "primarySkills": ["AWS", "Docker", "GitHub Actions"],
+      "secondarySkills": ["Kubernetes", "Linux", "GCP"]
+    },
+    {
+      "id": "research",
+      "title": "Research & Specialized",
+      "icon": "microscope",
+      "primarySkills": ["Signal Processing", "BCI Systems", "Julia"],
+      "secondarySkills": ["MATLAB", "R", "C++"]
+    }
+  ],
+  "theme": {
+    "colors": {
+      "primary": "#3498DB",
+      "secondary": "#8B5C3C"
+    },
+    "typography": {
+      "headingFont": "Inter",
+      "bodyFont": "Inter"
+    }
+  }
+}

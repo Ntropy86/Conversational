@@ -1396,8 +1396,42 @@ class ResumeQueryProcessor:
                 for category, skill_list in skills_data.items()
             ]
         else:
-            # Default to projects
-            items = self.resume_data.get("projects", [])
+            # INTELLIGENT DEFAULT: Return a MIX of content types, not just projects
+            import random
+            
+            # Get all available content
+            projects = self.resume_data.get("projects", [])
+            experiences = self.resume_data.get("experience", [])
+            publications = self.resume_data.get("publications", [])
+            
+            # Create a balanced mix based on query context
+            items = []
+            
+            # For general queries, show variety to make it interesting
+            if any(word in question.lower() for word in ["what", "tell me", "show me", "who", "hello", "hi"]):
+                # Mix different types for engaging overview
+                items.extend(random.sample(projects, min(2, len(projects))))
+                items.extend(random.sample(experiences, min(1, len(experiences))))
+                items.extend(random.sample(publications, min(1, len(publications))))
+                
+                # Randomize the order so it's not always the same
+                random.shuffle(items)
+                
+                # Tag items with their source for proper display
+                for item in items:
+                    if item in projects:
+                        item["content_source"] = "projects"
+                    elif item in experiences:
+                        item["content_source"] = "experience"
+                    elif item in publications:
+                        item["content_source"] = "publications"
+                        
+                intent = "mixed"  # Override intent to mixed
+            else:
+                # For ambiguous queries, default to projects but with variety
+                items = random.sample(projects, min(3, len(projects)))
+                for item in items:
+                    item["content_source"] = "projects"
         
         # Apply technology filters for single-type queries
         if tech_filters and intent not in ["skills", "education", "publications", "blog"]:

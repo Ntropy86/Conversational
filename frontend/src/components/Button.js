@@ -11,6 +11,7 @@ const Button = ({
   disabled = false,
   className = '',
   onClick = () => {},
+  onCard = false, // New prop to indicate button is on a card
   ...props 
 }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -97,11 +98,20 @@ const Button = ({
         initial={{ y: 0 }}
         animate={{ y: isHovered ? -2 : 0 }}
         transition={{ duration: 0.2 }}
+        className={onCard ? (isHovered ? 'text-white' : 'text-gray-600 dark:text-gray-300') : ''}
       >
         {isHovered ? (
-          <Paragraph>{children}</Paragraph>
+          onCard ? (
+            <span className="font-medium text-white">{children}</span>
+          ) : (
+            <Paragraph>{children}</Paragraph>
+          )
         ) : (
-          <Subtitle>{children}</Subtitle>
+          onCard ? (
+            <span className="font-medium text-gray-600 dark:text-gray-300">{children}</span>
+          ) : (
+            <Subtitle>{children}</Subtitle>
+          )
         )}
       </motion.span>
       

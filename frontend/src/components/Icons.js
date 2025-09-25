@@ -91,3 +91,32 @@ export const FileTextIcon = ({ className }) => (
     <path d="M16 17H8"/>
   </svg>
 );
+
+export const ZapIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M4 14a1 1 0 0 1-.78-1.63L9.9 5.24a.5.5 0 0 1 .86.46L9.5 10.24h5.01a1 1 0 0 1 .78 1.63L8.6 18.76a.5.5 0 0 1-.86-.46L9 13.24H4Z"/>
+  </svg>
+);
+
+export const GraduationCapIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M12 14 2 9l10-5 10 5z"/>
+    <path d="M12 14v7"/>
+    <path d="M5 12v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7"/>
+  </svg>
+);
+
+export const RocketIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M4.5 16.5c-1.5 1.25-2 5 2 5s3.5-3.75 2-5-5.5-2-4-2z"/>
+    <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+    <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+    <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+  </svg>
+);
+
+export const StarIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+  </svg>
+);

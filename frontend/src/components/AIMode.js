@@ -13,7 +13,7 @@ import Chip from './Chip';
 import Button from './Button';
 import SafariVoiceWarning from './SafariVoiceWarning';
 import { typographyClasses } from './Typography';
-import { MonitorIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon, BookOpenIcon, FileTextIcon } from './Icons';
+import { MonitorIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon, BookOpenIcon, FileTextIcon, GraduationCapIcon } from './Icons';
 import { loadMarkdownContent } from '../services/contentService';
 import { isSafari, isVoiceCompatible } from '../utils/browserDetection';
 
@@ -27,8 +27,9 @@ const DOCK_ITEMS = [
     isWebsiteToggle: true
   },
   { color: '#3498DB', icon: UserIcon, tooltip: 'About', section: 'about' },
-  { color: '#8B5C3C', icon: BriefcaseIcon, tooltip: 'Experience', section: 'experience' },
+  { color: '#8B5C3C', icon: BriefcaseIcon, tooltip: 'Work', section: 'experience' },
   { color: '#E67E22', icon: FolderIcon, tooltip: 'Projects', section: 'projects' },
+  { color: '#AF52DE', icon: GraduationCapIcon, tooltip: 'Education', section: 'education' },
   { color: '#6C63FF', icon: BookOpenIcon, tooltip: 'Publications', section: 'publications' },
   { color: '#FF6B9D', icon: FileTextIcon, tooltip: 'Blog', section: 'blog' },
   { color: '#27AE60', icon: CodeIcon, tooltip: 'Skills', section: 'skills' },

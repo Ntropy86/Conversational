@@ -21,7 +21,9 @@ export async function GET(request) {
       'experience': { key: 'experiences', folder: 'experiences', filename: `${id}.md` },
       'project': { key: 'projects', folder: 'projects', filename: `${id}.md` },
       'publication': { key: 'publications', folder: 'publications', filename: `${id}.md` },
-      'blog': { key: 'blog', folder: 'blog', filename: `${id}/index.md` }
+      'blog': { key: 'blog', folder: 'blog', filename: `${id}/index.md` },
+      'education': { key: 'education', folder: 'education', filename: `${id}.md` },
+      'contact': { key: 'contact', folder: 'contact', filename: `${id}.md` }
     };
 
     const mapping = typeMapping[type];

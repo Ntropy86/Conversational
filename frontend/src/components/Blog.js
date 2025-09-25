@@ -37,16 +37,13 @@ const Blog = ({ onPostClick }) => {
   });
 
   return (
-    <section id="blog" className="py-20">
+    <section id="blog">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <h2 className={`text-3xl md:text-4xl mb-4 ${typographyClasses.heading}`}>
-          Blog
-        </h2>
-        <p className={`mb-12 ${typographyClasses.body} max-w-2xl`}>
+        <p className={`mb-6 md:mb-8 ${typographyClasses.body} max-w-2xl`}>
           Insights and experiences from building intelligent systems, modern web applications, 
           and production machine learning solutions.
         </p>

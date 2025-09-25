@@ -70,3 +70,21 @@ export async function getSkillsList() {
 export async function getSkillsContent(id) {
   return await loadMarkdownContent('skills', id);
 }
+
+export async function getEducationList() {
+  const metadata = await getContentMetadata();
+  return metadata.education || [];
+}
+
+export async function getEducationContent(id) {
+  return await loadMarkdownContent('education', id);
+}
+
+export async function getContactList() {
+  const metadata = await getContentMetadata();
+  return metadata.contact || [];
+}
+
+export async function getContactContent(id) {
+  return await loadMarkdownContent('contact', id);
+}

@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAIAgent } from '../context/AIAgentContext';
 import { TouchIndicator, touchVariants } from '../utils/touchInteractions';
-import { BotIcon, ZapOffIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon, BookOpenIcon, FileTextIcon } from './Icons';
+import { BotIcon, ZapOffIcon, ZapIcon, GraduationCapIcon, RocketIcon, StarIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon, BookOpenIcon, FileTextIcon } from './Icons';
 
 const Dock = ({ onSectionNavigate, highlightAI }) => {
   const { isAIMode, toggleAIMode } = useAIAgent();
@@ -31,7 +31,7 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
       )}
       
       <motion.div
-        className={`magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[12px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-visible ${
+        className={`magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[10px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-visible ${
           highlightAI ? 'z-50' : ''
         }`}
         initial={{ opacity: 0, y: 20 }}
@@ -41,8 +41,9 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
         style={{
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
           background: 'rgba(30, 17, 8, 0.2)',
-          maxWidth: '100%',
-          minWidth: 'fit-content'
+          maxWidth: 'calc(100vw - 2rem)',
+          minWidth: 'fit-content',
+          gap: '0.125rem'
         }}
       >
       {[
@@ -54,8 +55,9 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
           isActive: isAIMode
         },
         { color: '#3498DB', icon: UserIcon, tooltip: 'About', section: 'about' },
-        { color: '#8B5C3C', icon: BriefcaseIcon, tooltip: 'Experience', section: 'experience' },
+        { color: '#8B5C3C', icon: BriefcaseIcon, tooltip: 'Work', section: 'experience' },
         { color: '#E67E22', icon: FolderIcon, tooltip: 'Projects', section: 'projects' },
+        { color: '#AF52DE', icon: GraduationCapIcon, tooltip: 'Education', section: 'education' },
         { color: '#6C63FF', icon: BookOpenIcon, tooltip: 'Publications', section: 'publications' },
         { color: '#FF6B9D', icon: FileTextIcon, tooltip: 'Blog', section: 'blog' },
         { color: '#27AE60', icon: CodeIcon, tooltip: 'Skills', section: 'skills' },
@@ -64,7 +66,7 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
         <TouchIndicator
           key={idx}
           variant="dockItem"
-          className="magic-ui-dock-item relative mx-0.5 sm:mx-1 md:mx-2 cursor-pointer group flex-shrink-0"
+          className="magic-ui-dock-item relative mx-0 sm:mx-1 md:mx-2 cursor-pointer group flex-shrink-0"
           onClick={() => {
             if (item.section === 'ai-toggle') {
               toggleAIMode();
@@ -101,7 +103,7 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
 
           {/* Button with glow effect and hover animation */}
           <motion.div
-            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center relative ${
+            className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center relative ${
               highlightAI && idx === 0 ? 'z-50' : ''
             }`}
             style={{
@@ -136,7 +138,7 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
               ease: "easeInOut"
             } : {}}
           >
-            <item.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            <item.icon className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white" />
             
             {/* Tutorial spotlight overlay for AI button */}
             {highlightAI && idx === 0 && (

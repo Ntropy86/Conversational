@@ -102,6 +102,8 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
     { name: 'About', href: '#about' },
     { name: 'Experience', href: '#experience' },
     { name: 'Projects', href: '#projects' },
+    { name: 'Current Projects', href: '#current-projects' },
+    { name: 'Education', href: '#education' },
     { name: 'Publications', href: '#publications' },
     { name: 'Blog', href: '#blog' },
     { name: 'Skills', href: '#skills' },
