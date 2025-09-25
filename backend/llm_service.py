@@ -28,9 +28,21 @@ class ConversationManager:
         self.system_prompt = (
             "You are a witty, sarcastic friend who represents Nitigya. Keep responses conversational and engaging. "
             "You focus on discussing Nitigya's resume, skills, projects, and technical expertise. "
-            "For general technical questions (like 'Do you know Python?'), answer based on Nitigya's experience with that technology. "
-            "For completely unrelated questions (like politics, weather, etc.), reply: 'Hmm, maybe ChatGPT can help you out with that?' \n"
+            
+            "IMPORTANT CONTEXT UNDERSTANDING:\n"
+            "- NITIGYA uses HE/HIM pronouns - always refer to him as 'he', 'his', 'him'\n"
+            "- When someone asks about 'his experience', 'his projects', 'his skills' - they're asking about NITIGYA\n"
+            "- Pronouns like 'his', 'her', 'their', 'him' in questions all refer to NITIGYA in this context\n"
+            "- Names like 'Nitgy', 'Nityga', 'Nitija', etc. are transcription errors for NITIGYA - treat them as the same person\n"
+            "- If someone asks about experience/projects/skills without mentioning any name, assume they mean NITIGYA\n"
+            "- Only redirect to ChatGPT for completely unrelated topics (weather, politics, cooking, etc.)\n\n"
+            
+            "For technical questions about technologies, programming, or career topics - answer based on Nitigya's experience. "
+            "For completely unrelated questions (like politics, weather, cooking), reply: 'Hmm, maybe ChatGPT can help you out with that?' \n"
             "Never mention you're an AI. Use comedic flair but stay professional when discussing technical work.\n\n"
+            
+            "CRITICAL PRONOUN RULE: Always use HE/HIM/HIS when referring to Nitigya. Never use 'her' or 'she'. "
+            "Examples: 'his projects', 'he built', 'his experience', 'he worked at', etc.\n\n"
             
             "ABSOLUTE RULE: Response must be 30 words or LESS. NO EXCEPTIONS. Count each word carefully before responding. Short and punchy responses only.\n\n"
 
@@ -59,6 +71,33 @@ class ConversationManager:
             {"role": "assistant", "content": "Yo, I'm in a comedic mood today. Let's do this."},
         ]
         print("Conversation manager initialized successfully")
+    
+    def _select_diverse_items(self, items: list, max_items: int) -> list:
+        """Select diverse items across different content types and categories"""
+        if len(items) <= max_items:
+            return items
+        
+        # Group items by content source (projects, experience, publications)
+        grouped = {}
+        for item in items:
+            source = item.get("content_source", "unknown")
+            if source not in grouped:
+                grouped[source] = []
+            grouped[source].append(item)
+        
+        # Select items with diversity
+        selected = []
+        content_types = list(grouped.keys())
+        
+        # Round-robin selection across content types
+        while len(selected) < max_items and any(grouped.values()):
+            for content_type in content_types:
+                if len(selected) >= max_items:
+                    break
+                if grouped[content_type]:
+                    selected.append(grouped[content_type].pop(0))
+        
+        return selected
         
     def add_user_message(self, message):
         """Add a user message to the conversation history"""
@@ -112,7 +151,7 @@ class ConversationManager:
                 context_summary += f"{role.upper()}: {content}\n"
         
         # First, use the query processor to determine if cards are needed
-        query_result = self.query_processor.query(user_message)
+        query_result = self.query_processor.query(user_message, conversation_history=conversation_history)
         
         # DEBUG: Print what the query processor returned
         print(f"🔍 DEBUG - Query: '{user_message}'")
@@ -132,14 +171,15 @@ User says: {user_message}
 You are Nitigya's witty, sarcastic friend. Respond naturally and conversationally.
 
 RULES:
-- Keep it under 30 words
+- Keep it under 25 words
 - Be friendly but with personality 
 - If it's a greeting, greet back naturally
-- If it's casual conversation, engage casually
+- If they seem confused or ask "what does that mean", acknowledge it casually
+- If they're testing ("one two three", "are you there"), respond playfully
 - Don't mention projects/work unless specifically asked
 - Never mention you're an AI
 
-Just have a normal conversation.
+Just have a normal conversation like a friend would.
 """
             
             # Truncate conversation history for casual chat too
@@ -169,10 +209,13 @@ Just have a normal conversation.
                 "metadata": {"reasoning": "Casual conversation - no cards needed"}
             }
         
-        # Cards are needed - do intelligent selection
-        # Truncate items to prevent token limit issues
-        max_items = 8 if len(query_result.items) > 8 else len(query_result.items)
-        truncated_items = query_result.items[:max_items]
+        # Cards are needed - do intelligent selection with diversity
+        # Apply diversity selection to limit to 4-5 cards maximum
+        max_items = 4  # Limit to 4 cards for better UX
+        if len(query_result.items) > max_items:
+            truncated_items = self._select_diverse_items(query_result.items, max_items)
+        else:
+            truncated_items = query_result.items
         
         # Simplify item data to reduce tokens
         simplified_items = []
@@ -203,20 +246,22 @@ Your response should acknowledge this gap and explain the similarity.
 {query_result.item_type.title()} options:
 {json.dumps(simplified_items, indent=1)}
 
-Pick 1-3 most relevant items. Respond with witty comment (max 25 words).
+You are Nitigya's witty friend. Pick 1-3 most relevant items and respond conversationally.
 
-RULES:
-- If this is a fallback scenario, acknowledge the user asked about technologies he doesn't have
-- Explain what similar work he does have
-- Be honest about what's missing
-- Don't hallucinate or make up experience
+CRITICAL RULES:
+- Give a SHORT, natural response (max 20 words)
+- Never mention "I've got a problem" or technical limitations
+- Never mention cut-off dates or missing information
+- Don't explain what you can't do - just show what you can
+- Be confident and conversational
+- If asking about years, just show relevant work without explaining dates
 
-FORMAT:
-RESPONSE: [witty comment]
-IDS: [comma-separated IDs]
+REQUIRED FORMAT:
+RESPONSE: [short witty comment about the work]
+IDS: [comma-separated item IDs]
 
-Example:
-RESPONSE: This guy's been around the block!
+Good example:
+RESPONSE: Here's his research and engineering work - pretty solid stuff!
 IDS: people-robots-lab, spenza-inc"""
         
         # Truncate conversation history to prevent token limits

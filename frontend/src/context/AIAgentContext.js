@@ -342,6 +342,41 @@ export function AIAgentProvider({ children }) {
                   }
                 : msg
             ));
+            
+            // Generate TTS for the enhanced response ONLY
+            try {
+              console.log('🔊 Generating TTS for enhanced response...');
+              const ttsResponse = await fetch(`${API_URL}/test/tts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  text: enhancementResult.result.response,
+                  session_id: sessionId
+                })
+              });
+              
+              if (ttsResponse.ok) {
+                const audioBlob = await ttsResponse.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                console.log('🔊 Playing enhanced response audio');
+                const audio = new Audio(audioUrl);
+                
+                audio.onended = () => {
+                  console.log('✅ Enhanced response audio playback completed');
+                  URL.revokeObjectURL(audioUrl);
+                };
+                
+                audio.onerror = (e) => {
+                  console.error('❌ Enhanced response audio playback error:', e);
+                  URL.revokeObjectURL(audioUrl);
+                };
+                
+                audio.play().catch(e => console.error('❌ Audio play failed:', e));
+              }
+            } catch (ttsError) {
+              console.warn('⚠️ Enhanced response TTS failed:', ttsError);
+            }
+            
             break;
           } else if (enhancementResult.status === 'failed' || enhancementResult.status === 'timeout') {
             console.log('Enhancement failed or timed out, keeping original response');

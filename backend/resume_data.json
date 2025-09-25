@@ -22,8 +22,8 @@
         "Built multi-agent orchestration with RBAC and role-policy engine; owned backend for 20-family in-home field study; co-authored ACM CHI 2025 paper.",
         "Mentored 3-person undergrad team; established code guidelines, PR reviews, and weekly cadence."
       ],
-      "technologies": ["FastAPI", "WebSockets", "MongoDB", "Python", "REST", "TTS", "LLM", "JSON", "RBAC"],
-      "keywords": ["backend", "systems", "research", "NSF", "robotics", "websockets", "database", "mentoring", "paper", "CHI"],
+      "technologies": ["FastAPI", "WebSockets", "MongoDB", "Python", "REST", "TTS", "LLM", "JSON", "RBAC", "ETL", "pipeline", "data pipeline"],
+      "keywords": ["backend", "systems", "research", "NSF", "robotics", "websockets", "database", "mentoring", "paper", "CHI", "pipeline", "data pipeline"],
       "type": "experience"
     },
     {

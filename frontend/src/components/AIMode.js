@@ -144,7 +144,7 @@ const AIMode = () => {
         console.log('🎯 VAD resume result:', success);
       }
     }
-  }, [audioProcessing, vad.isLoaded, vad.isListening, vad.toggle]);
+  }, [audioProcessing, vad.isLoaded, vad.isListening]);
   
   useEffect(() => {
     const handleScroll = () => {
@@ -649,6 +649,29 @@ const AIMode = () => {
                               </div>
                             )}
                             
+                            {/* Project/Experience Links */}
+                            {(item.link || item.github || item.demo) && (
+                              <div className="mt-4 flex flex-wrap gap-2">
+                                {item.link && (
+                                  <Link href={item.link} external className="text-xs">
+                                    {item.link.includes('github') ? 'GitHub' : 
+                                     item.link.includes('demo') || item.link.includes('app') ? 'Live Demo' : 
+                                     'View Project'}
+                                  </Link>
+                                )}
+                                {item.github && item.github !== item.link && (
+                                  <Link href={item.github} external className="text-xs">
+                                    GitHub
+                                  </Link>
+                                )}
+                                {item.demo && item.demo !== item.link && (
+                                  <Link href={item.demo} external className="text-xs">
+                                    Live Demo
+                                  </Link>
+                                )}
+                              </div>
+                            )}
+                            
                             {/* Skills section special handling */}
                             {item.skills && (
                               <div className="flex flex-wrap gap-1 sm:gap-2">
@@ -660,23 +683,40 @@ const AIMode = () => {
                           </Card>
                         ))}
                         
-                        {/* Navigation link based on item type */}
+                        {/* View More button to show additional cards */}
                         <div className="text-center mt-8">
-                          <Link 
-                            href={`#${message.structuredData.item_type}`}
+                          <Button 
+                            variant="secondary"
                             onClick={() => {
-                              toggleAIMode();
-                              setTimeout(() => {
-                                const element = document.getElementById(message.structuredData.item_type);
-                                if (element) {
-                                  element.scrollIntoView({ behavior: 'smooth' });
-                                }
-                              }, 100);
+                              // Create context-aware follow-up query using original query metadata
+                              let followUpQuery;
+                              const metadata = message.structuredData.metadata || {};
+                              const originalQuery = metadata.original_query;
+                              const techFilters = metadata.tech_filters || [];
+                              const dateFilters = metadata.date_filters || {};
+                              
+                              if (originalQuery && techFilters.length > 0) {
+                                // Preserve technology context
+                                followUpQuery = `Show me more ${techFilters.join(' and ')} experience and projects beyond what you already showed`;
+                              } else if (originalQuery && dateFilters.years && dateFilters.years.length > 0) {
+                                // Preserve date context
+                                const yearContext = dateFilters.years.join(' and ');
+                                followUpQuery = `Show me more highlights from ${yearContext} that you haven't shown yet`;
+                              } else if (originalQuery) {
+                                // Use the original query for context
+                                followUpQuery = `Tell me more about that - show additional details beyond what you already shared about: ${originalQuery}`;
+                              } else {
+                                // Fallback to item type
+                                followUpQuery = `Show me more ${message.structuredData.item_type} that you haven't shown yet`;
+                              }
+                              
+                              console.log('🔄 View More clicked:', { originalQuery, techFilters, dateFilters, followUpQuery });
+                              addUserMessage(followUpQuery);
+                              generateAIResponse(followUpQuery);
                             }}
-                            className="text-gray-300 hover:text-white"
                           >
-                            View All {message.structuredData.item_type.charAt(0).toUpperCase() + message.structuredData.item_type.slice(1)}
-                          </Link>
+                            View More
+                          </Button>
                         </div>
                       </div>
                     )}

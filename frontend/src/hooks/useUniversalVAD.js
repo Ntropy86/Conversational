@@ -76,7 +76,11 @@ const useUniversalVAD = (options = {}) => {
     };
   }
   
-  console.log(`🔧 Using standard VAD for ${browserType}`);
+  // Only log once when VAD is first loaded (not on every render)
+  if (standardVAD.isLoaded && !standardVAD.error) {
+    console.log(`🔧 Using standard VAD for ${browserType}`);
+  }
+  
   return {
     ...standardVAD,
     browserType,

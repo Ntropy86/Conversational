@@ -231,6 +231,9 @@ async def smart_query(request: SmartRequest):
     # FAST EXPERIENCE: Immediate NLP response + background enhancement
     # (Used for: timeouts on first 2 queries, or all queries after 2nd)
     processor = ResumeQueryProcessor()
+    print(f"🔍 API DEBUG - Query: '{request.text}', Conversation history length: {len(request.conversation_history) if request.conversation_history else 0}")
+    if request.conversation_history:
+        print(f"🔍 API DEBUG - Last conversation entry: {request.conversation_history[-1] if request.conversation_history else 'None'}")
     nlp_result = processor.query(request.text, conversation_history=request.conversation_history)
     
     # Improve the NLP response to be more friendly

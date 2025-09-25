@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from './Link';
 
 const ContactPopup = ({ isOpen, onClose }) => {
   const contactInfo = {
@@ -50,34 +51,35 @@ const ContactPopup = ({ isOpen, onClose }) => {
                 <div className="space-y-4">
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Email</h3>
-                    <a 
+                    <Link 
                       href={`mailto:${contactInfo.email}`}
-                      className="text-blue-600 dark:text-blue-400 hover:underline"
+                      external
+                      className="text-blue-600 dark:text-blue-400"
                     >
                       {contactInfo.email}
-                    </a>
+                    </Link>
                   </div>
 
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Phone</h3>
-                    <a 
+                    <Link 
                       href={`tel:${contactInfo.phone.replace(/\s+/g, '')}`}
-                      className="text-blue-600 dark:text-blue-400 hover:underline"
+                      external
+                      className="text-blue-600 dark:text-blue-400"
                     >
                       {contactInfo.phone}
-                    </a>
+                    </Link>
                   </div>
 
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Schedule a Call</h3>
-                    <a 
+                    <Link 
                       href={contactInfo.calendly}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      external
                       className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       Book on Calendly
-                    </a>
+                    </Link>
                   </div>
                 </div>
 

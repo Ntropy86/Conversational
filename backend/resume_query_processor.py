@@ -78,7 +78,7 @@ class ResumeQueryProcessor:
             # AI & MACHINE LEARNING
             "ai": ["AI", "artificial intelligence", "machine learning", "LLM", "conversational AI", "voice AI"],
             "machine_learning": ["Machine Learning", "ML", "AI", "data science", "SMOTE", "ensemble learning"],
-            "llm": ["LLM", "large language models", "AI", "conversational AI", "Qwen-7B", "language models"],
+            "llm": ["LLM", "LLMs", "large language models", "AI", "conversational AI", "Qwen-7B", "language models"],
             "rag": ["RAG", "retrieval augmented generation", "LLM", "vector search", "knowledge retrieval"],
             "conversational_ai": ["Conversational AI", "chatbot", "dialogue systems", "LLM", "voice AI"],
             "voice_ai": ["Voice AI", "speech recognition", "TTS", "voice processing", "conversational AI"],
@@ -333,8 +333,27 @@ class ResumeQueryProcessor:
             r"^good evening"
         ]
         
+        # Check for casual conversational queries that don't need cards
+        casual_patterns = [
+            r"what does that even mean",
+            r"what do you mean",
+            r"i don't understand",
+            r"that doesn't make sense",
+            r"what are you talking about",
+            r"huh\?",
+            r"what\?",
+            r"^are you there",
+            r"^test",
+            r"^testing",
+            r"one.*two.*three",
+            r"can you hear me"
+        ]
+        
         if any(re.search(pattern, query_lower.strip()) for pattern in greeting_patterns):
             return "greeting"
+            
+        if any(re.search(pattern, query_lower.strip()) for pattern in casual_patterns):
+            return "general"
         
         intent_scores = {}
         for intent, patterns in self.intent_patterns.items():
@@ -515,55 +534,6 @@ class ResumeQueryProcessor:
         
         return filtered_items
 
-    def extract_date_filters(self, query: str) -> Dict[str, Any]:
-        """Extract date/year filters from the query"""
-        date_filters = {
-            "years": [],
-            "date_range": None,
-            "date_modifier": None  # "from", "in", "during", "after", "before"
-        }
-        
-        # Extract specific years (4-digit numbers and 2-digit shorthand)
-        year_matches = re.findall(r'\b(20[0-9]{2})\b', query)
-        
-        # Handle 2-digit year shorthand like "23" for "2023"
-        short_year_patterns = [
-            r'\bfrom\s+(\d{2})\b',
-            r'\bin\s+(\d{2})\b', 
-            r'\bduring\s+(\d{2})\b',
-            r'\bof\s+(\d{2})\b',
-            r'\s(\d{2})\?',  # "from 23?"
-        ]
-        
-        for pattern in short_year_patterns:
-            matches = re.findall(pattern, query.lower())
-            for short_year in matches:
-                short_year_int = int(short_year)
-                if 20 <= short_year_int <= 30:  # Years 2020-2030
-                    full_year = f"20{short_year}"
-                    year_matches.append(full_year)
-        
-        date_filters["years"] = list(set(year_matches))
-        
-        # Extract date modifiers
-        query_lower = query.lower()
-        if re.search(r'\bfrom\s+(\d{2,4})\s+only\b', query_lower):
-            date_filters["date_modifier"] = "from_only"
-        elif re.search(r'\bin\s+(\d{2,4})\s+only\b', query_lower):
-            date_filters["date_modifier"] = "in_only"
-        elif re.search(r'\bduring\s+(\d{2,4})\b', query_lower):
-            date_filters["date_modifier"] = "during"
-        elif re.search(r'\bafter\s+(\d{2,4})\b', query_lower):
-            date_filters["date_modifier"] = "after"
-        elif re.search(r'\bbefore\s+(\d{2,4})\b', query_lower):
-            date_filters["date_modifier"] = "before"
-        elif re.search(r'\bfrom\s+(\d{2,4})\b', query_lower):
-            date_filters["date_modifier"] = "from"
-        elif re.search(r'\bin\s+(\d{2,4})\b', query_lower):
-            date_filters["date_modifier"] = "in"
-        
-        return date_filters
-
     def filter_by_date(self, items: List[Dict], date_filters: Dict[str, Any]) -> List[Dict]:
         """Filter items by date criteria"""
         if not date_filters["years"]:
@@ -696,6 +666,7 @@ class ResumeQueryProcessor:
 
     def _is_followup_query(self, question: str) -> bool:
         """Detect if this is a follow-up query that needs context"""
+        print(f"🔍 FOLLOWUP DEBUG - Testing patterns for: '{question}'")
         followup_patterns = [
             r'(?i)\btell me more\b',
             r'(?i)\bmore about (that|those|them|it)\b',
@@ -704,28 +675,367 @@ class ResumeQueryProcessor:
             r'(?i)\bshow me more\b',
             r'(?i)\bgive me details\b',
             r'(?i)\b(that|those|them|it)\b.*\b(sounds?|looks?|seems?)\b',
+            # CONTEXTUAL REFERENCE PATTERNS - the key missing piece!
+            r'(?i)\bin (this|that)\b',
+            r'(?i)\bat (this|that)\b',  
+            r'(?i)\bfor (this|that)\b',
+            r'(?i)\bwith (this|that)\b',
+            r'(?i)\bdid.*you.*do.*\bin (this|that|there)\b',
+            r'(?i)\bwhat.*did.*he.*do.*\bin (this|that|there)\b',
+            r'(?i)\bany.*\bin (this|that|there)\b',
+            r'(?i)\bwas there.*\bin (this|that)\b',
+            r'(?i)\bdid.*involve.*\bin (this|that)\b',
+            r'(?i)\b(here|there)\b.*\?',
+            r'(?i)\bin (that|this) (project|experience|work|role|position)\b',
+            # CLARIFICATION PATTERNS
+            r'(?i)^no,?\s*i\s*meant\b',
+            r'(?i)^actually,?\s*i\s*meant\b',
+            r'(?i)^sorry,?\s*i\s*meant\b',
+            r'(?i)\bwhat.*did.*he.*do.*\b(at|in)\s+\w+\s+(experience|company|job|role)\b',
+            r'(?i)\bin\s+\w+\s+(experience|company|job|role)\b'
         ]
         
-        return any(re.search(pattern, question) for pattern in followup_patterns)
+        is_followup = any(re.search(pattern, question) for pattern in followup_patterns)
+        print(f"🔍 FOLLOWUP DEBUG - Is followup query: {is_followup}")
+        if is_followup:
+            for pattern in followup_patterns:
+                if re.search(pattern, question):
+                    print(f"🔍 FOLLOWUP DEBUG - MATCHED pattern: {pattern}")
+                    break
+        return is_followup
+    
+    def _detect_specific_entity(self, question: str) -> Optional[Dict]:
+        """Detect if the user is asking about a specific company, project, or item"""
+        question_lower = question.lower()
+        
+        # Company/Organization patterns
+        company_patterns = [
+            r'(?i)what.*did.*he.*do.*(?:at|in|for)\s+(.+?)(?:\?|$)',
+            r'(?i)what.*specifically.*(?:at|in|for)\s+(.+?)(?:\?|$)',
+            r'(?i)tell me about.*(?:his work|experience).*(?:at|in|for)\s+(.+?)(?:\?|$)',
+            r'(?i)(?:at|in|for)\s+(.+?)(?:\?|$)',
+            r'(?i)about.*(.+?)\s+(?:lab|company|inc|corp|llc|organization)(?:\?|$)',
+            r'(?i)tell me about\s+(.+?)(?:\?|$)',  # General "tell me about X" pattern
+            r'(?i)\bin\s+(.+?)\s+(experience|company|job|role)\b',  # "in Quinnis experience"
+            r'(?i)\bat\s+(.+?)\s+(experience|company|job|role)\b',  # "at Quinnis experience"
+            r'(?i)(?:no,?\s*i\s*meant\s*)?what.*did.*he.*do.*(?:at|in)\s+(.+?)(?:\?|$)'  # Clarification patterns
+        ]
+        
+        for pattern in company_patterns:
+            match = re.search(pattern, question)
+            if match:
+                entity_name = match.group(1).strip()
+                # Clean up common speech recognition errors and variations
+                entity_name = re.sub(r'\b(slap|lab)\b', 'lab', entity_name, flags=re.IGNORECASE)
+                entity_name = re.sub(r'\b(robot|robots)\b', 'robots', entity_name, flags=re.IGNORECASE)
+                
+                # Search for matching items across all content types
+                matched_items = []
+                for content_type in ["experience", "projects", "publications"]:
+                    items = self.resume_data.get(content_type, [])
+                    for item in items:
+                        # Check company name, title, or description
+                        searchable_text = " ".join([
+                            item.get("company", ""),
+                            item.get("title", ""),
+                            item.get("description", "")
+                        ]).lower()
+                        
+                        # Flexible matching - check if key words from entity_name appear
+                        entity_words = entity_name.lower().split()
+                        if len(entity_words) >= 2:  # Multi-word entities
+                            word_matches = sum(1 for word in entity_words if word in searchable_text and len(word) > 2)
+                            if word_matches >= 2:  # At least 2 significant words match
+                                item["content_source"] = content_type
+                                matched_items.append(item)
+                        elif len(entity_words) == 1 and len(entity_words[0]) > 3:  # Single significant word
+                            if entity_words[0] in searchable_text:
+                                item["content_source"] = content_type
+                                matched_items.append(item)
+                
+                if matched_items:
+                    return {
+                        "entity_name": entity_name,
+                        "entity_type": "company_or_project",
+                        "matched_items": matched_items,
+                        "query_type": "specific_entity"
+                    }
+        
+        return None
     
     def _handle_followup_query(self, question: str, conversation_history: list) -> QueryResult:
         """Handle follow-up queries using conversation context"""
+        print(f"🔍 DEBUG - _handle_followup_query called with: '{question}'")
+        print(f"🔍 DEBUG - Conversation history length: {len(conversation_history) if conversation_history else 0}")
+        
         if not conversation_history:
+            print("🔍 DEBUG - No conversation history, returning None")
             return None
             
         # Find the most recent query that had results
+        # Handle both internal QueryResult format and API response format
         last_query_with_results = None
         for entry in reversed(conversation_history):
-            if isinstance(entry, dict) and entry.get('metadata', {}).get('total_results', 0) > 0:
-                last_query_with_results = entry
-                break
+            if isinstance(entry, dict):
+                # Check for API response format (has metadata and items)
+                metadata = entry.get('metadata', {})
+                items = entry.get('items', [])
+                total_results = metadata.get('total_results', len(items))
+                
+                if total_results > 0:
+                    last_query_with_results = entry
+                    break
         
         if not last_query_with_results:
+            print("🔍 DEBUG - No previous query with results found, returning None")
             return None
+        
+        metadata = last_query_with_results.get('metadata', {})
+        print(f"🔍 DEBUG - Found previous query: {metadata.get('original_query', 'N/A')}")
+        print(f"🔍 DEBUG - Previous entity: {metadata.get('entity_name', 'N/A')}")
+        print(f"🔍 DEBUG - Previous metadata keys: {list(metadata.keys())}")
             
-        # Extract previous context
-        prev_tech_filters = last_query_with_results.get('metadata', {}).get('tech_filters', [])
-        prev_query = last_query_with_results.get('metadata', {}).get('original_query', '')
+        # CLARIFICATION HANDLING: Check if this is a clarifying query mentioning a specific entity
+        clarification_patterns = [
+            r'(?i)^no,?\s*i\s*meant\b',
+            r'(?i)^actually,?\s*i\s*meant\b',
+            r'(?i)^sorry,?\s*i\s*meant\b'
+        ]
+        
+        is_clarification = any(re.search(pattern, question) for pattern in clarification_patterns)
+        
+        if is_clarification:
+            # Try to detect the specific entity mentioned in the clarification
+            entity_result = self._detect_specific_entity(question)
+            if entity_result:
+                # Found a specific entity, return its results
+                matched_items = entity_result["matched_items"]
+                entity_name = entity_result["entity_name"]
+                
+                # Determine primary content type
+                content_sources = [item["content_source"] for item in matched_items]
+                primary_type = "mixed" if len(set(content_sources)) > 1 else (content_sources[0] if content_sources else "experience")
+                
+                return QueryResult(
+                    response_text=f"Here's what he did at {entity_name}",
+                    items=matched_items,
+                    item_type=primary_type,
+                    metadata={
+                        "entity_name": entity_name,
+                        "entity_type": entity_result["entity_type"],
+                        "original_query": question,
+                        "total_results": len(matched_items),
+                        "needs_cards": len(matched_items) > 0,
+                        "is_followup": True,
+                        "clarification_query": True,
+                        "query_type": "clarification_entity"
+                    }
+                )
+            else:
+                # No entity found - this might be asking about something that doesn't exist
+                # Extract company name from the query for a "not found" response
+                company_match = re.search(r'(?i)\bin\s+(\w+)\s+experience\b', question)
+                if company_match:
+                    company_name = company_match.group(1)
+                    return QueryResult(
+                        response_text=f"I don't see any experience at {company_name} in the resume",
+                        items=[],
+                        item_type="none",
+                        metadata={
+                            "original_query": question,
+                            "total_results": 0,
+                            "needs_cards": False,
+                            "is_followup": True,
+                            "clarification_query": True,
+                            "entity_not_found": True,
+                            "mentioned_entity": company_name,
+                            "query_type": "clarification_not_found"
+                        }
+                    )
+            
+        # ENHANCED CONTEXT HANDLING: Check if this is asking about something within the previous context
+        contextual_patterns = [
+            r'(?i)\bin (this|that)\b',
+            r'(?i)\bat (this|that)\b',
+            r'(?i)\bfor (this|that)\b', 
+            r'(?i)\bwith (this|that)\b',
+            r'(?i)\bin (there|here)\b',
+            r'(?i)\bat (there|here)\b',
+            r'(?i)\b(there|here)\b',  # Match "there" or "here" anywhere in the query
+            r'(?i)\btell me more\b',   # Match "tell me more" as contextual
+            r'(?i)\bwhat.*did.*do.*there\b',  # Match "what did he do there" patterns
+            r'(?i)\bmore.*about\b'     # Match "more about" patterns
+        ]
+        
+        is_contextual_query = any(re.search(pattern, question) for pattern in contextual_patterns)
+        print(f"🔍 DEBUG - Contextual query check: {is_contextual_query}")
+        for pattern in contextual_patterns:
+            if re.search(pattern, question):
+                print(f"🔍 DEBUG - Matched pattern: {pattern}")
+        
+        if is_contextual_query:
+            # This is asking about something specific within the previous context
+            # Get items from API response format
+            prev_items = last_query_with_results.get('items', [])
+            prev_metadata = last_query_with_results.get('metadata', {})
+            
+            print(f"🔍 DEBUG - Found {len(prev_items)} previous items")
+            
+            # Extract the new topic/technology from the question
+            new_tech_filters = self.extract_technologies(question)
+            
+            # If this is just asking for more details about the previous context (no new tech filters)
+            if not new_tech_filters:
+                # Check if we can get the entity name from the previous query
+                prev_entity_name = prev_metadata.get('entity_name')
+                if prev_entity_name:
+                    print(f"🔍 DEBUG - Previous entity found: {prev_entity_name}")
+                    # Instead of reconstructing the search, use the previous items directly
+                    # since they were already filtered for that entity
+                    if prev_items:
+                        print(f"🔍 DEBUG - Using previous items directly: {len(prev_items)} items")
+                        
+                        # Determine primary content type
+                        content_sources = [item.get("content_source", "") for item in prev_items]
+                        primary_type = "mixed" if len(set(content_sources)) > 1 else (content_sources[0] if content_sources else "experience")
+                        
+                        return QueryResult(
+                            response_text=f"Here's more about his work at {prev_entity_name}",
+                            items=prev_items,
+                            item_type=primary_type,
+                            metadata={
+                                "entity_name": prev_entity_name,
+                                "entity_type": prev_metadata.get('entity_type', 'company_or_project'),
+                                "original_query": question,
+                                "context_query": prev_metadata.get('original_query', ''),
+                                "total_results": len(prev_items),
+                                "needs_cards": len(prev_items) > 0,
+                                "is_followup": True,
+                                "contextual_followup": True,
+                                "query_type": "contextual_entity_details"
+                            }
+                        )
+                    
+                    # Fallback: try to re-detect the entity
+                    print(f"🔍 DEBUG - Fallback: re-detecting entity")
+                    entity_result = self._detect_specific_entity(f"what did he do at {prev_entity_name}")
+                    if entity_result:
+                        matched_items = entity_result["matched_items"]
+                        
+                        # Determine primary content type
+                        content_sources = [item["content_source"] for item in matched_items]
+                        primary_type = "mixed" if len(set(content_sources)) > 1 else (content_sources[0] if content_sources else "experience")
+                        
+                        return QueryResult(
+                            response_text=f"Here's more about his work at {prev_entity_name}",
+                            items=matched_items,
+                            item_type=primary_type,
+                            metadata={
+                                "entity_name": prev_entity_name,
+                                "entity_type": entity_result["entity_type"],
+                                "original_query": question,
+                                "context_query": prev_metadata.get('original_query', ''),
+                                "total_results": len(matched_items),
+                                "needs_cards": len(matched_items) > 0,
+                                "is_followup": True,
+                                "contextual_followup": True,
+                                "query_type": "contextual_entity_details"
+                            }
+                        )
+                
+                # Fallback: return the previous results with a contextual response
+                return QueryResult(
+                    response_text="Here's more about what he did there",
+                    items=prev_items,
+                    item_type=prev_metadata.get('item_type', last_query_with_results.get('item_type', 'mixed')),
+                    metadata={
+                        "original_query": question,
+                        "context_query": prev_metadata.get('original_query', ''),
+                        "total_results": len(prev_items),
+                        "needs_cards": len(prev_items) > 0,
+                        "is_followup": True,
+                        "contextual_followup": True,
+                        "query_type": "contextual_more_details"
+                    }
+                )
+            
+            # If we have new tech filters, search within the previous context items
+            if new_tech_filters:
+                # Filter the previous items by the new technology requirement
+                contextual_items = []
+                
+                for item in prev_items:
+                    # Check if this item contains the new technology
+                    item_text = " ".join([
+                        item.get("title", ""),
+                        item.get("company", ""),
+                        item.get("description", ""),
+                        " ".join(item.get("highlights", [])),
+                        " ".join(item.get("technologies", [])),
+                        " ".join(item.get("keywords", []))
+                    ]).lower()
+                    
+                    # Check if any of the new tech filters match this item
+                    tech_match = False
+                    for tech_filter in new_tech_filters:
+                        if tech_filter in self.tech_mappings:
+                            mapped_keywords = self.tech_mappings[tech_filter]
+                            if any(keyword.lower() in item_text for keyword in mapped_keywords):
+                                tech_match = True
+                                break
+                        elif tech_filter.lower() in item_text:
+                            tech_match = True
+                            break
+                    
+                    if tech_match:
+                        contextual_items.append(item)
+                
+                if contextual_items:
+                    # Found items within the previous context that match the new criteria
+                    prev_entity_name = prev_metadata.get('entity_name', '')
+                    context_description = f"his work with {', '.join(new_tech_filters)}"
+                    if prev_entity_name:
+                        context_description += f" at {prev_entity_name}"
+                    
+                    return QueryResult(
+                        response_text=f"Here's {context_description}",
+                        items=contextual_items,
+                        item_type=contextual_items[0].get("content_source", "mixed") if len(contextual_items) == 1 else "mixed",
+                        metadata={
+                            "tech_filters": new_tech_filters,
+                            "original_query": question,
+                            "context_query": prev_metadata.get('original_query', ''),
+                            "total_results": len(contextual_items),
+                            "needs_cards": True,
+                            "is_followup": True,
+                            "contextual_followup": True,
+                            "parent_entity": prev_entity_name,
+                            "query_type": "contextual_followup"
+                        }
+                    )
+                else:
+                    # No items in the previous context match the new criteria
+                    prev_entity_name = prev_metadata.get('entity_name', 'that context')
+                    return QueryResult(
+                        response_text=f"No {', '.join(new_tech_filters)} work found in {prev_entity_name}",
+                        items=[],
+                        item_type="none",
+                        metadata={
+                            "tech_filters": new_tech_filters,
+                            "original_query": question,
+                            "context_query": prev_metadata.get('original_query', ''),
+                            "total_results": 0,
+                            "needs_cards": False,
+                            "is_followup": True,
+                            "contextual_followup": True,
+                            "no_match_in_context": True,
+                            "parent_entity": prev_entity_name
+                        }
+                    )
+            
+        # Extract previous context from API response format
+        prev_tech_filters = prev_metadata.get('tech_filters', [])
+        prev_query = prev_metadata.get('original_query', '')
         
         # Rerun the previous query logic to get the same results
         if prev_tech_filters:
@@ -824,12 +1134,45 @@ class ResumeQueryProcessor:
 
     def query(self, question: str, conversation_history: list = None) -> QueryResult:
         """Process a natural language query and return structured results"""
+        print(f"🔍 FOLLOWUP DEBUG - Query: '{question}', History: {bool(conversation_history)}")
         
         # CONTEXT-AWARE PROCESSING: Handle follow-up queries
         if conversation_history and self._is_followup_query(question):
+            print(f"🔍 FOLLOWUP DEBUG - Detected as followup query!")
             context_result = self._handle_followup_query(question, conversation_history)
             if context_result:
+                print(f"🔍 FOLLOWUP DEBUG - Returning followup result: {context_result.response_text[:50]}...")
                 return context_result
+            else:
+                print("🔍 FOLLOWUP DEBUG - Followup handler returned None, continuing...")
+        
+        # ENTITY-SPECIFIC PROCESSING: Handle questions about specific companies/projects
+        entity_result = self._detect_specific_entity(question)
+        if entity_result:
+            matched_items = entity_result["matched_items"]
+            entity_name = entity_result["entity_name"]
+            
+            # Determine primary content type
+            content_sources = [item["content_source"] for item in matched_items]
+            if len(set(content_sources)) > 1:
+                primary_type = "mixed"
+            else:
+                primary_type = content_sources[0] if content_sources else "experience"
+            
+            return QueryResult(
+                response_text=f"Here's what he did at {entity_name}",
+                items=matched_items,
+                item_type=primary_type,
+                metadata={
+                    "entity_name": entity_name,
+                    "entity_type": entity_result["entity_type"],
+                    "original_query": question,
+                    "total_results": len(matched_items),
+                    "needs_cards": len(matched_items) > 0,
+                    "specific_entity_query": True,
+                    "query_type": "specific_entity"
+                }
+            )
         
         # Extract intent, technology filters, and date filters
         intent = self.extract_intent(question)
@@ -917,11 +1260,28 @@ class ResumeQueryProcessor:
                     project_items = [item for item in all_items if item["content_source"] == "projects"]
                     sorted_items.extend(self.sort_projects_by_date(project_items))
                 
-                # Add experience third
+                # Add experience third with ETL-specific ordering
                 if "experience" in content_type_counts:
                     exp_items = [item for item in all_items if item["content_source"] == "experience"]
-                    exp_items = sorted(exp_items, key=lambda x: x.get("dates", "2020"), reverse=True)
-                    sorted_items.extend(exp_items)
+                    
+                    # Special ordering for ETL queries - prioritize Spenza
+                    is_etl_query = any(tech_filter.lower() in ["etl", "data pipeline", "pipeline"] for tech_filter in tech_filters) if tech_filters else False
+                    if is_etl_query:
+                        # Separate Spenza and other experience items
+                        spenza_items = [item for item in exp_items if "spenza" in item.get("company", "").lower()]
+                        other_items = [item for item in exp_items if "spenza" not in item.get("company", "").lower()]
+                        
+                        # Sort each group by date
+                        spenza_items = sorted(spenza_items, key=lambda x: x.get("dates", "2020"), reverse=True)
+                        other_items = sorted(other_items, key=lambda x: x.get("dates", "2020"), reverse=True)
+                        
+                        # Add Spenza first, then others
+                        sorted_items.extend(spenza_items)
+                        sorted_items.extend(other_items)
+                    else:
+                        # Normal date-based sorting for non-ETL queries
+                        exp_items = sorted(exp_items, key=lambda x: x.get("dates", "2020"), reverse=True)
+                        sorted_items.extend(exp_items)
                 
                 # Add blog posts last
                 if "blog" in content_type_counts:
