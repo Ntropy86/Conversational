@@ -766,7 +766,7 @@ const AIMode = () => {
                         <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
                       </svg>
                     </motion.div>
-                    <p className={typographyClasses.subtitle}>processing. I'm a wittle swoah :3</p>
+                    <p className={typographyClasses.subtitle}>processing. I&apos;m a wittle swoah :3</p>
                   </div>
                 </motion.div>
               )}

@@ -21,13 +21,30 @@ const nextConfig = {
   // Bundle analyzer in production
   ...(process.env.ANALYZE === 'true' && {
     webpack: (config) => {
-      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-      config.plugins.push(
-        new BundleAnalyzerPlugin({
-          analyzerMode: 'static',
-          openAnalyzer: false,
-        })
-      );
+      // In an ESM next.config.mjs, `require` is not available. Use createRequire to load CJS modules.
+      try {
+        const { createRequire } = await import('module');
+        const require = createRequire(import.meta.url);
+        const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+        config.plugins.push(
+          new BundleAnalyzerPlugin({
+            analyzerMode: 'static',
+            openAnalyzer: false,
+          })
+        );
+      } catch (e) {
+        // Fallback: attempt dynamic import (some environments may support it)
+        try {
+          const mod = await import('webpack-bundle-analyzer');
+          const BundleAnalyzerPlugin = mod.BundleAnalyzerPlugin || mod.default?.BundleAnalyzerPlugin || mod.default;
+          if (BundleAnalyzerPlugin) {
+            config.plugins.push(new BundleAnalyzerPlugin({ analyzerMode: 'static', openAnalyzer: false }));
+          }
+        } catch (err) {
+          console.warn('BundleAnalyzerPlugin could not be loaded for ANALYZE build:', err);
+        }
+      }
+
       return config;
     },
   }),

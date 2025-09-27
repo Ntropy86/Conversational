@@ -17,23 +17,10 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
 
   return (
     <>
-      {/* Spotlight backdrop for tutorial */}
-      {highlightAI && (
-        <motion.div
-          className="fixed inset-0 pointer-events-none z-40"
-          style={{
-            background: 'radial-gradient(circle at 50% 85%, transparent 100px, rgba(0,0,0,0.7) 200px)'
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        />
-      )}
+      {/* highlight overlay removed - user preference: only show popup notification */}
       
       <motion.div
-        className={`magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[10px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-visible ${
-          highlightAI ? 'z-50' : ''
-        }`}
+        className={`magic-ui-dock flex items-center p-1 sm:p-2 bg-transparent rounded-[10px] sm:rounded-[16px] border-2 border-[#3e3630] backdrop-blur-lg overflow-visible`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ scale: 1.01 }}
@@ -108,9 +95,7 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
             }`}
             style={{
               backgroundColor: item.color,
-              boxShadow: highlightAI && idx === 0 
-                ? `0 0 25px ${item.color}, 0 0 50px ${item.color}80, 0 0 75px ${item.color}40`
-                : `0 0 10px ${item.color}40`
+              boxShadow: `0 0 10px ${item.color}40`
             }}
             initial={{ scale: 1 }}
             whileHover={{ 
@@ -124,37 +109,11 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
               }
             }}
             whileTap={{ scale: 0.95 }}
-            animate={highlightAI && idx === 0 ? {
-              scale: [1, 1.1, 1],
-              boxShadow: [
-                `0 0 25px ${item.color}, 0 0 50px ${item.color}80, 0 0 75px ${item.color}40`,
-                `0 0 35px ${item.color}, 0 0 70px ${item.color}80, 0 0 100px ${item.color}40`,
-                `0 0 25px ${item.color}, 0 0 50px ${item.color}80, 0 0 75px ${item.color}40`
-              ]
-            } : {}}
-            transition={highlightAI && idx === 0 ? {
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            } : {}}
+            animate={{}}
+            transition={{}}
           >
             <item.icon className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white" />
-            
-            {/* Tutorial spotlight overlay for AI button */}
-            {highlightAI && idx === 0 && (
-              <motion.div
-                className="absolute inset-0 rounded-full border-4 border-white/50"
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.8, 0.3, 0.8]
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
-            )}
+            {/* highlight removed */}
             
             {/* Subtle inner glow/ring effect */}
             <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-300"

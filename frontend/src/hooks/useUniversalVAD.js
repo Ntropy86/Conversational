@@ -49,11 +49,7 @@ const useUniversalVAD = (options = {}) => {
   
   // For other browsers, check if standard VAD failed to load
   if (browserType && standardVAD.error && !standardVAD.isLoaded) {
-    console.log('⚠️ Standard VAD failed, falling back to Safari VAD');
-    // Initialize Safari VAD as fallback if not already done
-    if (!safariVAD.isLoaded && !safariVAD.isLoading) {
-      safariVAD = useSafariVAD(options);
-    }
+    console.log('⚠️ Standard VAD failed, falling back to Safari-compatible VAD');
     return {
       ...safariVAD,
       browserType,

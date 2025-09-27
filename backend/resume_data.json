@@ -35,7 +35,8 @@
         "grounded generation", "content safety", "evals", "multi-agent orchestration",
         "policy engine", "observability", "structured logging"
       ],
-      "type": "experience"
+      "type": "experience",
+      "category": "Research & AI"
     },
     {
       "id": "spenza-inc",
@@ -55,7 +56,8 @@
         "IaC (Terraform)", "CI/CD pipelines", "blue-green deploy", "schema migration",
         "retry budgets", "serverless concurrency", "cold-start mitigation"
       ],
-      "type": "experience"
+      "type": "experience",
+      "category": "Software Engineering"
     },
     {
       "id": "cdac-intern",
@@ -77,7 +79,8 @@
         "Independent Component Analysis", "epoching", "online inference", "latency budget",
         "ring buffer", "multi-threading", "SVM", "NN classifier", "ROC/AUC"
       ],
-      "type": "experience"
+      "type": "experience",
+      "category": "Research & BCI"
     },
     {
       "id": "drdo-intern",
@@ -99,7 +102,8 @@
         "spectral correlation", "radiometric normalization", "geoTIFF", "HYDICE DC Mall",
         "vectorization", "cache locality", "tiling", "confusion matrix", "precision/recall"
       ],
-      "type": "experience"
+      "type": "experience",
+      "category": "Research & Computer Vision"
     }
   ],
   "projects": [
@@ -107,7 +111,10 @@
       "id": "resume-ai-mode",
       "title": "Portfolio AI Mode — Resume Q&A + Hybrid Search (Voice & Text)",
       "date": "2024–2025",
-      "link": "https://ntropy.dev",
+      "link": "https://github.com/Ntropy86/portfolio-ai",
+      "links": {
+        "demo": "https://ntropy.dev"
+      },
       "description": "Conversational AI that answers questions about my background with a hybrid reasoning engine and dynamic card selection.",
       "tech_stack": {
         "backend": [
@@ -162,18 +169,23 @@
         "session memory", "speech pipeline"
       ],
       "type": "project",
-      "metrics": "Sub-500ms latency for streaming; context-grounded answers + dynamic cards"
+      "metrics": "Sub-500ms latency for streaming; context-grounded answers + dynamic cards",
+      "category": "AI & Full-Stack"
     },
     {
       "id": "codeforces-potd",
       "title": "Codeforces-POTD (Chrome Extension)",
       "date": "2024",
       "link": "https://chromewebstore.google.com/detail/codeforces-potd/kdpcekneldcnkajbmabmfgdpcdjdmcfd",
+      "links": {
+        "demo": "https://chromewebstore.google.com/detail/codeforces-potd/kdpcekneldcnkajbmabmfgdpcdjdmcfd"
+      },
       "description": "Featured extension delivering daily practice with streaks, retries, and calendar; CI/CD with rollbacks and telemetry.",
       "technologies": ["JavaScript", "Chrome APIs", "GitHub Actions"],
       "keywords": ["Manifest V3", "chrome.storage", "alarms API", "service worker", "rollback"],
       "type": "project",
-      "metrics": "2k+ users, 4.8/5 rating"
+      "metrics": "2k+ users, 4.8/5 rating",
+      "category": "Web Development"
     },
     {
       "id": "external-memory-merge-sort",
@@ -183,7 +195,8 @@
       "description": "Multi-stage loser-tree external sort in C++ handling 10GB+ under constrained RAM; tuned SSD vs HDD I/O patterns.",
       "technologies": ["C++", "Algorithms", "Systems Programming"],
       "keywords": ["loser tree", "spill files", "buffer pool", "sequential I/O", "mmap"],
-      "type": "project"
+      "type": "project",
+      "category": "Systems Programming"
     },
     {
       "id": "moody-eeg-classifier",
@@ -194,18 +207,23 @@
       "technologies": ["Python", "EEG", "scikit-learn", "SMOTE", "ExtraTrees"],
       "keywords": ["band-pass filter", "windowed features", "class imbalance", "ensemble learning"],
       "type": "project",
-      "metrics": "Reported 80–100% adjusted match rates"
+      "metrics": "Reported 80–100% adjusted match rates",
+      "category": "AI & BCI"
     },
     {
       "id": "chicago-crime-forecasting",
       "title": "Chicago Crime Forecasting",
       "date": "2023",
       "link": "https://github.com/Ntropy86/chicago-crime-forecasting",
+      "links": {
+        "demo": "https://ntropy.dev/projects/chicago-crime"
+      },
       "description": "Time series analysis and predictive modeling for Chicago crime patterns using ARIMA, seasonal decomposition, and spatial-temporal clustering.",
       "technologies": ["Python", "Time Series Analysis", "ARIMA", "Spatial Analysis", "Data Science"],
       "keywords": ["time series forecasting", "seasonal decomposition", "spatial clustering", "crime prediction", "ARIMA modeling"],
       "type": "project",
-      "metrics": "85% accuracy in forecasting crime hotspots with spatial-temporal clustering"
+      "metrics": "85% accuracy in forecasting crime hotspots with spatial-temporal clustering",
+      "category": "Data Science"
     },
     {
       "id": "semantic-search-low-feature",
@@ -216,7 +234,8 @@
       "technologies": ["Python", "Embeddings", "Dimensionality Reduction", "Vector Search", "Information Retrieval"],
       "keywords": ["semantic search", "dimensionality reduction", "vector embeddings", "information retrieval", "feature compression"],
       "type": "project",
-      "metrics": "90% retrieval accuracy with 10x faster query performance through optimized feature space compression"
+      "metrics": "90% retrieval accuracy with 10x faster query performance through optimized feature space compression",
+      "category": "AI & Information Retrieval"
     }
   ],
   "publications": [
@@ -313,7 +332,8 @@
         "Database Management",
         "AI"
       ],
-      "type": "education"
+      "type": "education",
+      "category": "Masters of Science"
     },
     {
       "id": "manipal-btech",
@@ -322,7 +342,8 @@
       "dates": "Jul 2019 – Jul 2023",
       "gpa": "9.35/10",
       "achievements": ["5× Dean's List", "Student Excellence in Research Award", "10/10 GPA Award", "Vice President, CS Club"],
-      "type": "education"
+      "type": "education",
+      "category": "Bachelors of Technology"
     }
   ],
   "certifications": [

@@ -75,8 +75,7 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         
-        {/* Preload critical assets */}
-        <link rel="preload" href="/photo.jpeg" as="image" type="image/jpeg" />
+  {/* Preload critical assets - removed large hero image preload to reduce initial main-thread/network work */}
         
         {/* Performance hints */}
         <meta name="format-detection" content="telephone=no" />

@@ -41,11 +41,11 @@ const ContactPopup = ({ isOpen, onClose }) => {
               {/* Content */}
               <div className="pr-8">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                  Let's Set Up a Consultation!
+                  Let&apos;s Set Up a Consultation!
                 </h2>
                 
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  I'd be happy to help you with custom code development. Here's how you can reach me:
+                  I&apos;d be happy to help you with custom code development. Here&apos;s how you can reach me:
                 </p>
 
                 <div className="space-y-4">

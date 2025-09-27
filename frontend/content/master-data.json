@@ -1,0 +1,29 @@
+{
+  "navigation": [
+    { "name": "About", "href": "#about" },
+    { "name": "Experience", "href": "#experience" },
+    { "name": "Projects", "href": "#projects" },
+    { "name": "Publications", "href": "#publications" },
+    { "name": "Education", "href": "#education" },
+    { "name": "Skills", "href": "#skills" },
+    { "name": "Blog", "href": "#blog" },
+    { "name": "Contact", "href": "#contact" }
+  ],
+  "socialLinks": [
+    {
+      "name": "GitHub",
+      "href": "https://github.com/Ntropy86",
+      "icon": "github"
+    },
+    {
+      "name": "LinkedIn",
+      "href": "https://www.linkedin.com/in/nitigyak",
+      "icon": "linkedin"
+    },
+    {
+      "name": "Scholar",
+      "href": "https://scholar.google.com/citations?user=tBFE15IAAAAJ&hl=en",
+      "icon": "scholar"
+    }
+  ]
+}

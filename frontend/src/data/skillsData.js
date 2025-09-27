@@ -163,26 +163,26 @@ export const getSkillValue = (skillName) => skillsData[skillName] || 0;
 
 // Technology logos mapping
 export const techLogos = {
-  // Category-level logos for "All Skills" view
-  "Languages": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
-  "Backend": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg", 
-  "Databases": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg",
-  "Big Data": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apache/apache-original.svg",
-  "DevOps": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg",
-  "ML/AI": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg",
-  "LLMs": "https://openai.com/favicon.ico",
-  "Analytics": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/r/r-original.svg",
-  "Visualization": "https://images.plot.ly/logo/new-branding/plotly-logomark.png",
+  // Category-level logos for "All Skills" view (prefer local assets to reduce third-party requests)
+  "Languages": "/tech-logos/python-original.svg",
+  "Backend": "/tech-logos/nodejs-original.svg",
+  "Databases": "/tech-logos/postgresql-original.svg",
+  "Big Data": "/tech-logos/apache-original.svg",
+  "DevOps": "/tech-logos/docker-original.svg",
+  "ML/AI": "/tech-logos/pytorch-original.svg",
+  "LLMs": "/tech-logos/openai-favicon.svg",
+  "Analytics": "/tech-logos/r-original.svg",
+  "Visualization": "/tech-logos/plotly-logomark.png",
 
   // Languages
-  "Python": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
-  "TypeScript/JavaScript": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg",
-  "SQL": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg",
-  "Julia": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/julia/julia-original.svg",
+  "Python": "/tech-logos/python-original.svg",
+  "TypeScript/JavaScript": "/tech-logos/typescript-original.svg",
+  "SQL": "/tech-logos/mysql-original.svg",
+  "Julia": "/tech-logos/julia-original.svg",
   
   // Backend
   "FastAPI": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg",
-  "Node.js/Express": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg",
+  "Node.js/Express": "/tech-logos/nodejs-original.svg",
   "Flask": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flask/flask-original.svg",
   "REST/WebSockets": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/swagger/swagger-original.svg",
   "Celery": "https://docs.celeryproject.org/en/stable/_static/celery_512.png",
@@ -190,13 +190,13 @@ export const techLogos = {
   "Sentry": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/sentry/sentry-original.svg",
   
   // Databases
-  "PostgreSQL": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg",
+  "PostgreSQL": "/tech-logos/postgresql-original.svg",
   "MongoDB": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg",
   "Redis": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg",
   "Cassandra": "https://www.vectorlogo.zone/logos/apache_cassandra/apache_cassandra-icon.svg",
   
   // Big Data
-  "PySpark": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apache/apache-original.svg",
+  "PySpark": "/tech-logos/apache-original.svg",
   "Kafka": "https://www.vectorlogo.zone/logos/apache_kafka/apache_kafka-icon.svg",
   "PyArrow": "https://arrow.apache.org/img/arrow-logo_horizontal_black-txt_white-bg.png",
   "Apache Spark": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apache/apache-original.svg",
@@ -206,13 +206,13 @@ export const techLogos = {
   // DevOps
   "AWS (Lambda, SQS, S3, EC2, EMR)": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original.svg",
   "GCP BigQuery": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg",
-  "Docker": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg",
+  "Docker": "/tech-logos/docker-original.svg",
   "GitHub Actions": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg",
   "Kubernetes": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kubernetes/kubernetes-plain.svg",
   "Linux": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg",
   
   // ML/AI
-  "PyTorch": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg",
+  "PyTorch": "/tech-logos/pytorch-original.svg",
   "TensorFlow": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tensorflow/tensorflow-original.svg",
   "scikit-learn": "https://upload.wikimedia.org/wikipedia/commons/0/05/Scikit_learn_logo_small.svg",
   "LangChain": "https://python.langchain.com/img/brand/wordmark.png",
@@ -220,20 +220,20 @@ export const techLogos = {
   "OpenCV": "https://opencv.org/wp-content/uploads/2022/05/logo.png",
   
   // LLMs
-  "LLM integration": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
+  "LLM integration": "/tech-logos/python-original.svg",
   "RAG": "https://www.vectorlogo.zone/logos/pytorch/pytorch-icon.svg",
   "prompt design": "https://openai.com/favicon.ico",
   "evals": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
   "guardrails": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
   
   // Analytics
-  "Statistical Modeling": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/r/r-original.svg",
+  "Statistical Modeling": "/tech-logos/r-original.svg",
   "Inference": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
   "A/B Testing": "https://www.vectorlogo.zone/logos/google_analytics/google_analytics-icon.svg",
   "Hypothesis Testing": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/r/r-original.svg",
   
   // Visualization
-  "Plotly": "https://images.plot.ly/logo/new-branding/plotly-logomark.png",
+  "Plotly": "/tech-logos/plotly-logomark.png",
   "Tableau": "https://cdn.worldvectorlogo.com/logos/tableau-software.svg",
   "Matplotlib": "https://matplotlib.org/_static/images/logo2.svg",
   "Seaborn": "https://seaborn.pydata.org/_static/logo-wide-lightbg.svg",

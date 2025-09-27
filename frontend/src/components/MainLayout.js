@@ -9,6 +9,7 @@ import Button from './Button';
 import Dock from './Dock';
 import ContactPopup from './ContactPopup';
 import { typographyClasses } from './Typography';
+import { getMasterData } from '../services/contentService';
 
 const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
   const { isDarkMode } = useTheme();
@@ -16,6 +17,8 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
   const [activeSection, setActiveSection] = useState('about');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [navLinks, setNavLinks] = useState([]);
+  const [socialLinks, setSocialLinks] = useState([]);
 
   // Toggle mobile menu
   const toggleMenu = () => {
@@ -84,7 +87,7 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
         scrollTimeout = setTimeout(() => {
           handleScroll();
           scrollTimeout = null;
-        }, 100);
+        }, 150);
       }
     };
     
@@ -98,50 +101,47 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
     };
   }, [activeSection]);
 
-  const navLinks = [
-    { name: 'About', href: '#about' },
-    { name: 'Experience', href: '#experience' },
-    { name: 'Projects', href: '#projects' },
-    { name: 'Current Projects', href: '#current-projects' },
-    { name: 'Education', href: '#education' },
-    { name: 'Publications', href: '#publications' },
-    { name: 'Blog', href: '#blog' },
-    { name: 'Skills', href: '#skills' },
-    { name: 'Contact', href: '#contact' }
-  ];
+  // Load master data for navigation and social links
+  useEffect(() => {
+    const loadMasterData = async () => {
+      const data = await getMasterData();
+      setNavLinks(data.navigation || []);
+      const links = (data.socialLinks || []).map(link => ({
+        ...link,
+        icon: getIcon(link.icon)
+      }));
+      setSocialLinks(links);
+    };
+    loadMasterData();
+  }, []);
 
-  const socialLinks = [
-    { 
-      name: 'GitHub', 
-      href: 'https://github.com/Ntropy86',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-        </svg>
-      )
-    },
-    { 
-      name: 'LinkedIn', 
-      href: 'https://www.linkedin.com/in/nitigyak',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-          <rect x="2" y="9" width="4" height="12"></rect>
-          <circle cx="4" cy="4" r="2"></circle>
-        </svg>
-      )
-    },
-    { 
-      name: 'Scholar', 
-      href: 'https://scholar.google.com/citations?user=tBFE15IAAAAJ&hl=en',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
-          <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
-        </svg>
-      )
-    },
-  ];
+  const getIcon = (iconName) => {
+    switch (iconName) {
+      case 'github':
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+          </svg>
+        );
+      case 'linkedin':
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+            <rect x="2" y="9" width="4" height="12"></rect>
+            <circle cx="4" cy="4" r="2"></circle>
+          </svg>
+        );
+      case 'scholar':
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+            <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
 
   // Custom animations for sidebar elements
   const sidebarVariants = {

@@ -20,6 +20,8 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "eslint": "9.36.0",
+    "eslint-config-next": "15.5.4",
     "tailwindcss": "^4",
     "webpack-bundle-analyzer": "^4.10.2"
   }

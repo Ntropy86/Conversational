@@ -13,6 +13,19 @@ export async function getContentMetadata() {
   }
 }
 
+export async function getMasterData() {
+  try {
+    const response = await fetch('/api/master-data');
+    if (!response.ok) {
+      throw new Error('Failed to fetch master data');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching master data:', error);
+    return { navigation: [], socialLinks: [] };
+  }
+}
+
 export async function getExperienceList() {
   const metadata = await getContentMetadata();
   return metadata.experiences || [];

@@ -26,6 +26,9 @@ A **_voice-first portfolio website_** with **_real-time speech processing_** and
 ![AI Assistant](./AI.png)
 *Interactive AI assistant providing contextual responses about experience and projects*
 
+![Guardrails](./Guardrails.png)
+*Used all SOTA guardrailing and finetuning techniques to make sure that the conversation stay focused on the task at hand, i.e, knowing ME!*
+
 ![Voice Interface](./Voice%20AI.png)
 *Advanced voice processing with real-time transcription and natural speech synthesis*
 
