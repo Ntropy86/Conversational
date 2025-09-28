@@ -236,6 +236,42 @@ async def smart_query(request: SmartRequest):
         print(f"🔍 API DEBUG - Last conversation entry: {request.conversation_history[-1] if request.conversation_history else 'None'}")
     nlp_result = processor.query(request.text, conversation_history=request.conversation_history)
     
+    # Apply basic intelligent selection to limit results (similar to LLM service)
+    def _select_diverse_items(items: list, max_items: int) -> list:
+        """Select diverse items across different content types and categories"""
+        if len(items) <= max_items:
+            return items
+        
+        # Group items by content source (projects, experience, publications)
+        grouped = {}
+        for item in items:
+            source = item.get("content_source", "unknown")
+            if source not in grouped:
+                grouped[source] = []
+            grouped[source].append(item)
+        
+        # Select items with diversity
+        selected = []
+        content_types = list(grouped.keys())
+        
+        # Round-robin selection across content types
+        while len(selected) < max_items and any(grouped.values()):
+            for content_type in content_types:
+                if len(selected) >= max_items:
+                    break
+                if grouped[content_type]:
+                    selected.append(grouped[content_type].pop(0))
+        
+        return selected
+    
+    # Limit fast NLP results to 4 items maximum with diversity
+    max_fast_items = 4
+    if len(nlp_result.items) > max_fast_items:
+        selected_items = _select_diverse_items(nlp_result.items, max_fast_items)
+        print(f"🎯 Fast NLP: Limited {len(nlp_result.items)} items to {len(selected_items)} diverse items")
+    else:
+        selected_items = nlp_result.items
+    
     # Improve the NLP response to be more friendly
     friendly_response = nlp_result.response_text
     if friendly_response.startswith("Found ") and "matching your query" in friendly_response:
@@ -255,13 +291,14 @@ async def smart_query(request: SmartRequest):
     immediate_response = {
         "session_id": session_id,
         "response": friendly_response,
-        "items": nlp_result.items,
+        "items": selected_items,
         "item_type": nlp_result.item_type,
         "metadata": {
             **nlp_result.metadata,
             "fast_nlp_response": True,
             "llm_enhancement_pending": True,
-            "request_count": user_request_counts[user_id]
+            "request_count": user_request_counts[user_id],
+            "intelligent_selection_applied": len(selected_items) < len(nlp_result.items) if nlp_result.items else False
         },
         "processing_time_ms": round((time.time() - start_time) * 1000, 2),
         "user_id": user_id,

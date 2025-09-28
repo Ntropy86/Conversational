@@ -187,19 +187,19 @@ export function AIAgentProvider({ children }) {
   };
   
   // Add user message to conversation
-  const addUserMessage = (message) => {
+  const addUserMessage = (message, origin = 'text') => {
     // Check if this is the first message
     if (conversation.length === 0) {
       // Make the first message a header/title question
       const newConversation = [
-        { role: 'user', content: message }
+        { role: 'user', content: message, origin: origin }
       ];
       setConversation(newConversation);
     } else {
       // Add as a regular message in the conversation
       const newConversation = [
         ...conversation,
-        { role: 'user', content: message }
+        { role: 'user', content: message, origin: origin }
       ];
       setConversation(newConversation);
     }
@@ -264,6 +264,10 @@ export function AIAgentProvider({ children }) {
         metadata: result.metadata || {}
       };
 
+      // Get the origin from the last user message
+      const lastUserMessage = conversation.slice(-1)[0];
+      const messageOrigin = lastUserMessage?.origin || 'text';
+
       // Add immediate response to conversation with structured data
       const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
@@ -274,6 +278,7 @@ export function AIAgentProvider({ children }) {
           content: result.response,
           structuredData: structuredData,
           messageId: messageId,
+          origin: messageOrigin,
           enhancementPending: result.llm_enhancement?.status === 'pending'
         }
       ]);
@@ -343,38 +348,49 @@ export function AIAgentProvider({ children }) {
                 : msg
             ));
             
-            // Generate TTS for the enhanced response ONLY
-            try {
-              console.log('🔊 Generating TTS for enhanced response...');
-              const ttsResponse = await fetch(`${API_URL}/test/tts`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  text: enhancementResult.result.response,
-                  session_id: sessionId
-                })
-              });
-              
-              if (ttsResponse.ok) {
-                const audioBlob = await ttsResponse.blob();
-                const audioUrl = URL.createObjectURL(audioBlob);
-                console.log('🔊 Playing enhanced response audio');
-                const audio = new Audio(audioUrl);
+            console.log('🎯 Enhancement completed - updated structuredData:', {
+              item_type: enhancementResult.result.item_type,
+              items_count: enhancementResult.result.items?.length || 0,
+              content_sources: enhancementResult.result.items?.map(item => item.content_source) || []
+            });
+            
+            // Generate TTS for the enhanced response ONLY if it was voice-origin
+            const message = conversation.find(msg => msg.messageId === messageId);
+            if (message && message.origin === 'voice') {
+              try {
+                console.log('🔊 Generating TTS for enhanced response...');
+                const ttsResponse = await fetch(`${API_URL}/test/tts`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ 
+                    text: enhancementResult.result.response,
+                    session_id: sessionId
+                  })
+                });
                 
-                audio.onended = () => {
-                  console.log('✅ Enhanced response audio playback completed');
-                  URL.revokeObjectURL(audioUrl);
-                };
-                
-                audio.onerror = (e) => {
-                  console.error('❌ Enhanced response audio playback error:', e);
-                  URL.revokeObjectURL(audioUrl);
-                };
-                
-                audio.play().catch(e => console.error('❌ Audio play failed:', e));
+                if (ttsResponse.ok) {
+                  const audioBlob = await ttsResponse.blob();
+                  const audioUrl = URL.createObjectURL(audioBlob);
+                  console.log('🔊 Playing enhanced response audio');
+                  const audio = new Audio(audioUrl);
+                  
+                  audio.onended = () => {
+                    console.log('✅ Enhanced response audio playback completed');
+                    URL.revokeObjectURL(audioUrl);
+                  };
+                  
+                  audio.onerror = (e) => {
+                    console.error('❌ Enhanced response audio playback error:', e);
+                    URL.revokeObjectURL(audioUrl);
+                  };
+                  
+                  audio.play().catch(e => console.error('❌ Audio play failed:', e));
+                }
+              } catch (ttsError) {
+                console.warn('⚠️ Enhanced response TTS failed:', ttsError);
               }
-            } catch (ttsError) {
-              console.warn('⚠️ Enhanced response TTS failed:', ttsError);
+            } else {
+              console.log('🔇 Skipping TTS for enhanced response - not voice origin');
             }
             
             break;
@@ -571,7 +587,7 @@ export function AIAgentProvider({ children }) {
       // Step 2: Add user message to conversation immediately
       setConversation(prev => [
         ...prev,
-        { role: 'user', content: userMessage }
+        { role: 'user', content: userMessage, origin: 'voice' }
       ]);
       
       // Step 3: Process through the same smart pipeline as text input
@@ -631,6 +647,7 @@ export function AIAgentProvider({ children }) {
           content: smartResult.response,
           structuredData: structuredData,
           messageId: messageId,
+          origin: 'voice',
           enhancementPending: smartResult.llm_enhancement?.status === 'pending'
         }
       ]);

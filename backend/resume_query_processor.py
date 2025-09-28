@@ -64,7 +64,13 @@ class ResumeQueryProcessor:
             r"(?i)remarkable", r"(?i)outstanding", r"(?i)flagship"
         ]
         
-        # Remove hard-coded rankings - let LLM decide dynamically based on context
+        # Highlights patterns for mixed content queries
+        self.highlights_patterns = [
+            r"(?i)highlights?", r"(?i)recap", r"(?i)summary", r"(?i)overview",
+            r"(?i)key.*achievements?", r"(?i)main.*points", r"(?i)standout",
+            r"(?i)best.*work", r"(?i)top.*projects", r"(?i)career.*highlights",
+            r"(?i)what.*stands.*out", r"(?i)most.*impressive"
+        ]
         
         # COMPREHENSIVE Technology mappings auto-generated from resume data
         self.tech_mappings = {
@@ -378,25 +384,81 @@ class ResumeQueryProcessor:
         # Default fallback only if there's clear intent for content
         return "projects"
 
-    def is_superlative_query(self, query: str) -> bool:
-        """Check if query asks for the 'best', 'most impressive', etc."""
-        return any(re.search(pattern, query) for pattern in self.superlative_patterns)
+    def is_highlights_query(self, query: str) -> bool:
+        """Check if query is asking for highlights or career recap"""
+        return any(re.search(pattern, query) for pattern in self.highlights_patterns)
 
     def sort_projects_by_date(self, projects: List[Dict]) -> List[Dict]:
         """Sort projects by date (most recent first) as default ordering"""
         return sorted(projects, key=lambda x: x.get("date", "2020"), reverse=True)
 
     def extract_technologies(self, query: str) -> List[str]:
-        """Extract mentioned technologies/keywords from the query (conservative approach)"""
+        """Extract mentioned technologies/keywords from the query (conservative approach with fuzzy matching)"""
         query_lower = query.lower()
         found_techs = []
         
-        # Only check for explicit technology mappings with word boundaries
+        # First pass: exact matching with word boundaries
         for tech, keywords in self.tech_mappings.items():
             for keyword in keywords:
                 if re.search(r'\b' + re.escape(keyword.lower()) + r'\b', query_lower):
                     found_techs.append(tech)
                     break
+        
+        # Second pass: fuzzy matching for potential misspellings (only if no exact matches found)
+        if not found_techs:
+            try:
+                from fuzzywuzzy import fuzz
+                from fuzzywuzzy.process import extractOne
+                
+                # Get all unique keywords from tech mappings for fuzzy matching
+                all_keywords = []
+                keyword_to_tech = {}
+                for tech, keywords in self.tech_mappings.items():
+                    for keyword in keywords:
+                        keyword_lower = keyword.lower()
+                        # Skip very common words that might cause false matches
+                        if keyword_lower in ['experience', 'user experience', 'work', 'project', 'projects']:
+                            continue
+                        if keyword_lower not in all_keywords:  # Avoid duplicates
+                            all_keywords.append(keyword_lower)
+                            keyword_to_tech[keyword_lower] = tech
+                
+                # Split query into words and find fuzzy matches
+                query_words = re.findall(r'\b\w+\b', query_lower)
+                
+                # Also try matching 2-word combinations for multi-word tech terms
+                two_word_combinations = []
+                for i in range(len(query_words) - 1):
+                    two_word_combinations.append(f"{query_words[i]} {query_words[i+1]}")
+                
+                # Check single words first
+                for word in query_words:
+                    if len(word) >= 4:  # Only check words of reasonable length (increased from 3)
+                        # Find best fuzzy match
+                        best_match, score = extractOne(word, all_keywords, scorer=fuzz.ratio)
+                        
+                        # Accept matches with score >= 82 (balanced threshold for accuracy vs coverage)
+                        if score >= 82:
+                            matched_tech = keyword_to_tech[best_match]
+                            if matched_tech not in found_techs:
+                                found_techs.append(matched_tech)
+                                print(f"🎯 Fuzzy match: '{word}' -> '{best_match}' (tech: {matched_tech}, score: {score})")
+                
+                # Check two-word combinations
+                for two_word in two_word_combinations:
+                    if len(two_word.replace(' ', '')) >= 6:  # Reasonable length for two-word term
+                        best_match, score = extractOne(two_word, all_keywords, scorer=fuzz.ratio)
+                        
+                        # Slightly lower threshold for two-word matches since they're more specific
+                        if score >= 80:
+                            matched_tech = keyword_to_tech[best_match]
+                            if matched_tech not in found_techs:
+                                found_techs.append(matched_tech)
+                                print(f"🎯 Fuzzy 2-word match: '{two_word}' -> '{best_match}' (tech: {matched_tech}, score: {score})")
+            
+            except ImportError:
+                # Fuzzy matching not available, continue with exact matching only
+                pass
         
         return list(set(found_techs))
 
@@ -455,6 +517,14 @@ class ResumeQueryProcessor:
             # Handle "last year"
             date_filters["years"] = ["2024"]
             date_filters["date_modifier"] = "last_year"
+        elif re.search(r'\bpast\s+(\d+)\s+years?\b', query_lower):
+            # Handle "past X year(s)" - calculate from current year
+            match = re.search(r'\bpast\s+(\d+)\s+years?\b', query_lower)
+            if match:
+                years_back = int(match.group(1))
+                current_year = 2025  # Since we're in 2025
+                date_filters["years"] = [str(current_year - i) for i in range(years_back)]
+                date_filters["date_modifier"] = f"past_{years_back}_years"
         
         return date_filters
 
@@ -462,17 +532,17 @@ class ResumeQueryProcessor:
         """Filter items by date criteria"""
         if not date_filters["years"]:
             return items
-        
+
         filtered_items = []
         target_years = [int(year) for year in date_filters["years"]]
         date_modifier = date_filters["date_modifier"]
-        
+
         for item in items:
             # Get date information from item
             dates_field = item.get("dates", item.get("date", ""))
             if not dates_field:
                 continue
-                
+
             # Parse date ranges (e.g., "Mar. 2024 – Jan. 2025" or "Feb 2025")
             if "–" in dates_field or "-" in dates_field:
                 # Date range
@@ -481,15 +551,15 @@ class ResumeQueryProcessor:
                 if len(parts) == 2:
                     start_part = parts[0].strip()
                     end_part = parts[1].strip()
-                    
+
                     # Extract years from start and end
                     start_year_match = re.search(r'(20[0-9]{2})', start_part)
                     end_year_match = re.search(r'(20[0-9]{2})', end_part)
-                    
+
                     if start_year_match and end_year_match:
                         start_year = int(start_year_match.group(1))
                         end_year = int(end_year_match.group(1))
-                        
+
                         # Apply date filtering logic
                         if date_modifier == "from_only":
                             # Only items that START in one of the target years
@@ -508,8 +578,8 @@ class ResumeQueryProcessor:
                             if any(start_year <= target_year <= end_year for target_year in target_years):
                                 filtered_items.append(item)
                         elif date_modifier == "from":
-                            # Items that start in target year or later
-                            if start_year >= min(target_years):
+                            # Items that START in target year or END in target year (inclusive)
+                            if start_year in target_years or end_year in target_years:
                                 filtered_items.append(item)
                         elif date_modifier == "after":
                             # Items that start after target year
@@ -528,84 +598,10 @@ class ResumeQueryProcessor:
                 year_match = re.search(r'(20[0-9]{2})', dates_field)
                 if year_match:
                     item_year = int(year_match.group(1))
-                    
+
                     if item_year in target_years:
                         filtered_items.append(item)
-        
-        return filtered_items
 
-    def filter_by_date(self, items: List[Dict], date_filters: Dict[str, Any]) -> List[Dict]:
-        """Filter items by date criteria"""
-        if not date_filters["years"]:
-            return items
-        
-        filtered_items = []
-        target_year = date_filters["years"][0] if date_filters["years"] else None
-        date_modifier = date_filters["date_modifier"]
-        
-        for item in items:
-            # Get date information from item
-            dates_field = item.get("dates", item.get("date", ""))
-            if not dates_field:
-                continue
-                
-            # Parse date ranges (e.g., "Mar. 2024 – Jan. 2025" or "Feb 2025")
-            if "–" in dates_field or "-" in dates_field:
-                # Date range
-                separator = "–" if "–" in dates_field else "-"
-                parts = dates_field.split(separator)
-                if len(parts) == 2:
-                    start_part = parts[0].strip()
-                    end_part = parts[1].strip()
-                    
-                    # Extract years from start and end
-                    start_year_match = re.search(r'(20[0-9]{2})', start_part)
-                    end_year_match = re.search(r'(20[0-9]{2})', end_part)
-                    
-                    if start_year_match and end_year_match:
-                        start_year = int(start_year_match.group(1))
-                        end_year = int(end_year_match.group(1))
-                        target_year_int = int(target_year)
-                        
-                        # Apply date filtering logic
-                        if date_modifier == "from_only":
-                            # Only items that START in the target year
-                            if start_year == target_year_int:
-                                filtered_items.append(item)
-                        elif date_modifier == "in_only":
-                            # Only items that are ENTIRELY within the target year
-                            if start_year == target_year_int and end_year == target_year_int:
-                                filtered_items.append(item)
-                        elif date_modifier == "during" or date_modifier == "in":
-                            # Items that overlap with the target year
-                            if start_year <= target_year_int <= end_year:
-                                filtered_items.append(item)
-                        elif date_modifier == "from":
-                            # Items that start in target year or later
-                            if start_year >= target_year_int:
-                                filtered_items.append(item)
-                        elif date_modifier == "after":
-                            # Items that start after target year
-                            if start_year > target_year_int:
-                                filtered_items.append(item)
-                        elif date_modifier == "before":
-                            # Items that end before target year
-                            if end_year < target_year_int:
-                                filtered_items.append(item)
-                        else:
-                            # Default: items that overlap with target year
-                            if start_year <= target_year_int <= end_year:
-                                filtered_items.append(item)
-            else:
-                # Single date (e.g., "Feb 2025")
-                year_match = re.search(r'(20[0-9]{2})', dates_field)
-                if year_match:
-                    item_year = int(year_match.group(1))
-                    target_year_int = int(target_year)
-                    
-                    if item_year == target_year_int:
-                        filtered_items.append(item)
-        
         return filtered_items
 
     def filter_by_technology(self, items: List[Dict], tech_filters: List[str]) -> List[Dict]:
@@ -692,7 +688,19 @@ class ResumeQueryProcessor:
             r'(?i)^actually,?\s*i\s*meant\b',
             r'(?i)^sorry,?\s*i\s*meant\b',
             r'(?i)\bwhat.*did.*he.*do.*\b(at|in)\s+\w+\s+(experience|company|job|role)\b',
-            r'(?i)\bin\s+\w+\s+(experience|company|job|role)\b'
+            r'(?i)\bin\s+\w+\s+(experience|company|job|role)\b',
+            # MORE FLEXIBLE PATTERNS
+            r'(?i)\bshow me more\b.*\b(details?|information|info)\b',
+            r'(?i)\bgive me more\b.*\b(details?|information|info)\b',
+            r'(?i)\btell me more\b.*\b(details?|information|info)\b',
+            # SHOW ALL PATTERNS
+            r'(?i)\bshow all\b',
+            r'(?i)\bshow me all\b',
+            r'(?i)\bgive me all\b',
+            r'(?i)\ball of them\b',
+            r'(?i)\beverything\b',
+            r'(?i)\ball results\b',
+            r'(?i)\ball available\b'
         ]
         
         is_followup = any(re.search(pattern, question) for pattern in followup_patterns)
@@ -776,24 +784,69 @@ class ResumeQueryProcessor:
         # Handle both internal QueryResult format and API response format
         last_query_with_results = None
         for entry in reversed(conversation_history):
-            if isinstance(entry, dict):
-                # Check for API response format (has metadata and items)
-                metadata = entry.get('metadata', {})
-                items = entry.get('items', [])
+            print(f"🔍 DEBUG - Checking entry: {type(entry)}")
+            
+            # Handle API response format (from frontend conversation history)
+            if isinstance(entry, dict) and 'structuredData' in entry:
+                structured_data = entry['structuredData']
+                if isinstance(structured_data, dict) and 'items' in structured_data:
+                    items = structured_data.get('items', [])
+                    metadata = structured_data.get('metadata', {})
+                    total_results = metadata.get('total_results', len(items))
+                    print(f"🔍 DEBUG - Found structuredData entry with {total_results} results")
+                    if total_results > 0:
+                        last_query_with_results = entry
+                        break
+            
+            # Handle QueryResult objects (internal format)
+            elif hasattr(entry, 'metadata') and hasattr(entry, 'items'):
+                metadata = entry.metadata
+                items = entry.items
                 total_results = metadata.get('total_results', len(items))
-                
+                print(f"🔍 DEBUG - Found QueryResult entry with {total_results} results")
                 if total_results > 0:
                     last_query_with_results = entry
                     break
-        
+                    
+            # Handle dictionary format (API response format)
+            elif isinstance(entry, dict):
+                metadata = entry.get('metadata', {})
+                items = entry.get('items', [])
+                total_results = metadata.get('total_results', len(items))
+                print(f"🔍 DEBUG - Found dict entry with {total_results} results")
+                if total_results > 0:
+                    last_query_with_results = entry
+                    break
+            else:
+                print(f"🔍 DEBUG - Skipping entry of type {type(entry)}")
+                continue
+                
         if not last_query_with_results:
             print("🔍 DEBUG - No previous query with results found, returning None")
             return None
         
-        metadata = last_query_with_results.get('metadata', {})
+        # Extract metadata and items based on the format
+        if isinstance(last_query_with_results, dict) and 'structuredData' in last_query_with_results:
+            # API response format from frontend
+            structured_data = last_query_with_results['structuredData']
+            metadata = structured_data.get('metadata', {})
+            items = structured_data.get('items', [])
+        elif hasattr(last_query_with_results, 'metadata'):
+            # QueryResult object format
+            metadata = last_query_with_results.metadata
+            items = last_query_with_results.items
+        else:
+            # Direct dictionary format
+            metadata = last_query_with_results.get('metadata', {})
+            items = last_query_with_results.get('items', [])
+        
         print(f"🔍 DEBUG - Found previous query: {metadata.get('original_query', 'N/A')}")
         print(f"🔍 DEBUG - Previous entity: {metadata.get('entity_name', 'N/A')}")
         print(f"🔍 DEBUG - Previous metadata keys: {list(metadata.keys())}")
+        print(f"🔍 DEBUG - Previous items count: {len(items)}")
+            
+        # Store previous metadata for use throughout the method
+        prev_metadata = metadata
             
         # CLARIFICATION HANDLING: Check if this is a clarifying query mentioning a specific entity
         clarification_patterns = [
@@ -853,6 +906,70 @@ class ResumeQueryProcessor:
                         }
                     )
             
+        # SHOW ALL HANDLING: Check if this is specifically asking for "show all" (return all remaining items)
+        show_all_patterns = [
+            r'(?i)\bshow all\b',
+            r'(?i)\bshow me all\b',
+            r'(?i)\bgive me all\b',
+            r'(?i)\ball of them\b',
+            r'(?i)\beverything\b',
+            r'(?i)\ball results\b',
+            r'(?i)\ball available\b'
+        ]
+        
+        is_show_all = any(re.search(pattern, question) for pattern in show_all_patterns)
+        
+        if is_show_all:
+            # Fallback: return ALL items of the same type as the previous query
+            prev_item_type = prev_metadata.get('item_type', 'projects')
+            prev_tech_filters = prev_metadata.get('tech_filters', [])
+            prev_date_filters = prev_metadata.get('date_filters', {})
+            
+            print(f"🔍 DEBUG - User asking to show all {prev_item_type}")
+            
+            # Get ALL items of the same type
+            if prev_item_type == "projects":
+                all_items_of_type = self.resume_data.get("projects", [])
+            elif prev_item_type == "experience":
+                all_items_of_type = self.resume_data.get("experience", [])
+            elif prev_item_type == "publications":
+                all_items_of_type = self.resume_data.get("publications", [])
+            elif prev_item_type == "mixed":
+                # For mixed, get all projects (most common)
+                all_items_of_type = self.resume_data.get("projects", [])
+            else:
+                all_items_of_type = self.resume_data.get("projects", [])
+            
+            # Apply the same filters as the original query
+            if prev_tech_filters:
+                all_items_of_type = self.filter_by_technology(all_items_of_type, prev_tech_filters)
+            if prev_date_filters.get("years"):
+                all_items_of_type = self.filter_by_date(all_items_of_type, prev_date_filters)
+            
+            # Sort items (same as original)
+            if prev_item_type == "projects":
+                all_items_of_type = self.sort_projects_by_date(all_items_of_type)
+            
+            # Tag with content source
+            for item in all_items_of_type:
+                item["content_source"] = prev_item_type if prev_item_type != "mixed" else "projects"
+            
+            return QueryResult(
+                response_text=f"Here are all the {prev_item_type} I have:",
+                items=all_items_of_type,
+                item_type=prev_item_type,
+                metadata={
+                    "original_query": question,
+                    "context_query": prev_metadata.get('original_query', ''),
+                    "total_results": len(all_items_of_type),
+                    "needs_cards": len(all_items_of_type) > 0,
+                    "is_followup": True,
+                    "contextual_followup": True,
+                    "show_all_query": True,
+                    "query_type": "show_all"
+                }
+            )
+            
         # ENHANCED CONTEXT HANDLING: Check if this is asking about something within the previous context
         contextual_patterns = [
             r'(?i)\bin (this|that)\b',
@@ -863,6 +980,9 @@ class ResumeQueryProcessor:
             r'(?i)\bat (there|here)\b',
             r'(?i)\b(there|here)\b',  # Match "there" or "here" anywhere in the query
             r'(?i)\btell me more\b',   # Match "tell me more" as contextual
+            r'(?i)\bshow me more\b',   # Match "show me more" as contextual
+            r'(?i)\bmore details\b',   # Match "more details" as contextual
+            r'(?i)\bgive me more\b',   # Match "give me more" as contextual
             r'(?i)\bwhat.*did.*do.*there\b',  # Match "what did he do there" patterns
             r'(?i)\bmore.*about\b'     # Match "more about" patterns
         ]
@@ -875,89 +995,112 @@ class ResumeQueryProcessor:
         
         if is_contextual_query:
             # This is asking about something specific within the previous context
-            # Get items from API response format
-            prev_items = last_query_with_results.get('items', [])
-            prev_metadata = last_query_with_results.get('metadata', {})
+            # Get items from the already extracted items
+            prev_items = items
             
             print(f"🔍 DEBUG - Found {len(prev_items)} previous items")
             
             # Extract the new topic/technology from the question
             new_tech_filters = self.extract_technologies(question)
             
-            # If this is just asking for more details about the previous context (no new tech filters)
-            if not new_tech_filters:
-                # Check if we can get the entity name from the previous query
-                prev_entity_name = prev_metadata.get('entity_name')
-                if prev_entity_name:
-                    print(f"🔍 DEBUG - Previous entity found: {prev_entity_name}")
-                    # Instead of reconstructing the search, use the previous items directly
-                    # since they were already filtered for that entity
-                    if prev_items:
-                        print(f"🔍 DEBUG - Using previous items directly: {len(prev_items)} items")
-                        
-                        # Determine primary content type
-                        content_sources = [item.get("content_source", "") for item in prev_items]
-                        primary_type = "mixed" if len(set(content_sources)) > 1 else (content_sources[0] if content_sources else "experience")
-                        
-                        return QueryResult(
-                            response_text=f"Here's more about his work at {prev_entity_name}",
-                            items=prev_items,
-                            item_type=primary_type,
-                            metadata={
-                                "entity_name": prev_entity_name,
-                                "entity_type": prev_metadata.get('entity_type', 'company_or_project'),
-                                "original_query": question,
-                                "context_query": prev_metadata.get('original_query', ''),
-                                "total_results": len(prev_items),
-                                "needs_cards": len(prev_items) > 0,
-                                "is_followup": True,
-                                "contextual_followup": True,
-                                "query_type": "contextual_entity_details"
-                            }
-                        )
-                    
-                    # Fallback: try to re-detect the entity
-                    print(f"🔍 DEBUG - Fallback: re-detecting entity")
-                    entity_result = self._detect_specific_entity(f"what did he do at {prev_entity_name}")
-                    if entity_result:
-                        matched_items = entity_result["matched_items"]
-                        
-                        # Determine primary content type
-                        content_sources = [item["content_source"] for item in matched_items]
-                        primary_type = "mixed" if len(set(content_sources)) > 1 else (content_sources[0] if content_sources else "experience")
-                        
-                        return QueryResult(
-                            response_text=f"Here's more about his work at {prev_entity_name}",
-                            items=matched_items,
-                            item_type=primary_type,
-                            metadata={
-                                "entity_name": prev_entity_name,
-                                "entity_type": entity_result["entity_type"],
-                                "original_query": question,
-                                "context_query": prev_metadata.get('original_query', ''),
-                                "total_results": len(matched_items),
-                                "needs_cards": len(matched_items) > 0,
-                                "is_followup": True,
-                                "contextual_followup": True,
-                                "query_type": "contextual_entity_details"
-                            }
-                        )
+            # Check if this is specifically asking for "more" items (not all, just additional)
+            more_patterns = [
+                r'(?i)\bshow me more\b',
+                r'(?i)\bgive me more\b', 
+                r'(?i)\btell me more\b',
+                r'(?i)\bmore\b.*\bplease\b',
+                r'(?i)\bcan.*see.*more\b'
+            ]
+            
+            is_asking_for_more = any(re.search(pattern, question) for pattern in more_patterns)
+            
+            if is_asking_for_more:
+                # User wants MORE items of the same type, not the same items again
+                prev_item_type = prev_metadata.get('item_type', 'projects')
+                prev_tech_filters = prev_metadata.get('tech_filters', [])
+                prev_date_filters = prev_metadata.get('date_filters', {})
                 
-                # Fallback: return the previous results with a contextual response
-                return QueryResult(
-                    response_text="Here's more about what he did there",
-                    items=prev_items,
-                    item_type=prev_metadata.get('item_type', last_query_with_results.get('item_type', 'mixed')),
-                    metadata={
-                        "original_query": question,
-                        "context_query": prev_metadata.get('original_query', ''),
-                        "total_results": len(prev_items),
-                        "needs_cards": len(prev_items) > 0,
-                        "is_followup": True,
-                        "contextual_followup": True,
-                        "query_type": "contextual_more_details"
-                    }
-                )
+                print(f"🔍 DEBUG - User asking for more {prev_item_type}, getting additional items")
+                
+                # Get ALL items of the same type
+                if prev_item_type == "projects":
+                    all_items_of_type = self.resume_data.get("projects", [])
+                elif prev_item_type == "experience":
+                    all_items_of_type = self.resume_data.get("experience", [])
+                elif prev_item_type == "publications":
+                    all_items_of_type = self.resume_data.get("publications", [])
+                elif prev_item_type == "mixed":
+                    # For mixed, get all projects (most common)
+                    all_items_of_type = self.resume_data.get("projects", [])
+                else:
+                    all_items_of_type = self.resume_data.get("projects", [])
+                
+                # Apply the same filters as the original query
+                if prev_tech_filters:
+                    all_items_of_type = self.filter_by_technology(all_items_of_type, prev_tech_filters)
+                if prev_date_filters.get("years"):
+                    all_items_of_type = self.filter_by_date(all_items_of_type, prev_date_filters)
+                
+                # Sort items (same as original)
+                if prev_item_type == "projects":
+                    all_items_of_type = self.sort_projects_by_date(all_items_of_type)
+                
+                # Get IDs of already shown items
+                shown_item_ids = set()
+                for item in prev_items:
+                    if item.get('id'):
+                        shown_item_ids.add(item.get('id'))
+                
+                # Filter out already shown items
+                remaining_items = []
+                for item in all_items_of_type:
+                    if item.get('id') and item.get('id') not in shown_item_ids:
+                        remaining_items.append(item)
+                
+                print(f"🔍 DEBUG - Found {len(remaining_items)} additional items (out of {len(all_items_of_type)} total)")
+                
+                if remaining_items:
+                    # Take next batch (same size as original or remaining, whichever is smaller)
+                    batch_size = min(len(prev_items), len(remaining_items))
+                    next_batch = remaining_items[:batch_size]
+                    
+                    # Tag with content source
+                    for item in next_batch:
+                        item["content_source"] = prev_item_type if prev_item_type != "mixed" else "projects"
+                    
+                    return QueryResult(
+                        response_text=f"Here are {len(next_batch)} more {prev_item_type}:",
+                        items=next_batch,
+                        item_type=prev_item_type,
+                        metadata={
+                            "original_query": question,
+                            "context_query": prev_metadata.get('original_query', ''),
+                            "total_results": len(next_batch),
+                            "needs_cards": len(next_batch) > 0,
+                            "is_followup": True,
+                            "contextual_followup": True,
+                            "showing_more": True,
+                            "previously_shown": len(prev_items),
+                            "query_type": "show_more"
+                        }
+                    )
+                else:
+                    # No more items available
+                    return QueryResult(
+                        response_text=f"That's all the {prev_item_type} I have! You've seen them all.",
+                        items=[],
+                        item_type="none",
+                        metadata={
+                            "original_query": question,
+                            "context_query": prev_metadata.get('original_query', ''),
+                            "total_results": 0,
+                            "needs_cards": False,
+                            "is_followup": True,
+                            "contextual_followup": True,
+                            "no_more_items": True,
+                            "query_type": "no_more_available"
+                        }
+                    )
             
             # If we have new tech filters, search within the previous context items
             if new_tech_filters:
@@ -1061,11 +1204,9 @@ class ResumeQueryProcessor:
                     pub_items = [item for item in all_items if item["content_source"] == "publications"]
                     pub_items = sorted(pub_items, key=lambda x: x.get("date", "2020"), reverse=True)
                     sorted_items.extend(pub_items)
-                
                 if "projects" in content_type_counts:
                     project_items = [item for item in all_items if item["content_source"] == "projects"]
                     sorted_items.extend(self.sort_projects_by_date(project_items))
-                
                 if "experience" in content_type_counts:
                     exp_items = [item for item in all_items if item["content_source"] == "experience"]
                     sorted_items.extend(exp_items)
@@ -1136,6 +1277,21 @@ class ResumeQueryProcessor:
         """Process a natural language query and return structured results"""
         print(f"🔍 FOLLOWUP DEBUG - Query: '{question}', History: {bool(conversation_history)}")
         
+        # GUARDRAILS: Detect off-topic or malicious queries
+        if self._is_off_topic_query(question):
+            return QueryResult(
+                response_text="Whoa there! 🚀 I'm all about Nitigya's epic tech journey, projects, and skills. For random questions like that, ChatGPT's your best bet! 🤖✨",
+                items=[],
+                item_type="off_topic",
+                metadata={
+                    "original_query": question,
+                    "total_results": 0,
+                    "needs_cards": False,
+                    "off_topic": True,
+                    "guardrail_triggered": True
+                }
+            )
+        
         # CONTEXT-AWARE PROCESSING: Handle follow-up queries
         if conversation_history and self._is_followup_query(question):
             print(f"🔍 FOLLOWUP DEBUG - Detected as followup query!")
@@ -1179,6 +1335,18 @@ class ResumeQueryProcessor:
         tech_filters = self.extract_technologies(question)
         date_filters = self.extract_date_filters(question)
         
+        # SPECIAL HANDLING: If this is a highlights/recap query, force mixed content search
+        is_highlights = self.is_highlights_query(question)
+        if is_highlights:
+            print(f"🎯 Detected highlights query: '{question}' - forcing mixed content search")
+            # Override intent to mixed and ensure we search across all content types
+            intent = "mixed"
+            # For highlights, we want a mix regardless of specific tech filters
+            # But still apply tech filters if specified
+            content_types_to_search = ["projects", "experience", "publications"]
+        else:
+            content_types_to_search = None  # Will be determined below
+        
         # For greetings or general conversation, return empty results
         if intent in ["greeting", "general"]:
             return QueryResult(
@@ -1193,48 +1361,66 @@ class ResumeQueryProcessor:
             )
         
         # INDUSTRY-STANDARD MULTI-KEYWORD EXTRACTION: Search across ALL relevant content types
-        if tech_filters or date_filters["years"] or intent in ["publications", "blog"]:
+        if tech_filters or date_filters["years"] or intent in ["publications", "blog"] or is_highlights:
             all_items = []
             content_type_counts = {}
             
-            # Determine which content types to search based on intent + tech filters + date filters
-            content_types_to_search = []
-            
-            # Always search projects, experience, AND publications for tech filters
-            if tech_filters:
-                content_types_to_search.extend(["projects", "experience", "publications"])
-            
-            # Add content types for date filters
-            if date_filters["years"]:
-                content_types_to_search.extend(["projects", "experience", "publications"])
-            
-            # Add specific intent-based content types
-            if intent == "publications" or "research" in question.lower():
-                content_types_to_search.append("publications")
-            if intent == "blog":
-                content_types_to_search.append("blog")
-            
-            # Remove duplicates while preserving order
-            content_types_to_search = list(dict.fromkeys(content_types_to_search))
-            
-            # Search across all relevant content types
-            for content_type in content_types_to_search:
-                items = self.resume_data.get(content_type, [])
+            # Determine which content types to search based on intent + tech filters + date filters + highlights
+            if content_types_to_search is None:
+                content_types_to_search = []
                 
-                # Apply technology filters if we have them
-                if tech_filters and content_type not in ["education"]:  # Don't filter education by tech
-                    items = self.filter_by_technology(items, tech_filters)
+                # Always search projects, experience, AND publications for tech filters
+                if tech_filters:
+                    content_types_to_search.extend(["projects", "experience", "publications"])
                 
-                # Apply date filters if we have them
+                # Add content types for date filters
                 if date_filters["years"]:
-                    items = self.filter_by_date(items, date_filters)
+                    content_types_to_search.extend(["projects", "experience", "publications"])
                 
-                # Tag items with their source
-                for item in items:
-                    item["content_source"] = content_type
+                # Add specific intent-based content types
+                if intent == "publications" or "research" in question.lower():
+                    content_types_to_search.append("publications")
+                if intent == "blog":
+                    content_types_to_search.append("blog")
                 
-                all_items.extend(items)
-                content_type_counts[content_type] = len(items)
+                # Remove duplicates while preserving order
+                content_types_to_search = list(dict.fromkeys(content_types_to_search))
+            
+            # For highlights queries, ensure we have at least 2-3 items from each major category
+            if is_highlights and not tech_filters:
+                # Get diverse items from each content type
+                for content_type in content_types_to_search:
+                    items = self.resume_data.get(content_type, [])
+                    
+                    # Apply date filters if we have them (even for highlights)
+                    if date_filters["years"]:
+                        items = self.filter_by_date(items, date_filters)
+                    
+                    # Take top 2-3 items from each category for highlights
+                    limited_items = items[:3] if content_type == "projects" else items[:2]
+                    for item in limited_items:
+                        item["content_source"] = content_type
+                    all_items.extend(limited_items)
+                    content_type_counts[content_type] = len(limited_items)
+            else:
+                # Search across all relevant content types
+                for content_type in content_types_to_search:
+                    items = self.resume_data.get(content_type, [])
+                    
+                    # Apply technology filters if we have them
+                    if tech_filters and content_type not in ["education"]:  # Don't filter education by tech
+                        items = self.filter_by_technology(items, tech_filters)
+                    
+                    # Apply date filters if we have them
+                    if date_filters["years"]:
+                        items = self.filter_by_date(items, date_filters)
+                    
+                    # Tag items with their source
+                    for item in items:
+                        item["content_source"] = content_type
+                    
+                    all_items.extend(items)
+                    content_type_counts[content_type] = len(items)
             
             # If we found items across multiple types, return them
             if all_items:
@@ -1291,6 +1477,8 @@ class ResumeQueryProcessor:
                 response_text = f"Found {len(sorted_items)} items across {len(content_type_counts)} content types"
                 if tech_filters:
                     response_text += f" with {', '.join(tech_filters)} experience"
+                if is_highlights:
+                    response_text += " - here's a career highlights recap"
                 
                 return QueryResult(
                     response_text=response_text,
@@ -1305,7 +1493,8 @@ class ResumeQueryProcessor:
                         "cross_content_search": True,
                         "content_types_searched": content_types_to_search,
                         "content_type_counts": content_type_counts,
-                        "multi_keyword_extraction": True
+                        "multi_keyword_extraction": True,
+                        "is_highlights_query": is_highlights
                     }
                 )
             
@@ -1446,6 +1635,21 @@ class ResumeQueryProcessor:
                 items = selected_items
                 random.shuffle(items)  # Final shuffle for order variety
                 intent = "mixed"  # Override intent to mixed
+            elif is_highlights:
+                # For highlights queries that fell through to fallback, ensure mixed content
+                selected_items = []
+                if projects:
+                    selected_items.append(random.choice(projects).copy())
+                    selected_items[-1]["content_source"] = "projects"
+                if experiences:
+                    selected_items.append(random.choice(experiences).copy())
+                    selected_items[-1]["content_source"] = "experience"
+                if publications:
+                    selected_items.append(random.choice(publications).copy())
+                    selected_items[-1]["content_source"] = "publications"
+                
+                items = selected_items
+                intent = "mixed"
             else:
                 # For ambiguous queries, still provide variety but lean towards projects
                 # Rotate between different project selections
@@ -1502,36 +1706,146 @@ class ResumeQueryProcessor:
                 "date_filters": date_filters,
                 "original_query": question,
                 "total_results": len(items),
-                "needs_cards": len(items) > 0
+                "needs_cards": len(items) > 0,
+                "is_highlights_query": is_highlights
+
             }
         )
 
-# Test function
-def test_query_processor():
-    """Test the query processor with various queries"""
-    processor = ResumeQueryProcessor()
-    
-    test_queries = [
-        "What projects has he worked on?",
-        "Tell me about his experience with AWS",
-        "What machine learning projects has he done?",
-        "What are his skills in Python?",
-        "Where did he study?",
-        "What research papers has he published?",
-        "What blog posts has he written?",
-        "Tell me about his experience at startups",
-        "What EEG or BCI work has he done?"
-    ]
-    
-    for query in test_queries:
-        print(f"\nQuery: {query}")
-        result = processor.query(query)
-        print(f"Intent: {result.item_type}")
-        print(f"Response: {result.response_text}")
-        print(f"Items found: {len(result.items)}")
-        if result.metadata["tech_filters"]:
-            print(f"Tech filters: {result.metadata['tech_filters']}")
-        print("-" * 50)
+    def _is_off_topic_query(self, question: str) -> bool:
+        """Detect if a query is off-topic (not about resume/experience)"""
+        question_lower = question.lower().strip()
+        
+        # More specific resume-related keywords (avoid generic words)
+        resume_keywords = [
+            # Work/Career specific
+            "experience", "work", "job", "career", "background", "professional",
+            "worked", "working", "employed", "employment", "role", "position",
+            "company", "companies", "organization", "employer", "startup",
+            
+            # Technical/Project specific
+            "project", "projects", "built", "created", "developed", "made",
+            "code", "coding", "programming", "software", "tech", "technology",
+            "python", "javascript", "react", "fastapi", "ai", "machine learning",
+            "ml", "data", "web", "app", "application", "system", "platform",
+            
+            # Education/Research specific
+            "education", "study", "studied", "degree", "university", "college",
+            "school", "research", "paper", "publication", "published", "phd",
+            "master", "bachelor", "graduate", "academic",
+            
+            # Skills specific
+            "skill", "skills", "expertise", "knowledge", "proficient", "experienced",
+            "specialize", "focus",
+            
+            # Content types specific
+            "portfolio", "resume", "cv", "bio", "biography", "profile",
+            "achievement", "accomplishment", "highlight", "highlights",
+            "blog", "article", "post", "writing",
+            
+            # Time-related career questions
+            "recent", "latest", "current", "past", "2023", "2024", "2025",
+            
+            # Follow-ups (more specific)
+            "more", "detail", "expand"
+        ]
+        
+        # Check if query contains resume-related keywords (more sophisticated check)
+        resume_keyword_matches = [keyword for keyword in resume_keywords if keyword in question_lower]
+        has_resume_keywords = len(resume_keyword_matches) >= 2  # Require at least 2 meaningful keywords
 
-if __name__ == "__main__":
-    test_query_processor()
+        # Also check for clear resume intent patterns (very specific to avoid false positives)
+        resume_intent_patterns = [
+            r'\b(your|his|he|she)\b.*\b(work|worked|working|job|career|experience|background|professional)\b',
+            r'\b(your|his|he|she)\b.*\b(project|projects|built|created|developed|made|code|programming)\b',
+            r'\b(your|his|he|she)\b.*\b(skill|skills|expertise|knowledge|proficient|experienced)\b',
+            r'\b(your|his|he|she)\b.*\b(education|study|studied|degree|university|college|school)\b',
+            r'\b(your|his|he|she)\b.*\b(research|paper|publication|published|phd|master|bachelor)\b',
+            r'\bwhat\b.*\b(experience|work|projects?|skills?|education|research)\b.*\b(do|have|did)\b',
+            r'\btell\b.*\babout\b.*\b(work|experience|projects?|skills?|education|research)\b',
+            r'\bshow\b.*\b(work|experience|projects?|skills?|education|research)\b'
+        ]
+
+        has_resume_intent = any(re.search(pattern, question_lower) for pattern in resume_intent_patterns)
+
+        # Query is on-topic if it has resume keywords OR clear resume intent
+        is_resume_related = has_resume_keywords or has_resume_intent
+        
+        # Malicious/injection patterns (expanded)
+        malicious_patterns = [
+            r'\bdrop\s+table\b',
+            r'\bselect\s+.*\bfrom\b',
+            r'\binsert\s+into\b',
+            r'\bupdate\s+.*\bset\b',
+            r'\bdelete\s+from\b',
+            r'\bscript\b.*\balert\b',
+            r'\bforget\s+.*\binstruction',
+            r'\bignore\s+.*\bprompt',
+            r'\breveal\s+.*\b(source|code|key)',
+            r'\bshow\s+.*\b(source|code|key)',
+            r'\bapi\s+key',
+            r'\bhack',
+            r'\bexplosive',
+            r'\bbomb',
+            r'\bweapon',
+            r'\billegal',
+            r'\bcrime',
+            r'\bdrug',
+            r'\bsource\s+code',
+            r'\bbypass\s+security',
+            r'\bsecurity\s+bypass'
+        ]
+        
+        has_malicious_patterns = any(re.search(pattern, question_lower) for pattern in malicious_patterns)
+        
+        # Philosophical/life questions
+        philosophical_questions = [
+            "meaning of life", "purpose", "why are we here", "universe",
+            "god", "religion", "philosophy", "existential", "soul",
+            "afterlife", "heaven", "hell", "karma", "fate", "destiny"
+        ]
+        
+        has_philosophical = any(phrase in question_lower for phrase in philosophical_questions)
+        
+        # Personal questions not related to career
+        personal_off_topic = [
+            "favorite color", "favorite food", "hobby", "hobbies",
+            "pet", "animal", "music", "movie", "film", "book",
+            "sport", "game", "vacation", "travel", "weather",
+            "joke", "funny", "laugh", "marry", "relationship",
+            "family", "parent", "child", "kid", "age", "old",
+            "birthday", "zodiac", "horoscope", "dream"
+        ]
+        
+        has_personal_off_topic = any(topic in question_lower for topic in personal_off_topic)
+        
+        # Academic subjects not related to his field
+        academic_off_topic = [
+            "math homework", "calculus", "algebra", "geometry",
+            "physics problem", "chemistry", "biology", "photosynthesis", "respiration",
+            "history", "geography", "literature", "poetry", "grammar",
+            "language learning", "foreign language"
+        ]
+        
+        has_academic_off_topic = any(subject in question_lower for subject in academic_off_topic)
+        
+        # Cooking/food questions
+        cooking_questions = [
+            "recipe", "cook", "bake", "cake", "pie", "bread",
+            "meal", "dinner", "lunch", "breakfast", "ingredient"
+        ]
+        
+        has_cooking = any(cook in question_lower for cook in cooking_questions)
+        
+        # If no resume keywords AND has off-topic indicators, OR if malicious, mark as off-topic
+        is_off_topic = ((not is_resume_related) and (
+            has_philosophical or 
+            has_personal_off_topic or 
+            has_academic_off_topic or 
+            has_cooking
+        )) or has_malicious_patterns
+        
+        if is_off_topic:
+            print(f"🚨 OFF-TOPIC QUERY DETECTED: '{question}'")
+        
+        return is_off_topic

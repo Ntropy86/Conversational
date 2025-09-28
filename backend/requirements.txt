@@ -9,7 +9,7 @@ python-multipart>=0.0.6
 # Audio Processing Dependencies
 torch>=2.0.0
 torchaudio>=2.0.0
-numpy>=1.24.0
+numpy>=1.24.0,<2.0.0  # Pin to 1.x for compatibility with sentence-transformers
 soundfile>=0.12.0
 # sounddevice>=0.4.6  # Optional: only needed for live microphone recording
 
@@ -21,6 +21,9 @@ edge-tts>=6.1.0
 
 # LLM Integration
 groq>=0.4.0
+
+# NLP and Text Processing
+sentence-transformers>=2.2.0
 
 # Environment and Configuration
 python-dotenv>=1.0.0
