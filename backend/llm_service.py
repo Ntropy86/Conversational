@@ -280,7 +280,9 @@ No direct experience found, showing related work with: {', '.join(found_similar)
 Your response should acknowledge this gap and explain the similarity.
 """
             
-            selection_prompt = f"""User: "{user_message}"
+            selection_prompt = f"""You are Nitigya's witty friend. ALL queries are about Nitigya Kargeti. Pronouns like "his", "he", "him" refer to Nitigya.
+
+User: "{user_message}"
 {fallback_context}
 {query_result.item_type.title()} options:
 {json.dumps(simplified_items, indent=1)}

@@ -1,0 +1,162 @@
+[
+  {
+    "query": "tell me about his latest experience",
+    "response": "Found 4 experience matching your query",
+    "item_count": 4,
+    "item_type": "experience",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "what projects has he built",
+    "response": "Found 6 projects matching your query",
+    "item_count": 6,
+    "item_type": "projects",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "what are his skills",
+    "response": "Found 5 skills matching your query",
+    "item_count": 5,
+    "item_type": "skills",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "tell me about his work at Spenza",
+    "response": "Here's what he did at Spenza",
+    "item_count": 1,
+    "item_type": "experience",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "what technologies does he know",
+    "response": "Found 5 skills matching your query",
+    "item_count": 5,
+    "item_type": "skills",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "show me his research",
+    "response": "Found 2 items across 3 content types with research, matlab experience",
+    "item_count": 2,
+    "item_type": "mixed",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "what is his background",
+    "response": "Found 6 projects matching your query",
+    "item_count": 6,
+    "item_type": "projects",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "tell me about his education",
+    "response": "Found 1 items across 3 content types with educational_robotics experience",
+    "item_count": 1,
+    "item_type": "mixed",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "what companies has he worked at",
+    "response": "Found 4 experience matching your query",
+    "item_count": 4,
+    "item_type": "experience",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "show me his publications",
+    "response": "Found 2 items across 1 content types",
+    "item_count": 2,
+    "item_type": "publications",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "what is machine learning",
+    "response": "Found 12 items across 3 content types with data_science, tensorflow, machine_learning, smote, python, ai, pytorch experience",
+    "item_count": 12,
+    "item_type": "mixed",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "tell me about python programming",
+    "response": "Found 12 items across 3 content types with fastapi, opencv, python experience",
+    "item_count": 12,
+    "item_type": "mixed",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "what is AI",
+    "response": "Found 12 items across 3 content types with llm, machine_learning, python, ai, pytorch experience",
+    "item_count": 12,
+    "item_type": "mixed",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "how does he code",
+    "response": "Found 6 projects matching your query",
+    "item_count": 6,
+    "item_type": "projects",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "write a function for me",
+    "response": "Found 6 projects matching your query",
+    "item_count": 6,
+    "item_type": "projects",
+    "issues": [],
+    "status": "\u2705 PASS"
+  },
+  {
+    "query": "what is the weather like",
+    "response": "Whoa there! \ud83d\ude80 I'm all about Nitigya's epic tech journey, projects, and skills. For random questions like that, ChatGPT's your best bet! \ud83e\udd16\u2728",
+    "item_count": 0,
+    "item_type": "off_topic",
+    "issues": [
+      "\u274c CONTAINS CHATGPT REDIRECT"
+    ],
+    "status": "\u274c FAIL"
+  },
+  {
+    "query": "how do I cook pasta",
+    "response": "Whoa there! \ud83d\ude80 I'm all about Nitigya's epic tech journey, projects, and skills. For random questions like that, ChatGPT's your best bet! \ud83e\udd16\u2728",
+    "item_count": 0,
+    "item_type": "off_topic",
+    "issues": [
+      "\u274c CONTAINS CHATGPT REDIRECT"
+    ],
+    "status": "\u274c FAIL"
+  },
+  {
+    "query": "who won the election",
+    "response": "Whoa there! \ud83d\ude80 I'm all about Nitigya's epic tech journey, projects, and skills. For random questions like that, ChatGPT's your best bet! \ud83e\udd16\u2728",
+    "item_count": 0,
+    "item_type": "off_topic",
+    "issues": [
+      "\u274c CONTAINS CHATGPT REDIRECT"
+    ],
+    "status": "\u274c FAIL"
+  },
+  {
+    "query": "what is the capital of France",
+    "response": "Whoa there! \ud83d\ude80 I'm all about Nitigya's epic tech journey, projects, and skills. For random questions like that, ChatGPT's your best bet! \ud83e\udd16\u2728",
+    "item_count": 0,
+    "item_type": "off_topic",
+    "issues": [
+      "\u274c CONTAINS CHATGPT REDIRECT"
+    ],
+    "status": "\u274c FAIL"
+  }
+]

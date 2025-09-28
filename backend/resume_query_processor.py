@@ -1837,12 +1837,55 @@ class ResumeQueryProcessor:
         
         has_cooking = any(cook in question_lower for cook in cooking_questions)
         
-        # If no resume keywords AND has off-topic indicators, OR if malicious, mark as off-topic
+        # GENERAL KNOWLEDGE/FACTUAL QUESTIONS (new category for queries that are clearly not about resume)
+        general_knowledge_questions = [
+            # Geography
+            "capital", "country", "city", "continent", "ocean", "mountain", "river",
+            "population", "area", "timezone", "currency", "language", "flag",
+            
+            # Politics/Current Events
+            "election", "president", "government", "politics", "political", "vote",
+            "democrat", "republican", "party", "campaign", "candidate", "ballot",
+            
+            # Science (general, not his research)
+            "gravity", "atom", "molecule", "element", "periodic table", "solar system",
+            "planet", "star", "galaxy", "universe", "evolution", "dna", "cell",
+            
+            # Math (general questions)
+            "calculate", "equation", "formula", "theorem", "proof", "integral",
+            "derivative", "algebra", "geometry", "trigonometry", "statistics",
+            
+            # General factual questions about non-technical topics
+            "weather", "temperature", "forecast", "rain", "snow", "sunny", "cloudy"
+        ]
+        
+        # Check for general knowledge question patterns (but exclude technology questions)
+        has_general_knowledge = any(phrase in question_lower for phrase in general_knowledge_questions)
+        
+        # Check for question words that indicate factual/general knowledge queries
+        # BUT exclude if it contains technology keywords (those should be on-topic)
+        technology_keywords = [
+            "machine learning", "ai", "artificial intelligence", "python", "javascript", 
+            "react", "fastapi", "tensorflow", "pytorch", "computer vision", "deep learning",
+            "neural network", "cnn", "llm", "data science", "blockchain", "web development",
+            "mobile app", "database", "api", "cloud", "aws", "docker", "kubernetes"
+        ]
+        
+        contains_technology = any(tech in question_lower for tech in technology_keywords)
+        
+        question_words = ["what is", "who is", "when did", "where is", "why does", "how does", "how much", "how many", "how long", "how far", "how old"]
+        starts_with_question_word = any(question_lower.startswith(word) for word in question_words)
+        
+        # If it's a general knowledge question AND doesn't contain technology keywords, it's off-topic
+        is_general_knowledge_off_topic = (has_general_knowledge or (starts_with_question_word and not contains_technology)) and not is_resume_related
+        
+        # If no resume keywords AND has off-topic indicators, OR if malicious, OR if general knowledge question, mark as off-topic
         is_off_topic = ((not is_resume_related) and (
             has_philosophical or 
             has_personal_off_topic or 
             has_academic_off_topic or 
-            has_cooking
+            has_cooking or
+            is_general_knowledge_off_topic
         )) or has_malicious_patterns
         
         if is_off_topic:
