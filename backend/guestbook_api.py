@@ -163,7 +163,7 @@ async def save_signature_fallback(signature: SignatureRequest):
             "name": signature.name,
             "emoji": signature.emoji,
             "image": signature.image,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat() + "Z"
         }
         
         # Add to beginning of list
