@@ -21,7 +21,7 @@ class SignatureResponse(BaseModel):
     name: str
     emoji: str
     image: str
-    created_at: str
+    timestamp: str  # Changed from created_at to timestamp for frontend compatibility
 
 class SignatureListResponse(BaseModel):
     signatures: List[SignatureResponse]
@@ -53,7 +53,7 @@ async def get_signatures(db: Optional[object] = Depends(get_db_service)):
                     "name": sig["name"],
                     "emoji": sig["emoji"],
                     "image": sig["image_data"],  # Convert image_data to image
-                    "created_at": sig["created_at"]
+                    "timestamp": sig["created_at"]  # Convert created_at to timestamp for frontend
                 }
                 converted_signatures.append(converted_sig)
             print(f"✅ Returning {len(converted_signatures)} converted signatures")
@@ -90,7 +90,7 @@ async def save_signature(
                     "name": result["name"],
                     "emoji": result["emoji"],
                     "image": result["image_data"],  # Convert image_data to image
-                    "created_at": result["created_at"]
+                    "timestamp": result["created_at"]  # Convert created_at to timestamp for frontend
                 }
                 return SignatureResponse(**response_data)
             else:

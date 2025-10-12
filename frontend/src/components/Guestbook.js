@@ -6,6 +6,9 @@ import Card from './Card';
 import Input from './Input';
 import { typographyClasses } from './Typography';
 
+// Use environment variable for API URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 const Guestbook = () => {
   const [showCanvas, setShowCanvas] = useState(false);
   const [signatures, setSignatures] = useState([]);
@@ -36,7 +39,7 @@ const Guestbook = () => {
   const loadSignatures = async () => {
     try {
       // Fetch from backend database API
-      const response = await fetch('http://localhost:8000/api/guestbook');
+      const response = await fetch(`${API_URL}/api/guestbook`);
       if (response.ok) {
         const data = await response.json();
         setSignatures(data.signatures || []);
@@ -97,7 +100,8 @@ const Guestbook = () => {
     ctx.stroke();
   };
 
-  const stopDrawing = () => {
+  const stopDrawing = (e) => {
+    if (e) e.preventDefault();
     setIsMouseDown(false);
   };
 
@@ -126,7 +130,7 @@ const Guestbook = () => {
 
     try {
       // Save to backend database API
-      const response = await fetch('http://localhost:8000/api/guestbook', {
+      const response = await fetch(`${API_URL}/api/guestbook`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(signatureData)
@@ -260,10 +264,11 @@ const Guestbook = () => {
                     ref={canvasRef}
                     width={400}
                     height={200}
-                    className="w-full border border-gray-300 dark:border-gray-700 rounded-lg cursor-crosshair touch-none"
+                    className="w-full border border-gray-300 dark:border-gray-700 rounded-lg cursor-crosshair"
                     style={{ 
                       background: 'rgba(139, 115, 85, 0.08)',
-                      backdropFilter: 'blur(10px)'
+                      backdropFilter: 'blur(10px)',
+                      touchAction: 'none'  // Prevent scrolling while drawing, but allow touch events
                     }}
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
