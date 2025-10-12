@@ -1,0 +1,45 @@
+# Core Web Framework
+fastapi>=0.104.0,<0.120.0
+uvicorn[standard]>=0.24.0,<0.30.0
+pydantic>=2.5.0,<3.0.0
+
+# CORS and HTTP middleware
+python-multipart>=0.0.6
+
+# Audio Processing Dependencies
+torch>=2.0.0,<2.5.0
+torchaudio>=2.0.0,<2.5.0
+numpy>=1.24.0,<2.0.0  # Pin to 1.x for compatibility with sentence-transformers
+soundfile>=0.12.0
+# sounddevice>=0.4.6  # Optional: only needed for live microphone recording
+
+# Speech Recognition
+faster-whisper>=0.9.0
+
+# Text-to-Speech
+edge-tts>=6.1.0
+
+# LLM Integration
+groq>=0.4.0
+
+# NLP and Text Processing
+sentence-transformers>=2.2.0,<3.0.0
+
+# Environment and Configuration
+python-dotenv>=1.0.0
+
+# Audio Format Support
+pydub>=0.25.0
+
+# HTTP Client (for API calls)
+requests>=2.31.0
+
+# File and Path Utilities
+pathlib2>=2.3.7; python_version < "3.6"
+
+# Standard library backports and utilities (if needed)
+typing-extensions>=4.8.0
+
+# Database - Supabase
+supabase>=2.3.0,<2.4.0
+postgrest>=0.13.0,<0.14.0

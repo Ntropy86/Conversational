@@ -1,12 +1,15 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, memo } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAIAgent } from '../context/AIAgentContext';
 import { TouchIndicator, touchVariants } from '../utils/touchInteractions';
-import { BotIcon, ZapOffIcon, ZapIcon, GraduationCapIcon, RocketIcon, StarIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon, BookOpenIcon, FileTextIcon } from './Icons';
+import { BotIcon, ZapOffIcon, ZapIcon, GraduationCapIcon, RocketIcon, StarIcon, UserIcon, BriefcaseIcon, FolderIcon, CodeIcon, MailIcon, BookOpenIcon, FileTextIcon, PenIcon, HomeIcon } from './Icons';
 
 const Dock = ({ onSectionNavigate, highlightAI }) => {
   const { isAIMode, toggleAIMode } = useAIAgent();
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Initialize Lucide icons when component mounts
   useEffect(() => {
@@ -34,6 +37,9 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
         }}
       >
       {[
+        // Home button (first when not on home page)
+        ...(pathname !== '/' ? [{ color: '#34C759', icon: HomeIcon, tooltip: 'Home', section: 'home' }] : []),
+        // AI Mode toggle
         { 
           color: isAIMode ? '#E74C3C' : '#9B59B6', 
           icon: isAIMode ? ZapOffIcon : BotIcon, 
@@ -41,6 +47,8 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
           section: 'ai-toggle',
           isActive: isAIMode
         },
+        // Guestbook (second in AI mode, not shown when on guestbook page)
+        ...(pathname !== '/guestbook' ? [{ color: '#FF6B9D', icon: PenIcon, tooltip: 'Guestbook', section: 'guestbook' }] : []),
         { color: '#3498DB', icon: UserIcon, tooltip: 'About', section: 'about' },
         { color: '#8B5C3C', icon: BriefcaseIcon, tooltip: 'Work', section: 'experience' },
         { color: '#E67E22', icon: FolderIcon, tooltip: 'Projects', section: 'projects' },
@@ -56,25 +64,48 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
           className="magic-ui-dock-item relative mx-0 sm:mx-1 md:mx-2 cursor-pointer group flex-shrink-0"
           onClick={() => {
             if (item.section === 'ai-toggle') {
-              toggleAIMode();
-            } else {
-              // If in AI mode, first exit AI mode then navigate
-              if (isAIMode) {
-                toggleAIMode();
-                setTimeout(() => {
-                  const element = document.getElementById(item.section);
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }, 100);
+              // Check if we're on a different page (not home)
+              const isOnHomePage = pathname === '/';
+              
+              if (!isOnHomePage) {
+                // Navigate to home with AI mode parameter
+                router.push('/?ai=true');
               } else {
-                // Use the navigation handler if provided, otherwise fallback to direct scroll
-                if (onSectionNavigate) {
-                  onSectionNavigate(item.section);
+                // We're on home, just toggle
+                toggleAIMode();
+              }
+            } else if (item.section === 'home') {
+              // Navigate to home page
+              router.push('/');
+            } else if (item.section === 'guestbook') {
+              // Navigate to guestbook page
+              router.push('/guestbook');
+            } else {
+              // Check if we're on home page
+              const isOnHomePage = pathname === '/';
+              
+              if (!isOnHomePage) {
+                // Navigate to home page first, then scroll to section
+                router.push(`/#${item.section}`);
+              } else {
+                // If in AI mode, first exit AI mode then navigate
+                if (isAIMode) {
+                  toggleAIMode();
+                  setTimeout(() => {
+                    const element = document.getElementById(item.section);
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }, 100);
                 } else {
-                  const element = document.getElementById(item.section);
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
+                  // Use the navigation handler if provided, otherwise fallback to direct scroll
+                  if (onSectionNavigate) {
+                    onSectionNavigate(item.section);
+                  } else {
+                    const element = document.getElementById(item.section);
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth' });
+                    }
                   }
                 }
               }
@@ -130,4 +161,4 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
   );
 };
 
-export default Dock;
+export default memo(Dock);

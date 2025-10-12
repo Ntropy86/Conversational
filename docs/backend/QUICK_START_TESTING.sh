@@ -1,0 +1,106 @@
+#!/bin/bash
+# Quick Start Guide for Testing the Session Fix
+
+echo "=================================================="
+echo "SESSION FIX - QUICK START GUIDE"
+echo "=================================================="
+echo ""
+
+# Step 1: Navigate to backend directory
+echo "Step 1: Navigate to backend directory"
+echo "  cd /Users/neat/Locker/Code/Conversational/backend"
+echo ""
+
+# Step 2: Activate virtual environment
+echo "Step 2: Activate virtual environment"
+echo "  source venv/bin/activate"
+echo ""
+
+# Step 3: Run the test script
+echo "Step 3: Run the test script to verify the fix"
+echo "  python test_session_fix.py"
+echo ""
+echo "  This will test:"
+echo "    ✓ Session creation with auto-generated IDs"
+echo "    ✓ Session creation with specific IDs"
+echo "    ✓ Re-creating existing sessions (no errors)"
+echo "    ✓ Logging AI interactions"
+echo "    ✓ The foreign key scenario that was failing"
+echo ""
+
+# Step 4: Start the backend server
+echo "Step 4: Start the backend server"
+echo "  python api_server.py"
+echo ""
+echo "  You should see:"
+echo "    ✅ Supabase client initialized successfully"
+echo "    ✅ Created new session [session-id]"
+echo "    🤖 AI session logging started: [session-id]"
+echo ""
+
+# Step 5: Test with curl
+echo "Step 5: Test session creation via API (in new terminal)"
+echo "  curl -X POST http://localhost:8000/session/create"
+echo ""
+echo "  You should get:"
+echo "    {\"session_id\": \"[some-uuid]\"}"
+echo ""
+
+# Step 6: Test interaction logging
+echo "Step 6: Test AI query (in new terminal)"
+echo "  curl -X POST http://localhost:8000/smart/query \\"
+echo "    -H 'Content-Type: application/json' \\"
+echo "    -d '{\"text\": \"What are your Python projects?\", \"session_id\": \"[session-id-from-step-5]\"}'"
+echo ""
+echo "  Check backend logs for:"
+echo "    ✅ Ensured session exists in database: [session-id]"
+echo "    ✅ Logged interaction for session [session-id]"
+echo ""
+
+# Step 7: Verify in Supabase
+echo "Step 7: Verify in Supabase Dashboard"
+echo "  1. Go to https://supabase.com/dashboard"
+echo "  2. Select your project"
+echo "  3. Go to Table Editor → ai_sessions"
+echo "     - You should see sessions with IDs from steps 5-6"
+echo "  4. Go to Table Editor → ai_interactions"
+echo "     - You should see prompts and responses logged"
+echo ""
+
+echo "=================================================="
+echo "TROUBLESHOOTING"
+echo "=================================================="
+echo ""
+echo "If tests fail:"
+echo "  1. Check Supabase credentials in .env file"
+echo "     - SUPABASE_URL=your_url"
+echo "     - SUPABASE_ANON_KEY=your_key"
+echo ""
+echo "  2. Verify Supabase tables exist:"
+echo "     - ai_sessions"
+echo "     - ai_interactions"
+echo "     Run backend/supabase_schema.sql if needed"
+echo ""
+echo "  3. Check Python packages are installed:"
+echo "     pip install supabase python-dotenv"
+echo ""
+
+echo "=================================================="
+echo "WHAT WAS FIXED"
+echo "=================================================="
+echo ""
+echo "  ❌ BEFORE: Foreign key constraint errors"
+echo "  ✅ AFTER:  Sessions properly created in database"
+echo ""
+echo "  ❌ BEFORE: Sessions only in memory"
+echo "  ✅ AFTER:  Sessions persisted to Supabase"
+echo ""
+echo "  ❌ BEFORE: Can't reuse session IDs"
+echo "  ✅ AFTER:  Idempotent session creation"
+echo ""
+echo "  ❌ BEFORE: Silent failures"
+echo "  ✅ AFTER:  Detailed logging and error handling"
+echo ""
+
+echo "See SESSION_FIX_SUMMARY.md for detailed technical documentation"
+echo ""

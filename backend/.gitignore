@@ -1,5 +1,6 @@
 /__pycache__
 /*.wav
-
+venv/
+.venv/
 .env
 *.pyc

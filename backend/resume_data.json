@@ -7,21 +7,43 @@
     "linkedin": "https://www.linkedin.com/in/nitigyak",
     "portfolio": "https://ntropy.dev"
   },
-  "headline": "System Builder — Data-Intensive Backend & Applied ML",
-  "profile": "Engineer focused on scalable, low-latency data systems, AWS/GCP pipelines, and LLM-integrated applications. Shipped user-facing software at startup scale and co-authored peer-reviewed HCI work; comfortable owning services end-to-end from design to ops.",
+  "headline": "Applied ML Engineer | Building Production AI Systems",
+  "profile": "I build AI systems that go from research prototype to production. Currently automating data pipelines with LLMs at Dataplatr. Previously: engineered LLM-assisted educational robots deployed to 20 families (ACM CHI 2025). MS in Data Science from UW-Madison, focused on Human-AI Interaction and Brain-Computer Interfaces.\n\nMy work bridges research and engineering—taking cutting-edge ML and making it work at scale, in production, for real users.",
   "experience": [
+    {
+      "id": "dataplatr-consulting",
+      "company": "Dataplatr Consulting",
+      "role": "Data Scientist / Data Engineer",
+      "dates": "Sep 2025 – Present",
+      "location": "Remote (USA)",
+      "icon": "/icons/exp-dataplatr.png",
+      "highlights": [
+        "Engineers spent 8-10h manually writing boilerplate SQL per table for Medallion pipelines → built LLM-driven code-gen tool (Databricks DLT + GPT-4) that auto-drafts L0→L3 queries with metadata enrichment → reduced effort to 3-4h review (60% time saved) across 3 Oracle/BQ schemas (1M rows, 400 MB)",
+        "Wide production tables caused token-limit failures in LLM prompts → developed batch-chunking routine splitting tables into processable chunks → cut prompt runtime 40-50% in pilot tests",
+        "Edge-cases like partition-clause handling weren't captured in initial tool design → partnered with BI/marketing teams to iterate on requirements, built human-in-loop UI for metadata edits → mentored 1 intern on ETL standards"
+      ],
+      "links": {
+        "company": "https://dataplatr.com"
+      },
+      "technologies": ["Python", "Databricks DLT", "GPT-4", "SQL", "LLM", "ETL", "Data Engineering", "Oracle", "BigQuery"],
+      "keywords": [
+        "LLM-driven automation", "code generation", "SQL optimization", "batch processing",
+        "token management", "human-in-loop", "data pipeline", "mentoring", "BI integration"
+      ],
+      "type": "experience",
+      "category": "Data & AI"
+    },
     {
       "id": "people-robots-lab",
       "company": "People & Robots Lab (NSF-funded), University of Wisconsin–Madison",
-      "role": "Graduate Research Engineer (Backend & Systems)",
-      "dates": "Mar 2024 – Jan 2025",
+      "role": "Graduate Research Engineer",
+      "dates": "Jan 2024 – Jan 2025",
       "location": "Madison, WI",
+      "icon": "/icons/exp-uw-robots.png",
       "highlights": [
-        "Built FastAPI microservices with WebSockets for robot-assisted learning; async MongoDB controllers trimmed median query latency by ~30%.",
-        "Authored a lightweight Misty II control library (REST/WebSocket, TTS) to replace a heavier ROS/Docker stack, cutting deployment overhead.",
-        "Implemented grounded LLM pipeline with JSON visual-context store and grade-level policy, improving factuality/age-appropriateness.",
-        "Designed multi-agent orchestration with RBAC & role-policy engine; operated production backend for an in-home study with 20 families.",
-        "Co-authored the CHI 2025 paper on parent-in-the-loop educational robotics; maintained research infra and mentored 3 undergrads."
+        "2nd Author, ACM CHI 2025: Wizard-of-Oz robot demo wasn't scalable for real homes → engineered full software & AI stack (GPT-4-o VLM + RAG grounding + Python/JS SDK) turning demo into deployable platform → deployed to 20-family in-home study preventing hallucinations via JSON page-context grounding",
+        "Existing Misty SDK required ROS, adding complexity and 210ms API latency → refactored into lightweight Python/JS library removing ROS dependency → reduced latency 14% to 180ms; built IRB-compliant parent-approval UI ensuring all robot questions were screened before playback",
+        "Study needed quantitative evidence of engagement/comprehension → performed mixed-effects statistical modeling on robot-interaction logs + survey data → results informed CHI 2025 paper findings; mentored 2 undergrads on study logistics"
       ],
       "links": {
         "lab": "https://peopleandrobots.org",
@@ -44,10 +66,11 @@
       "role": "Software Engineer",
       "dates": "Jan 2023 – Aug 2023",
       "location": "Remote / Bengaluru, IN",
+      "icon": "/icons/exp-spenza.png",
       "highlights": [
-        "Architected AWS serverless ETL (Lambda, SQS, S3) with DLQs/backoff; improved p95 latency by ~70% and reached 99.95% success rate.",
-        "Led one-click migration to Stripe Connected Accounts; moved 20k+ customer records with zero downtime.",
-        "Shipped multi-currency support with forward/backward DB migrations and structured logging for faster incident triage."
+        "Platform only supported hard-coded INR currency, limiting global expansion → built dynamic multi-currency module (NestJS + MongoDB + Stripe API) with auto-FX rates and legacy-row migration → shipped 3 PRs with zero regressions, enabling currency toggle for 500+ clients",
+        "Monolithic Lambda timed out on large telecom invoices (>10k pages) → designed multi-threaded AWS Lambda PDF parser for Verizon/AT&T/T-Mobile invoices (20k-page, 1M-line docs) → cut processing from timeout to ≈1 min for 400k pages",
+        "Stripe account limit capped platform at 500 clients, blocking growth → led migration to Stripe Connected Accounts: coordinated with Stripe support, rewrote transaction flows, built one-click bulk-transfer tool with buffered-retry logic → removed cap, delivered 200 commits (5 PRs staging, 1 prod)"
       ],
       "technologies": ["AWS", "Lambda", "SQS", "S3", "Stripe", "Python", "Terraform"],
       "keywords": [
@@ -65,10 +88,10 @@
       "role": "R&D Engineer (Intern) — P300 BCI Keyspeller",
       "dates": "Sep 2022 – Mar 2023",
       "location": "New Delhi, IN",
+      "icon": "/icons/exp-cdac.png",
       "highlights": [
-        "Designed a P300 speller pipeline that ingests real-time EEG + marker streams via Lab Streaming Layer (liblsl) and performs artifact-robust preprocessing (ICA/epoching).",
-        "Refactored Python prototype (MNE, py-lsl) into C++ with a lock-free ring buffer to stabilize async producer/consumer flows and reduce end-to-end latency.",
-        "Integrated binary classifier (SVM/NN) for online detection and UI feedback; validated live stream alignment and throughput on multi-channel EEG."
+        "Lab needed real-time P300 BCI system for disabled users' communication → built end-to-end key-speller pipeline with EEG acquisition (Lab Streaming Layer), preprocessing, epoching, and template-matching → achieved 97% character-selection accuracy at 50k data points/sec",
+        "Legacy libmushu driver (Python-2) blocked device compatibility and had high stream-latency → ported to Python-3, then C++ using code-gen + manual debug → restored device support; rewired Python prototype into C++ circular-buffer producer/consumer design stabilizing online inference latency"
       ],
       "links": {
         "report": "/mnt/data/CDAC.pdf"
@@ -88,6 +111,7 @@
       "role": "Summer Vocational Trainee — Hyperspectral Remote Sensing",
       "dates": "Jun 2022 – Jul 2022",
       "location": "Dehradun, IN",
+      "icon": "/icons/exp-drdo.png",
       "highlights": [
         "Implemented Linear Mixture Model (LMM) spectral unmixing and mixed-pixel classifiers (SAM/SCM) in C++ using Eigen for matrix ops.",
         "Built training/feature pipelines and produced class-proportion maps (Washington DC Mall HYDICE dataset).",
@@ -108,14 +132,84 @@
   ],
   "projects": [
     {
+      "id": "chicago-crimes-forecasting",
+      "title": "Chicago Crimes Forecasting & Hotspot Analysis",
+      "date": "2024",
+      "icon": "/icons/proj-chicago.png",
+      "link": "https://github.com/Ntropy86/chicago-crimes-analysis",
+      "links": {
+        "demo": "https://chicago-crimes-dashboard.streamlit.app",
+        "github": "https://github.com/Ntropy86/chicago-crimes-analysis"
+      },
+      "description": "Built GCP Medallion lakehouse processing 10-yr Chicago crime data (7.2M records); achieved 74.8% storage reduction (CSV 446.7 MB → Parquet 112.8 MB), 10× query speedup, H3 spatial clustering identified 85k crime hotspots with 99% geocoding success across resolution levels r7-r9. Architecture: BigQuery + Dataform ETL (Bronze→Silver→Gold medallion), H3 hex-binning spatial aggregation, DBSCAN clustering, Streamlit dashboard.",
+      "tech_stack": {
+        "backend": [
+          "GCP BigQuery",
+          "Medallion Architecture",
+          "H3 Geospatial Clustering",
+          "Python (Pandas, GeoPandas)",
+          "DBSCAN Clustering"
+        ],
+        "frontend": [
+          "Streamlit Dashboard",
+          "Interactive Maps",
+          "Time Series Visualization"
+        ]
+      },
+      "technologies": ["GCP", "BigQuery", "Python", "H3", "DBSCAN", "Streamlit", "Geospatial Analysis"],
+      "keywords": [
+        "data lakehouse", "geospatial clustering", "crime forecasting", "hotspot analysis",
+        "medallion architecture", "storage optimization", "query performance", "dashboard"
+      ],
+      "type": "project",
+      "category": "Data Engineering",
+      "metrics": "74.8% storage reduction, 10× query speedup, 85k hotspots identified"
+    },
+    {
+      "id": "amazon-semantic-search",
+      "title": "Product Semantic Search Copilot",
+      "date": "2024",
+      "icon": "/icons/proj-amazon.png",
+      "link": "https://github.com/Ntropy86/amazon-semantic-search",
+      "links": {
+        "demo": "https://amazon-search-copilot.streamlit.app",
+        "github": "https://github.com/Ntropy86/amazon-semantic-search"
+      },
+      "description": "Built hybrid semantic search indexing 120k products + 3M Amazon reviews; improved nDCG@10 by 18% (0.74→0.87), MRR@10 by 21% (0.68→0.82) on benchmarks; achieved 500 queries/min @ 2GB RAM (1-2 CPU), 300ms hybrid-only latency, 800ms with re-rank (10-20% faster on local Docker vs HF Spaces). Architecture: BM25 + BGE-small embedding index + cross-encoder re-ranker; FastAPI backend + Streamlit UI; Docker containerization with /healthz endpoint, structured JSON logs, basic rate-limiting; deployed on HF Spaces + Cloud Run.",
+      "tech_stack": {
+        "backend": [
+          "Python (FastAPI)",
+          "BM25 + BGE Embeddings",
+          "Cross-Encoder Reranking",
+          "FAISS Vector Search",
+          "Redis Caching"
+        ],
+        "ml": [
+          "Sentence Transformers",
+          "BM25 Retrieval",
+          "Cross-Encoder Reranking",
+          "nDCG Evaluation"
+        ]
+      },
+      "technologies": ["Python", "BM25", "BGE Embeddings", "FAISS", "FastAPI", "Redis", "Semantic Search"],
+      "keywords": [
+        "semantic search", "hybrid retrieval", "BM25", "BGE embeddings", "cross-encoder",
+        "reranking", "nDCG evaluation", "vector search", "product search"
+      ],
+      "type": "project",
+      "category": "ML & Search",
+      "metrics": "18% nDCG improvement, 500 queries/min, 300ms latency, 2GB RAM"
+    },
+    {
       "id": "resume-ai-mode",
       "title": "Portfolio AI Mode — Resume Q&A + Hybrid Search (Voice & Text)",
       "date": "2024–2025",
+      "icon": "/icons/proj-aimode.png",
       "link": "https://github.com/Ntropy86/portfolio-ai",
       "links": {
         "demo": "https://ntropy.dev"
       },
-      "description": "Conversational AI that answers questions about my background with a hybrid reasoning engine and dynamic card selection.",
+      "description": "Deployed voice + text portfolio Q&A assistant showcasing personal projects/experience; achieved 150-200ms NLP-only latency, 0.8-1.2s LLM-enhanced response time; handled ≈ 50 concurrent sessions with <1% error-rate; 92% intent-detection accuracy, 88% content-relevance on bench-tested queries; attracted ≈ 500 beta visits. Architecture: Groq LLaMA-3.1-8B / Qwen-2.5-8B FP8 via open APIs; hybrid query-processor (keyword retrieval + LLM-reasoning); FastAPI Docker backend on HF Spaces, Next.js frontend on Vercel.",
       "tech_stack": {
         "backend": [
           "FastAPI (async API server)",
@@ -176,11 +270,12 @@
       "id": "codeforces-potd",
       "title": "Codeforces-POTD (Chrome Extension)",
       "date": "2024",
+      "icon": "/icons/proj-cf.png",
       "link": "https://chromewebstore.google.com/detail/codeforces-potd/kdpcekneldcnkajbmabmfgdpcdjdmcfd",
       "links": {
         "demo": "https://chromewebstore.google.com/detail/codeforces-potd/kdpcekneldcnkajbmabmfgdpcdjdmcfd"
       },
-      "description": "Featured extension delivering daily practice with streaks, retries, and calendar; CI/CD with rollbacks and telemetry.",
+      "description": "Lead-designed full architecture & served as primary developer for open-source Chrome extension; achieved >2.2k active users with 4.8 rating; provides \"Problem of the Day\" feed with difficulty filter, local-storage progress-tracking, background cron-sync to Codeforces API. Architecture: layered route→controller→service backend design; cron jobs for daily global-set refresh (@1 AM), filtered-set (@2 AM), weekly streak-cleanup; extension-side hourly submission-check & 6h streak-reset.",
       "technologies": ["JavaScript", "Chrome APIs", "GitHub Actions"],
       "keywords": ["Manifest V3", "chrome.storage", "alarms API", "service worker", "rollback"],
       "type": "project",
@@ -191,6 +286,7 @@
       "id": "external-memory-merge-sort",
       "title": "External Memory Merge Sort",
       "date": "2024",
+      "icon": "/icons/proj-ems.png",
       "link": "https://github.com/gselzer/cs764-project",
       "description": "Multi-stage loser-tree external sort in C++ handling 10GB+ under constrained RAM; tuned SSD vs HDD I/O patterns.",
       "technologies": ["C++", "Algorithms", "Systems Programming"],
@@ -202,6 +298,7 @@
       "id": "moody-eeg-classifier",
       "title": "Moody — Real-Time EEG Emotion Classifier (BCI)",
       "date": "2023",
+      "icon": "/icons/proj-moody.png",
       "link": "https://github.com/ojas-sethi/bci-music-programming",
       "description": "EEG pipeline with sliding windows, SMOTE, Bagging+ExtraTrees; aimed at robust real-time inference.",
       "technologies": ["Python", "EEG", "scikit-learn", "SMOTE", "ExtraTrees"],
@@ -209,33 +306,6 @@
       "type": "project",
       "metrics": "Reported 80–100% adjusted match rates",
       "category": "AI & BCI"
-    },
-    {
-      "id": "chicago-crime-forecasting",
-      "title": "Chicago Crime Forecasting",
-      "date": "2023",
-      "link": "https://github.com/Ntropy86/chicago-crime-forecasting",
-      "links": {
-        "demo": "https://ntropy.dev/projects/chicago-crime"
-      },
-      "description": "Time series analysis and predictive modeling for Chicago crime patterns using ARIMA, seasonal decomposition, and spatial-temporal clustering.",
-      "technologies": ["Python", "Time Series Analysis", "ARIMA", "Spatial Analysis", "Data Science"],
-      "keywords": ["time series forecasting", "seasonal decomposition", "spatial clustering", "crime prediction", "ARIMA modeling"],
-      "type": "project",
-      "metrics": "85% accuracy in forecasting crime hotspots with spatial-temporal clustering",
-      "category": "Data Science"
-    },
-    {
-      "id": "semantic-search-low-feature",
-      "title": "Semantic Search with Low Feature Space",
-      "date": "2023",
-      "link": "https://github.com/Ntropy86/semantic-search-low-feature",
-      "description": "Efficient semantic search system using dimensionality reduction techniques, achieving high retrieval accuracy with compressed embeddings.",
-      "technologies": ["Python", "Embeddings", "Dimensionality Reduction", "Vector Search", "Information Retrieval"],
-      "keywords": ["semantic search", "dimensionality reduction", "vector embeddings", "information retrieval", "feature compression"],
-      "type": "project",
-      "metrics": "90% retrieval accuracy with 10x faster query performance through optimized feature space compression",
-      "category": "AI & Information Retrieval"
     }
   ],
   "publications": [
@@ -284,35 +354,14 @@
   ],
   "blog": [
     {
-      "id": "building-conversational-ai-systems",
-      "title": "Building Conversational AI Systems: From Concept to Production",
-      "date": "2024-12-15",
-      "readingTime": "8 minutes",
+      "id": "building-this-website",
+      "title": "Building This Website: From Figma to Production",
+      "date": "2025-01-15",
+      "readingTime": "15 minutes",
       "featured": true,
-      "description": "Architectural patterns for low-latency, grounded conversational systems (streaming, voice, evals, guardrails).",
-      "highlights": [
-        "Sub-500ms TTFB with streaming & VAD gating",
-        "Context windows and retrieval hygiene",
-        "CI for prompts, evals, and rollback strategy"
-      ],
-      "technologies": ["FastAPI", "LLM", "WebSockets", "Voice"],
-      "keywords": ["TTFB", "streaming responses", "VAD gating", "observability"],
-      "type": "blog"
-    },
-    {
-      "id": "modern-web-development-practices",
-      "title": "Modern Web Development: Lessons from Building Production Applications",
-      "date": "2024-11-28",
-      "readingTime": "6 minutes",
-      "featured": false,
-      "description": "React/Next.js patterns, accessibility, testing, and deployment tips from production builds.",
-      "highlights": [
-        "Core Web Vitals playbook",
-        "Component/state patterns",
-        "CI/CD & preview environments"
-      ],
-      "technologies": ["React", "Next.js", "TypeScript", "Tailwind", "CI/CD"],
-      "keywords": ["Core Web Vitals", "a11y", "Jest/RTL", "SSR/ISR"],
+      "description": "A comprehensive journey through designing, developing, and deploying this modern portfolio with AI-powered features.",
+      "technologies": ["Next.js", "Tailwind", "Framer Motion", "FastAPI", "LLM"],
+      "keywords": ["Design System", "Component Architecture", "AI Integration", "Performance"],
       "type": "blog"
     }
   ],
@@ -320,9 +369,9 @@
     {
       "id": "uw-madison-ms",
       "institution": "University of Wisconsin–Madison",
-      "degree": "M.S., Data Science",
+      "degree": "M.S., Data Science (Professional, non-thesis)",
       "dates": "Aug 2023 – May 2025",
-      "gpa": "3.65/4.0",
+      "gpa": "3.55/4.0",
       "coursework": [
         "Advanced NLP",
         "Statistical Modeling & Inference",
@@ -340,7 +389,7 @@
       "institution": "Manipal University Jaipur",
       "degree": "B.Tech., Computer Science (Minor: Computational Intelligence & Deep Learning)",
       "dates": "Jul 2019 – Jul 2023",
-      "gpa": "9.35/10",
+      "gpa": "10.0/10.0",
       "achievements": ["5× Dean's List", "Student Excellence in Research Award", "10/10 GPA Award", "Vice President, CS Club"],
       "type": "education",
       "category": "Bachelors of Technology"

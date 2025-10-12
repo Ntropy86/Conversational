@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { useAIAgent } from '../context/AIAgentContext';
@@ -8,12 +9,15 @@ import Link from './Link';
 import Button from './Button';
 import Dock from './Dock';
 import ContactPopup from './ContactPopup';
+import PageTransition from './PageTransition';
 import { typographyClasses } from './Typography';
 import { getMasterData } from '../services/contentService';
 
 const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
   const { isDarkMode } = useTheme();
   const { isAIMode, toggleAIMode, showContactPopup, setShowContactPopup } = useAIAgent();
+  const router = useRouter();
+  const pathname = usePathname();
   const [activeSection, setActiveSection] = useState('about');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -213,7 +217,7 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
       <motion.aside 
         className={`fixed left-0 top-0 h-screen w-full md:w-64 flex flex-col justify-between py-6 md:py-8 px-4 md:px-6 z-40 transition-all duration-300 ease-in-out ${
           isMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        } ${isAIMode ? 'hidden' : ''}`}
+        } ${isAIMode || pathname === '/guestbook' ? 'hidden' : ''}`}
         initial="hidden"
         animate="visible"
         variants={sidebarVariants}
@@ -249,11 +253,19 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
             >
               <Button 
                 className="text-xs md:text-sm w-full py-2 md:py-3"
-                onClick={toggleAIMode}
+                onClick={() => {
+                  const isOnHomePage = pathname === '/';
+                  if (!isOnHomePage) {
+                    // Navigate to home with AI mode
+                    router.push('/?ai=true');
+                  } else {
+                    toggleAIMode();
+                  }
+                }}
               >
                 {isAIMode ? 'Switch to Text Mode' : 'Switch to AI Mode'}
               </Button>
-            </motion.div> 
+            </motion.div>
             
             {/* Mobile theme toggle */}
             <motion.div 
@@ -348,14 +360,18 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
       
        {/* Main content */}
        <motion.main
-         className="flex-1 py-6 md:py-12 px-4 md:px-6 lg:px-20 pb-20 md:pb-24 overflow-y-auto md:ml-64"
+         className={`flex-1 py-6 md:py-12 px-4 md:px-6 lg:px-20 pb-20 md:pb-24 overflow-y-auto ${
+           isAIMode || pathname === '/guestbook' ? '' : 'md:ml-64'
+         }`}
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ duration: 0.5 }}
        >
-         <div className="max-w-3xl mx-auto pt-8 md:pt-16 lg:pt-10">
-           {children}
-         </div>
+         <PageTransition>
+           <div className="max-w-3xl mx-auto pt-8 md:pt-16 lg:pt-10">
+             {children}
+           </div>
+         </PageTransition>
        </motion.main>       {/* Dock */}
        <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 overflow-visible">
          <Dock onSectionNavigate={onSectionNavigate} highlightAI={highlightAI} />
@@ -370,4 +386,4 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
    );
  };
 
-export default MainLayout;
+export default memo(MainLayout);

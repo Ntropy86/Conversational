@@ -1,33 +1,46 @@
 {
   "experiences": [
     {
+      "id": "dataplatr-consulting",
+      "title": "Data Scientist / Data Engineer",
+      "subtitle": "Dataplatr Consulting • Sep 2025 – Present • Remote (USA)",
+      "icon": "/icons/exp-dataplatr.png",
+      "file": "dataplatr-consulting.md",
+      "preview": "Engineers spent 8-10h manually writing boilerplate SQL per table for Medallion pipelines → built LLM-driven code-gen tool (Databricks DLT + GPT-4) that auto-drafts L0→L3 queries with metadata enrichment → reduced effort to 3-4h review (60% time saved) across 3 Oracle/BQ schemas (1M rows, 400 MB). Wide production tables caused token-limit failures in LLM prompts → developed batch-chunking routine splitting tables into processable chunks → cut prompt runtime 40-50% in pilot tests.",
+      "tags": ["Python", "Databricks", "GPT-4", "SQL", "LLM", "ETL", "Data Engineering"]
+    },
+    {
       "id": "people-robots-lab",
-      "title": "Graduate Research Engineer (Backend & Systems)",
-      "subtitle": "People & Robots Lab (NSF-funded), University of Wisconsin–Madison • Mar. 2024 – Jan. 2025",
+      "title": "Graduate Research Engineer",
+      "subtitle": "People & Robots Lab (NSF-funded), University of Wisconsin–Madison • Jan. 2024 – Jan. 2025 • 2nd Author, ACM CHI 2025",
+      "icon": "/icons/exp-uw-robots.png",
       "file": "people-robots-lab.md",
-      "preview": "I led backend engineering for NSF-funded educational robotics research, building scalable FastAPI services processing 10k+ interaction events, integrating GPT-4 for conversational agents, and developing multi-agent coordination systems that improved learning outcomes by 25% in pilot studies.",
+      "preview": "2nd Author, ACM CHI 2025: Wizard-of-Oz robot demo wasn't scalable for real homes → engineered full software & AI stack (GPT-4-o VLM + RAG grounding + Python/JS SDK) turning demo into deployable platform → deployed to 20-family in-home study preventing hallucinations via JSON page-context grounding. Existing Misty SDK required ROS, adding complexity and 210ms API latency → refactored into lightweight Python/JS library removing ROS dependency → reduced latency 14% to 180ms.",
       "tags": ["FastAPI", "MongoDB", "LLM", "Robotics", "Multi-Agent Systems", "Research"]
     },
     {
       "id": "spenza-inc",
       "title": "Software Engineer",
       "subtitle": "Spenza Inc. (B2B SaaS, ~8-person) • Jan. 2023 – Aug. 2023",
+      "icon": "/icons/exp-spenza.png",
       "file": "spenza-inc.md",
-      "preview": "I built core infrastructure for a fast-growing B2B SaaS startup, developing AWS serverless ETL pipelines processing $100k+ monthly transactions, implementing Stripe payment flows, and optimizing Lambda functions that reduced processing time by 40% while handling 99.9% uptime.",
+      "preview": "Platform only supported hard-coded INR currency, limiting global expansion → built dynamic multi-currency module (NestJS + MongoDB + Stripe API) with auto-FX rates and legacy-row migration → shipped 3 PRs with zero regressions, enabling currency toggle for 500+ clients. Monolithic Lambda timed out on large telecom invoices (>10k pages) → designed multi-threaded AWS Lambda PDF parser for Verizon/AT&T/T-Mobile invoices (20k-page, 1M-line docs) → cut processing from timeout to ≈1 min for 400k pages.",
       "tags": ["AWS", "Serverless", "Stripe", "ETL", "Lambda", "SQS"]
     },
     {
       "id": "cdac-intern", 
       "title": "Research & Development Engineer",
       "subtitle": "Centre for Development of Advanced Computing (CDAC), Govt. of India • Sep. 2022 – Mar. 2023",
+      "icon": "/icons/exp-cdac.png",
       "file": "cdac-intern.md",
-      "preview": "I developed brain-computer interface systems at India's premier computing research institute, implementing P300 speller applications with 85-90% accuracy, optimizing EEG signal processing pipelines that reduced noise by 30%, and building computer vision modules for real-time emotion classification.",
+      "preview": "Lab needed real-time P300 BCI system for disabled users' communication → built end-to-end key-speller pipeline with EEG acquisition (Lab Streaming Layer), preprocessing, epoching, and template-matching → achieved 97% character-selection accuracy at 50k data points/sec. Legacy libmushu driver (Python-2) blocked device compatibility and had high stream-latency → ported to Python-3, then C++ using code-gen + manual debug → restored device support.",
       "tags": ["BCI", "EEG", "P300", "OpenCV", "Signal Processing", "Python"]
     },
     {
       "id": "drdo-intern",
       "title": "Summer Vocational Trainee",
       "subtitle": "Defence Research & Development Organisation (DRDO) • Jun. 2022 – Jul. 2022",
+      "icon": "/icons/exp-drdo.png",
       "file": "drdo-intern.md",
       "preview": "I worked on hyperspectral imaging research for defense applications, implementing linear mixture modeling algorithms in MATLAB that improved material classification accuracy by 15%, and developing automated workflow scripts that reduced analysis time from hours to minutes.",
       "tags": ["Hyperspectral Imaging", "Linear Mixture Modeling", "Remote Sensing", "MATLAB", "Defense Research"]
@@ -35,11 +48,38 @@
   ],
   "projects": [
     {
+      "id": "chicago-crimes-forecasting",
+      "title": "Chicago Crimes Forecasting & Hotspot Analysis",
+      "subtitle": "GCP Medallion Lakehouse • 2024 • Live Demo",
+      "icon": "/icons/proj-chicago.png",
+      "file": "chicago-crime-forecasting.md",
+      "preview": "Built GCP Medallion lakehouse processing 10-yr Chicago crime data (7.2M records); achieved 74.8% storage reduction (CSV 446.7 MB → Parquet 112.8 MB), 10× query speedup, H3 spatial clustering identified 85k crime hotspots with 99% geocoding success across resolution levels r7-r9. Architecture: BigQuery + Dataform ETL (Bronze→Silver→Gold medallion), H3 hex-binning spatial aggregation, DBSCAN clustering, Streamlit dashboard.",
+      "tags": ["GCP", "BigQuery", "Python", "H3", "DBSCAN", "Streamlit", "Geospatial Analysis"],
+      "links": {
+        "demo": "https://chicago-crimes-dashboard.streamlit.app",
+        "github": "https://github.com/Ntropy86/chicago-crimes-analysis"
+      }
+    },
+    {
+      "id": "amazon-semantic-search",
+      "title": "Product Semantic Search Copilot",
+      "subtitle": "120k products + 3M reviews indexed • 2024 • Live Demo",
+      "icon": "/icons/proj-amazon.png",
+      "file": "amazon-semantic-search.md",
+      "preview": "Built hybrid semantic search indexing 120k products + 3M Amazon reviews; improved nDCG@10 by 18% (0.74→0.87), MRR@10 by 21% (0.68→0.82) on benchmarks; achieved 500 queries/min @ 2GB RAM (1-2 CPU), 300ms hybrid-only latency, 800ms with re-rank (10-20% faster on local Docker vs HF Spaces). Architecture: BM25 + BGE-small embedding index + cross-encoder re-ranker; FastAPI backend + Streamlit UI; Docker containerization with /healthz endpoint, structured JSON logs, basic rate-limiting; deployed on HF Spaces + Cloud Run.",
+      "tags": ["Python", "BM25", "BGE Embeddings", "FAISS", "FastAPI", "Redis", "Semantic Search"],
+      "links": {
+        "demo": "https://amazon-search-copilot.streamlit.app",
+        "github": "https://github.com/Ntropy86/amazon-semantic-search"
+      }
+    },
+    {
       "id": "resume-ai-mode",
       "title": "Portfolio AI Mode — Resume Q&A + Hybrid Search (Voice & Text)",
       "subtitle": "Conversational AI with Hybrid Reasoning Engine • 2024–2025 • Live Demo",
+      "icon": "/icons/proj-aimode.png",
       "file": "resume-ai-mode.md",
-      "preview": "Built this conversational AI system with hybrid reasoning engine and dynamic card selection. Features voice/text interfaces, sub-500ms streaming responses, and context-grounded answers that prevent hallucination.",
+      "preview": "Deployed voice + text portfolio Q&A assistant showcasing personal projects/experience; achieved 150-200ms NLP-only latency, 0.8-1.2s LLM-enhanced response time; handled ≈ 50 concurrent sessions with <1% error-rate; 92% intent-detection accuracy, 88% content-relevance on bench-tested queries; attracted ≈ 500 beta visits. Architecture: Groq LLaMA-3.1-8B / Qwen-2.5-8B FP8 via open APIs; hybrid query-processor (keyword retrieval + LLM-reasoning); FastAPI Docker backend on HF Spaces, Next.js frontend on Vercel.",
       "tags": ["FastAPI", "LLM", "Hybrid Search", "WebSockets", "Voice AI", "React"],
       "links": {
         "demo": "https://ntropy.dev",
@@ -50,56 +90,26 @@
       "id": "codeforces-potd",
       "title": "Codeforces-POTD (Chrome Extension)",
       "subtitle": "Featured Chrome Extension with 2k+ Users • 4.8/5 Rating • Live on Chrome Store",
+      "icon": "/icons/proj-cf.png",
       "file": "codeforces-potd.md",
-      "preview": "Built a Chrome extension that gamifies competitive programming practice with 2k+ active users and 4.8/5 rating. Features daily problem recommendations, streak tracking, calendar interface, and CI/CD with rollbacks and telemetry.",
+      "preview": "Lead-designed full architecture & served as primary developer for open-source Chrome extension; achieved >2.2k active users with 4.8 rating; provides \"Problem of the Day\" feed with difficulty filter, local-storage progress-tracking, background cron-sync to Codeforces API. Architecture: layered route→controller→service backend design; cron jobs for daily global-set refresh (@1 AM), filtered-set (@2 AM), weekly streak-cleanup; extension-side hourly submission-check & 6h streak-reset.",
       "tags": ["Chrome Extension", "JavaScript", "GitHub Actions", "Manifest V3", "CI/CD"],
       "links": {
         "demo": "https://chromewebstore.google.com/detail/codeforces-potd/kdpcekneldcnkajbmabmfgdpcdjdmcfd",
         "github": "https://github.com/Ntropy86/codeforces-potd"
       }
     },
-    {
-      "id": "external-memory-merge-sort",
-      "title": "External Memory Merge Sort",
-      "subtitle": "Multi-stage loser-tree external sort in C++ • 2024",
-      "file": "external-memory-merge-sort.md",
-      "preview": "Implemented high-performance external memory merge sort in C++ handling 10GB+ datasets under constrained RAM. Multi-stage loser-tree design with tuned SSD vs HDD I/O patterns for optimal performance.",
-      "tags": ["C++", "Algorithms", "Systems Programming", "Loser Tree", "External Memory"],
-      "links": {
-        "github": "https://github.com/gselzer/cs764-project"
-      }
-    },
+    
     {
       "id": "moody-eeg-classifier",
       "title": "Moody — Real-Time EEG Emotion Classifier (BCI)",
       "subtitle": "EEG pipeline with sliding windows, SMOTE, Bagging+ExtraTrees • 2023",
+      "icon": "/icons/proj-moody.png",
       "file": "moody-eeg-classifier.md",
       "preview": "Developed real-time BCI system for emotion recognition from EEG signals. Built ensemble learning pipeline with SMOTE for class imbalance and sliding window processing, achieving 80–100% adjusted match rates.",
       "tags": ["Python", "EEG", "scikit-learn", "SMOTE", "ExtraTrees", "BCI"],
       "links": {
         "github": "https://github.com/ojas-sethi/bci-music-programming"
-      }
-    },
-    {
-      "id": "chicago-crime-forecasting",
-      "title": "Chicago Crime Forecasting",
-      "subtitle": "Time Series Analysis & Predictive Modeling • 2023",
-      "file": "chicago-crime-forecasting.md",
-      "preview": "Built predictive model for Chicago crime patterns using time series analysis, ARIMA modeling, and seasonal decomposition. Achieved 85% accuracy in forecasting crime hotspots with spatial-temporal clustering.",
-      "tags": ["Time Series", "ARIMA", "Forecasting", "Spatial Analysis", "Python", "Data Science"],
-      "links": {
-        "github": "https://github.com/Ntropy86/chicago-crime-forecasting"
-      }
-    },
-    {
-      "id": "semantic-search-low-feature",
-      "title": "Semantic Search with Low Feature Space",
-      "subtitle": "Efficient Embedding-based Retrieval System • 2023",
-      "file": "semantic-search-low-feature.md",
-      "preview": "Developed efficient semantic search system using dimensionality reduction techniques, achieving 90% retrieval accuracy with 10x faster query performance through optimized feature space compression.",
-      "tags": ["Semantic Search", "Embeddings", "Dimensionality Reduction", "Vector Search", "Information Retrieval"],
-      "links": {
-        "github": "https://github.com/Ntropy86/semantic-search-low-feature"
       }
     }
   ],
@@ -137,7 +147,7 @@
     {
       "id": "uw-madison-ms",
       "title": "M.S., Data Science",
-      "subtitle": "University of Wisconsin–Madison • Aug 2023 – May 2025 • GPA: 3.65/4.0",
+      "subtitle": "University of Wisconsin–Madison • Aug 2023 – May 2025 • GPA: 3.55/4.0",
       "file": "uw-madison-ms.md",
       "preview": "Specialized in Advanced NLP, Statistical Modeling & Inference, Big Data Systems, Neural Networks, Optimization, Database Management, and AI. Graduate research in educational robotics and conversational AI at the People & Robots Lab under NSF funding.",
       "tags": ["Data Science", "Advanced NLP", "Big Data Systems", "Neural Networks", "Educational Robotics"]
@@ -145,7 +155,7 @@
     {
       "id": "manipal-btech",
       "title": "B.Tech., Computer Science (Minor: Computational Intelligence & Deep Learning)",
-      "subtitle": "Manipal University Jaipur • Jul 2019 – Jul 2023 • GPA: 9.35/10",
+      "subtitle": "Manipal University Jaipur • Jul 2019 – Jul 2023 • GPA: 10.0/10.0",
       "file": "manipal-btech.md", 
       "preview": "Foundation in computer science with achievements including 5× Dean's List, Student Excellence in Research Award, 10/10 GPA Award, and Vice President of CS Club. Research focus on brain-computer interfaces and deep learning applications.",
       "tags": ["Computer Science", "Computational Intelligence", "Deep Learning", "BCI Research", "Leadership"]
@@ -196,36 +206,14 @@
 
   "blog": [
     {
-      "id": "building-conversational-ai-systems",
-      "title": "Building Conversational AI Systems: From Concept to Production",
-      "subtitle": "December 15, 2024 • 8 min read",
-      "file": "building-conversational-ai-systems/index.md",
-      "preview": "A comprehensive guide to building production-ready conversational AI systems, covering architecture decisions, real-time streaming, voice processing, and optimization strategies for natural human-AI interaction.",
-      "tags": ["AI", "Conversational AI", "FastAPI", "LLM", "Voice AI", "Production Systems"],
-      "publishDate": "December 15, 2024",
-      "readingTime": "8 minutes",
-      "featured": true
-    },
-    {
-      "id": "modern-web-development-practices", 
-      "title": "Modern Web Development: Lessons from Building Production Applications",
-      "subtitle": "November 28, 2024 • 6 min read",
-      "file": "modern-web-development-practices/index.md",
-      "preview": "Insights from building modern web applications with React, Next.js, and contemporary development practices. Covers performance optimization, accessibility, testing strategies, and deployment patterns.",
-      "tags": ["Web Development", "React", "Next.js", "Performance", "Architecture", "Best Practices"],
-      "publishDate": "November 28, 2024",
-      "readingTime": "6 minutes",
-      "featured": false
-    },
-    {
-      "id": "machine-learning-in-production",
-      "title": "Machine Learning in Production: Bridging the Gap Between Research and Reality", 
-      "subtitle": "October 10, 2024 • 10 min read",
-      "file": "machine-learning-in-production/index.md",
-      "preview": "A deep dive into the challenges and solutions for deploying machine learning models in production environments. Covers MLOps, monitoring, data pipelines, and real-world case studies from BCI systems.",
-      "tags": ["Machine Learning", "MLOps", "Production Systems", "AI Engineering", "Data Science"],
-      "publishDate": "October 10, 2024", 
-      "readingTime": "10 minutes",
+      "id": "building-this-website",
+      "title": "Building This Website: From Figma to Production",
+      "subtitle": "January 15, 2025 • 15 min read",
+      "file": "building-this-website.md",
+      "preview": "A comprehensive journey through designing, developing, and deploying this modern portfolio website with AI-powered features. From Figma wireframes to production deployment, covering component architecture, AI integration, performance optimization, and lessons learned.",
+      "tags": ["Web Development", "Next.js", "AI Integration", "Design Process", "Portfolio", "Production Systems"],
+      "publishDate": "January 15, 2025",
+      "readingTime": "15 minutes",
       "featured": true
     }
   ],

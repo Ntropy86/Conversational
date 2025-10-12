@@ -9,7 +9,15 @@ export async function getContentMetadata() {
     return await response.json();
   } catch (error) {
     console.error('Error fetching metadata:', error);
-    return { experiences: [], projects: [] };
+    return { 
+      experiences: [], 
+      projects: [], 
+      publications: [], 
+      blog: [], 
+      education: [], 
+      skills: [], 
+      contact: [] 
+    };
   }
 }
 

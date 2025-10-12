@@ -18,12 +18,12 @@ export async function GET(request) {
 
     // Map content type to metadata key and folder structure
     const typeMapping = {
-      'experience': { key: 'experiences', folder: 'experiences', filename: `${id}.md` },
-      'project': { key: 'projects', folder: 'projects', filename: `${id}.md` },
-      'publication': { key: 'publications', folder: 'publications', filename: `${id}.md` },
-      'blog': { key: 'blog', folder: 'blog', filename: `${id}/index.md` },
-      'education': { key: 'education', folder: 'education', filename: `${id}.md` },
-      'contact': { key: 'contact', folder: 'contact', filename: `${id}.md` }
+      'experience': { key: 'experiences', folder: 'experiences' },
+      'project': { key: 'projects', folder: 'projects' },
+      'publication': { key: 'publications', folder: 'publications' },
+      'blog': { key: 'blog', folder: 'blog' },
+      'education': { key: 'education', folder: 'education' },
+      'contact': { key: 'contact', folder: 'contact' }
     };
 
     const mapping = typeMapping[type];
@@ -34,14 +34,21 @@ export async function GET(request) {
     // Find the content item
     const contentItem = metadata[mapping.key]?.find(item => item.id === id);
     if (!contentItem) {
-      return NextResponse.json({ error: 'Content not found' }, { status: 404 });
+      return NextResponse.json({ error: `Content not found in metadata for type: ${type}, id: ${id}` }, { status: 404 });
     }
 
-    // Load the markdown file
-    const contentPath = path.join(process.cwd(), 'content', mapping.folder, mapping.filename);
+    // Use the 'file' field from contentItem to construct the path
+    if (!contentItem.file) {
+      return NextResponse.json({ error: `No file path specified in metadata for id: ${id}` }, { status: 404 });
+    }
+
+    const contentPath = path.join(process.cwd(), 'content', mapping.folder, contentItem.file);
     
     if (!fs.existsSync(contentPath)) {
-      return NextResponse.json({ error: 'Content file not found' }, { status: 404 });
+      return NextResponse.json({ 
+        error: 'Content file not found', 
+        path: contentPath
+      }, { status: 404 });
     }
 
     const markdownContent = fs.readFileSync(contentPath, 'utf-8');
@@ -53,6 +60,9 @@ export async function GET(request) {
 
   } catch (error) {
     console.error('Error loading content:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      message: error.message
+    }, { status: 500 });
   }
 }

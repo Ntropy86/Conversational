@@ -18,6 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
+  metadataBase: new URL('https://ntropy.dev'), // Fix: Set base URL for OG images
   title: "Nitigya Kargeti | Data Scientist & ML Engineer",
   description: "Portfolio of Nitigya Kargeti - Data Scientist and Machine Learning Engineer specialized in LLMs, robotics, and conversational AI.",
   keywords: "Nitigya Kargeti, Data Science, Machine Learning, AI, LLM, Robotics, Portfolio",
@@ -74,6 +75,9 @@ export default function RootLayout({ children }) {
         {/* Preconnect for critical third-party origins */}
         <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        
+        {/* Preconnect to AI backend for faster API calls */}
+        <link rel="preconnect" href="https://ntropy86-conversational-ai-backend.hf.space" crossOrigin="anonymous" />
         
   {/* Preload critical assets - removed large hero image preload to reduce initial main-thread/network work */}
         

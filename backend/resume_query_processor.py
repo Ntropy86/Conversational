@@ -96,8 +96,16 @@ class ResumeQueryProcessor:
             # PROGRAMMING LANGUAGES
             "python": ["Python", "FastAPI", "machine learning", "AI", "data science", "backend", "scripting"],
             "javascript": ["JavaScript", "JS", "React", "Next.js", "Node.js", "web development", "frontend"],
+            "go": ["Go programming", "Golang", "Go language"],  # Specific phrases to avoid false positives
+            "java": ["Java programming", "Java language", "Java development"],
+            "ruby": ["Ruby programming", "Ruby language", "Ruby on Rails"],
+            "rust": ["Rust programming", "Rust language"],
             "cpp": ["C++", "cpp", "CPP", "systems programming", "algorithms", "performance", "low-level", "embedded"],
+            "c": ["C programming", "C language"],
+            "julia": ["Julia programming", "Julia language"],
+            "r": ["R programming", "R language", "R statistical"],
             "matlab": ["MATLAB", "signal processing", "research", "numerical computing", "engineering"],
+            "typescript": ["TypeScript", "TS", "typed JavaScript"],
             
             # WEB FRAMEWORKS & LIBRARIES
             "fastapi": ["FastAPI", "Python", "API", "backend", "web framework", "REST API"],
@@ -105,15 +113,37 @@ class ResumeQueryProcessor:
             "nextjs": ["Next.js", "React", "web development", "SSR", "frontend framework", "Vercel"],
             "web_development": ["Web Development", "frontend", "backend", "full-stack", "web applications"],
             "api_integration": ["API Integration", "REST API", "web services", "API development", "microservices"],
+            "websockets": ["WebSocket", "WebSockets", "real-time", "streaming", "bidirectional communication"],
+            "rest": ["REST", "REST API", "RESTful", "HTTP API", "web services"],
+            "whisper": ["Whisper", "speech-to-text", "ASR", "transcription", "OpenAI"],
+            "tts": ["TTS", "text-to-speech", "speech synthesis", "audio generation"],
+            "langchain": ["LangChain", "LLM framework", "AI chains", "prompt engineering"],
+            "stripe": ["Stripe", "payment processing", "payments", "fintech", "billing"],
+            "rbac": ["RBAC", "role-based access control", "authentication", "authorization", "security"],
+            "chrome_apis": ["Chrome APIs", "Chrome Extension", "browser extension", "JavaScript"],
+            "github_actions": ["GitHub Actions", "CI/CD", "automation", "workflows", "deployment"],
+            "markdown": ["Markdown", "documentation", "text formatting", "markup language"],
+            "web_audio_api": ["Web Audio API", "audio processing", "browser audio", "JavaScript"],
             
             # DATABASES & STORAGE
+            "sql": ["SQL", "database", "relational database", "query language", "structured query"],
+            "mysql": ["MySQL", "SQL", "database", "relational database"],
+            "postgresql": ["PostgreSQL", "Postgres", "SQL", "database", "relational database"],
             "mongodb": ["MongoDB", "database", "NoSQL", "document database", "cloud database"],
+            "redis": ["Redis", "cache", "in-memory database", "key-value store"],
+            "bigquery": ["BigQuery", "GCP BigQuery", "SQL", "data warehouse", "cloud database"],
+            "oracle": ["Oracle", "Oracle Database", "SQL", "enterprise database"],
+            "databricks": ["Databricks", "Databricks DLT", "data lakehouse", "spark", "ETL"],
             
             # CLOUD & INFRASTRUCTURE
-            "aws": ["AWS", "Amazon Web Services", "cloud", "Lambda", "SQS", "serverless"],
+            "aws": ["AWS", "Amazon Web Services", "cloud", "Lambda", "SQS", "S3", "serverless"],
+            "gcp": ["GCP", "Google Cloud Platform", "cloud", "BigQuery"],
             "serverless": ["Serverless", "AWS Lambda", "cloud functions", "FaaS", "event-driven"],
             "lambda": ["Lambda", "AWS Lambda", "serverless", "cloud functions", "event processing"],
             "sqs": ["SQS", "Simple Queue Service", "AWS", "message queue", "async processing"],
+            "s3": ["S3", "AWS S3", "object storage", "cloud storage"],
+            "docker": ["Docker", "container", "containerization", "DevOps"],
+            "terraform": ["Terraform", "infrastructure as code", "IaC", "cloud automation"],
             
             # BIOMEDICAL & SIGNAL PROCESSING
             "bci": ["BCI", "brain-computer interface", "EEG", "neural interface", "biomedical"],
@@ -125,6 +155,11 @@ class ResumeQueryProcessor:
             "p300": ["P300", "ERP", "event-related potential", "BCI", "brain signals", "EEG"],
             "sleep_apnea_detection": ["Sleep Apnea", "OSA", "sleep disorders", "medical diagnosis", "ECG"],
             "emotion_recognition": ["Emotion Recognition", "affective computing", "sentiment analysis", "EEG emotions", "BCI"],
+            "ica": ["ICA", "independent component analysis", "signal processing", "EEG", "blind source separation"],
+            "mne": ["MNE", "MNE-Python", "EEG analysis", "neuroimaging", "brain data"],
+            "liblsl": ["liblsl", "Lab Streaming Layer", "real-time streaming", "biosignals", "EEG"],
+            "1dcnn": ["1D-CNN", "convolutional neural network", "time series", "signal processing"],
+            "lstm": ["LSTM", "long short-term memory", "recurrent neural network", "time series", "deep learning"],
             
             # ROBOTICS & HCI
             "robotics": ["Robotics", "robot systems", "autonomous systems", "multi-agent systems"],
@@ -138,7 +173,16 @@ class ResumeQueryProcessor:
             "data_science": ["Data Science", "analytics", "machine learning", "statistics", "data analysis"],
             "big_data": ["Big Data", "large datasets", "data processing", "ETL", "data engineering"],
             "etl": ["ETL", "data pipeline", "data processing", "data engineering", "batch processing"],
+            "data_engineering": ["Data Engineering", "ETL", "data pipeline", "big data", "data processing"],
             "smote": ["SMOTE", "synthetic minority oversampling", "imbalanced data", "machine learning"],
+            "bm25": ["BM25", "search", "information retrieval", "ranking algorithm"],
+            "bge_embeddings": ["BGE", "BGE Embeddings", "embeddings", "semantic search", "vector search"],
+            "faiss": ["FAISS", "vector search", "similarity search", "Facebook AI"],
+            "semantic_search": ["Semantic Search", "vector search", "embeddings", "information retrieval"],
+            "ndc_evaluation": ["nDCG", "evaluation metrics", "ranking", "information retrieval"],
+            "streamlit": ["Streamlit", "Python", "web app", "dashboard", "data visualization"],
+            "h3": ["H3", "geospatial", "hexagonal grid", "spatial analysis"],
+            "dbscan": ["DBSCAN", "clustering", "machine learning", "unsupervised learning"],
             
             # COMPUTER VISION & IMAGE PROCESSING
             "computer_vision": ["Computer Vision", "OpenCV", "image processing", "CNN", "visual recognition"],
@@ -146,6 +190,15 @@ class ResumeQueryProcessor:
             "hyperspectral_imaging": ["Hyperspectral Imaging", "remote sensing", "spectral analysis", "defense"],
             "remote_sensing": ["Remote Sensing", "satellite imagery", "geospatial analysis", "earth observation"],
             "linear_mixture_modeling": ["Linear Mixture Modeling", "spectral unmixing", "remote sensing", "hyperspectral analysis"],
+            "sam": ["SAM", "Segment Anything Model", "computer vision", "segmentation"],
+            "scm": ["SCM", "supply chain management", "operations", "logistics"],
+            
+            # ADDITIONAL ML/AI TECHNOLOGIES
+            "gpt4": ["GPT-4", "LLM", "large language model", "OpenAI", "generative AI"],
+            "lmm": ["LMM", "large multimodal model", "vision-language model", "multimodal AI"],
+            "extratrees": ["ExtraTrees", "Extra Trees", "ensemble learning", "machine learning", "random forest"],
+            "scikit_learn": ["scikit-learn", "sklearn", "machine learning", "Python", "ML library"],
+            "eigen": ["Eigen", "C++", "linear algebra", "matrix operations", "numerical computing"],
             
             # DEVELOPMENT & DEVOPS
             "cicd": ["CI/CD", "continuous integration", "GitHub Actions", "deployment", "automation"],
@@ -397,11 +450,47 @@ class ResumeQueryProcessor:
         query_lower = query.lower()
         found_techs = []
         
+        # SPECIAL CASE: Context-aware detection for ambiguous terms (e.g., "Go", "R", "C")
+        # These are common words but in specific contexts they refer to programming languages
+        context_patterns = {
+            "go": [
+                r'\b(in|using|with|knowledge of|experience in|worked with|built with|coded in|programming in)\s+go\b',
+                r'\bgolang\b'
+            ],
+            "r": [
+                r'\b(in|using|with|knowledge of|experience in|worked with)\s+r\b',
+                r'\br\s+(programming|language|statistical)\b',
+                r'\brstudio\b'
+            ],
+            "c": [
+                r'\b(in|using|with|knowledge of|experience in|worked with|coded in)\s+c\b',
+                r'\bc\s+(programming|language)\b',
+                r'\bc\+\+\b'  # If they mention C++, they might mean C too
+            ],
+            "java": [
+                r'\b(in|using|with|knowledge of|experience in|experience|worked with|coded in|programming in)\s+java\b',
+                r'\bjava\s+(programming|development|language|experience|projects?|work)\b',
+                r'\bjava\s+\w+\b'  # Java followed by any word (Java developer, Java projects, etc.)
+            ],
+            "rust": [
+                r'\b(in|using|with|knowledge of|experience in|experience|worked with|coded in)\s+rust\b',
+                r'\brust\s+(programming|language|projects?|work)\b',
+                r'\b(his|her|their)\s+rust\s+\w+\b',  # His Rust projects
+                r'\brust\s+\w+\b'  # Rust followed by any word
+            ]
+        }
+        
+        for tech, patterns in context_patterns.items():
+            if any(re.search(pattern, query_lower) for pattern in patterns):
+                found_techs.append(tech)
+                print(f"🎯 Context match: Found '{tech}' via context patterns")
+        
         # First pass: exact matching with word boundaries
         for tech, keywords in self.tech_mappings.items():
             for keyword in keywords:
                 if re.search(r'\b' + re.escape(keyword.lower()) + r'\b', query_lower):
-                    found_techs.append(tech)
+                    if tech not in found_techs:  # Avoid duplicates from context matching
+                        found_techs.append(tech)
                     break
         
         # Second pass: fuzzy matching for potential misspellings (only if no exact matches found)
@@ -623,37 +712,62 @@ class ResumeQueryProcessor:
             # Check if any filter matches
             match_found = False
             for tech_filter in tech_filters:
-                # Direct technology match (exact or substring)
-                if any(tech_filter.lower() in tech.lower() for tech in item_techs):
-                    match_found = True
-                    break
-                # Keyword match (exact or substring)
-                if any(tech_filter.lower() in keyword.lower() for keyword in item_keywords):
-                    match_found = True
-                    break
-                # Text content match using tech mappings - BUT ONLY if specific tech found
-                if tech_filter in self.tech_mappings:
-                    mapped_keywords = self.tech_mappings[tech_filter]
-                    # For database category, require SPECIFIC database tech match
-                    if tech_filter == "database":
-                        # Only match if specific database tech is found in item
-                        specific_db_match = False
-                        for keyword in mapped_keywords:
-                            if keyword.lower() in item_text or any(keyword.lower() in tech.lower() for tech in item_techs):
-                                specific_db_match = True
+                tech_lower = tech_filter.lower()
+                
+                # SPECIAL HANDLING: For very short terms (≤3 chars), use word boundaries to avoid substring matches
+                # This prevents "go" from matching "MongoDB", "Django", etc.
+                use_word_boundary = len(tech_filter) <= 3
+                
+                if use_word_boundary:
+                    # Use regex word boundaries for short terms
+                    import re
+                    word_pattern = r'\b' + re.escape(tech_lower) + r'\b'
+                    
+                    # Check technologies with word boundaries
+                    if any(re.search(word_pattern, tech.lower()) for tech in item_techs):
+                        match_found = True
+                        break
+                    # Check keywords with word boundaries
+                    if any(re.search(word_pattern, keyword.lower()) for keyword in item_keywords):
+                        match_found = True
+                        break
+                    # Check text with word boundaries
+                    if re.search(word_pattern, item_text):
+                        match_found = True
+                        break
+                else:
+                    # Normal substring matching for longer terms
+                    # Direct technology match (exact or substring)
+                    if any(tech_lower in tech.lower() for tech in item_techs):
+                        match_found = True
+                        break
+                    # Keyword match (exact or substring)
+                    if any(tech_lower in keyword.lower() for keyword in item_keywords):
+                        match_found = True
+                        break
+                    # Text content match using tech mappings - BUT ONLY if specific tech found
+                    if tech_filter in self.tech_mappings:
+                        mapped_keywords = self.tech_mappings[tech_filter]
+                        # For database category, require SPECIFIC database tech match
+                        if tech_filter == "database":
+                            # Only match if specific database tech is found in item
+                            specific_db_match = False
+                            for keyword in mapped_keywords:
+                                if keyword.lower() in item_text or any(keyword.lower() in tech.lower() for tech in item_techs):
+                                    specific_db_match = True
+                                    break
+                            if specific_db_match:
+                                match_found = True
                                 break
-                        if specific_db_match:
-                            match_found = True
-                            break
-                    else:
-                        # For other categories, use general matching
-                        if any(keyword.lower() in item_text for keyword in mapped_keywords):
-                            match_found = True
-                            break
-                # Direct text match (for specific tech names)
-                if tech_filter.lower() in item_text:
-                    match_found = True
-                    break
+                        else:
+                            # For other categories, use general matching
+                            if any(keyword.lower() in item_text for keyword in mapped_keywords):
+                                match_found = True
+                                break
+                    # Direct text match (for specific tech names)
+                    if tech_lower in item_text:
+                        match_found = True
+                        break
             
             if match_found:
                 filtered_items.append(item)
@@ -671,6 +785,9 @@ class ResumeQueryProcessor:
             r'(?i)\bshow me more\b',
             r'(?i)\bgive me details\b',
             r'(?i)\b(that|those|them|it)\b.*\b(sounds?|looks?|seems?)\b',
+            # ORDINAL REFERENCES - "the first project", "second one", "the 3rd item"
+            r'(?i)\b(the\s+)?(first|1st|second|2nd|third|3rd|fourth|4th|last)\s+(one|project|experience|item|card|company|work|role|publication)\b',
+            r'(?i)\b(about|tell.*about|more.*about|details.*on)\s+(the\s+)?(first|1st|second|2nd|third|3rd|fourth|4th|last)\b',
             # CONTEXTUAL REFERENCE PATTERNS - the key missing piece!
             r'(?i)\bin (this|that)\b',
             r'(?i)\bat (this|that)\b',  
@@ -844,9 +961,61 @@ class ResumeQueryProcessor:
         print(f"🔍 DEBUG - Previous entity: {metadata.get('entity_name', 'N/A')}")
         print(f"🔍 DEBUG - Previous metadata keys: {list(metadata.keys())}")
         print(f"🔍 DEBUG - Previous items count: {len(items)}")
+        
+        # Store previous items for later use
+        prev_items = items
             
         # Store previous metadata for use throughout the method
         prev_metadata = metadata
+        
+        # ORDINAL REFERENCE HANDLING: "the second project", "first one", "3rd item"
+        ordinal_patterns = [
+            (r'(?i)\b(the\s+)?first\b', 0),
+            (r'(?i)\b(the\s+)?1st\b', 0),
+            (r'(?i)\b(the\s+)?second\b', 1),
+            (r'(?i)\b(the\s+)?2nd\b', 1),
+            (r'(?i)\b(the\s+)?third\b', 2),
+            (r'(?i)\b(the\s+)?3rd\b', 2),
+            (r'(?i)\b(the\s+)?fourth\b', 3),
+            (r'(?i)\b(the\s+)?4th\b', 3),
+            (r'(?i)\b(the\s+)?last\b', -1),
+        ]
+        
+        for pattern, index in ordinal_patterns:
+            if re.search(pattern, question):
+                print(f"🔍 DEBUG - Ordinal reference detected: index {index}")
+                if prev_items:
+                    try:
+                        # Get the specific item
+                        if index == -1:
+                            target_item = [prev_items[-1]]  # Last item
+                        elif index < len(prev_items):
+                            target_item = [prev_items[index]]
+                        else:
+                            print(f"🔍 DEBUG - Requested index {index} out of range (have {len(prev_items)} items)")
+                            return None
+                        
+                        # Return that specific item
+                        item_title = target_item[0].get('title', target_item[0].get('role', target_item[0].get('name', 'Unknown')))
+                        print(f"🔍 DEBUG - Returning item at index {index}: {item_title}")
+                        
+                        return QueryResult(
+                            response_text=f"Here's more about {item_title}:",
+                            items=target_item,
+                            item_type=target_item[0].get('content_source', 'projects'),
+                            metadata={
+                                "original_query": question,
+                                "total_results": 1,
+                                "needs_cards": True,
+                                "is_ordinal_reference": True,
+                                "referenced_index": index,
+                                "from_previous_results": True
+                            }
+                        )
+                    except (IndexError, KeyError) as e:
+                        print(f"🔍 DEBUG - Error extracting ordinal item: {e}")
+                        pass
+                break  # Found an ordinal pattern, don't continue checking
             
         # CLARIFICATION HANDLING: Check if this is a clarifying query mentioning a specific entity
         clarification_patterns = [
@@ -920,12 +1089,17 @@ class ResumeQueryProcessor:
         is_show_all = any(re.search(pattern, question) for pattern in show_all_patterns)
         
         if is_show_all:
-            # Fallback: return ALL items of the same type as the previous query
+            # Return REMAINING items (not all items) - show what hasn't been shown yet
             prev_item_type = prev_metadata.get('item_type', 'projects')
             prev_tech_filters = prev_metadata.get('tech_filters', [])
             prev_date_filters = prev_metadata.get('date_filters', {})
+            prev_original_query = prev_metadata.get('original_query', '')
             
-            print(f"🔍 DEBUG - User asking to show all {prev_item_type}")
+            print(f"🔍 DEBUG - User asking to show all remaining {prev_item_type} from query: '{prev_original_query}'")
+            
+            # Get all shown item IDs from previous results
+            shown_item_ids = set(item.get('id') for item in items if 'id' in item)
+            print(f"🔍 DEBUG - Already shown item IDs: {shown_item_ids}")
             
             # Get ALL items of the same type
             if prev_item_type == "projects":
@@ -935,38 +1109,57 @@ class ResumeQueryProcessor:
             elif prev_item_type == "publications":
                 all_items_of_type = self.resume_data.get("publications", [])
             elif prev_item_type == "mixed":
-                # For mixed, get all projects (most common)
-                all_items_of_type = self.resume_data.get("projects", [])
+                # For mixed, combine from all sources
+                all_items_of_type = []
+                all_items_of_type.extend(self.resume_data.get("projects", []))
+                all_items_of_type.extend(self.resume_data.get("experience", []))
+                all_items_of_type.extend(self.resume_data.get("publications", []))
             else:
                 all_items_of_type = self.resume_data.get("projects", [])
             
             # Apply the same filters as the original query
             if prev_tech_filters:
                 all_items_of_type = self.filter_by_technology(all_items_of_type, prev_tech_filters)
+                print(f"🔍 DEBUG - Applied tech filters {prev_tech_filters}, items after: {len(all_items_of_type)}")
             if prev_date_filters.get("years"):
                 all_items_of_type = self.filter_by_date(all_items_of_type, prev_date_filters)
+                print(f"🔍 DEBUG - Applied date filters, items after: {len(all_items_of_type)}")
             
             # Sort items (same as original)
             if prev_item_type == "projects":
                 all_items_of_type = self.sort_projects_by_date(all_items_of_type)
             
+            # Filter OUT already shown items (this is the KEY fix!)
+            remaining_items = [item for item in all_items_of_type if item.get('id') not in shown_item_ids]
+            print(f"🔍 DEBUG - Total items: {len(all_items_of_type)}, Already shown: {len(shown_item_ids)}, Remaining: {len(remaining_items)}")
+            
             # Tag with content source
-            for item in all_items_of_type:
-                item["content_source"] = prev_item_type if prev_item_type != "mixed" else "projects"
+            for item in remaining_items:
+                if 'content_source' not in item or not item.get('content_source'):
+                    item["content_source"] = prev_item_type if prev_item_type != "mixed" else "projects"
+            
+            # If no remaining items, show all items again with a note
+            if not remaining_items:
+                remaining_items = all_items_of_type
+                response_text = f"That's all the {prev_item_type} matching '{prev_original_query}'. Here they are again:"
+            else:
+                response_text = f"Here are the remaining {len(remaining_items)} {prev_item_type}:"
             
             return QueryResult(
-                response_text=f"Here are all the {prev_item_type} I have:",
-                items=all_items_of_type,
+                response_text=response_text,
+                items=remaining_items,
                 item_type=prev_item_type,
                 metadata={
                     "original_query": question,
-                    "context_query": prev_metadata.get('original_query', ''),
+                    "context_query": prev_original_query,
                     "total_results": len(all_items_of_type),
-                    "needs_cards": len(all_items_of_type) > 0,
+                    "remaining_results": len(remaining_items),
+                    "already_shown": len(shown_item_ids),
+                    "needs_cards": len(remaining_items) > 0,
                     "is_followup": True,
                     "contextual_followup": True,
                     "show_all_query": True,
-                    "query_type": "show_all"
+                    "query_type": "show_remaining"
                 }
             )
             
@@ -1020,26 +1213,53 @@ class ResumeQueryProcessor:
                 prev_tech_filters = prev_metadata.get('tech_filters', [])
                 prev_date_filters = prev_metadata.get('date_filters', {})
                 
+                # CRITICAL FIX: If original was a fallback search, use similar_technologies_found!
+                # Otherwise we'll search for tech that doesn't exist (e.g., "go" when we actually showed "python")
+                if prev_metadata.get('fallback_search') and prev_metadata.get('similar_technologies_found'):
+                    prev_tech_filters = prev_metadata.get('similar_technologies_found', [])
+                    print(f"🔍 DEBUG - Using fallback techs for follow-up: {prev_tech_filters}")
+                
                 print(f"🔍 DEBUG - User asking for more {prev_item_type}, getting additional items")
                 
-                # Get ALL items of the same type
-                if prev_item_type == "projects":
-                    all_items_of_type = self.resume_data.get("projects", [])
-                elif prev_item_type == "experience":
-                    all_items_of_type = self.resume_data.get("experience", [])
-                elif prev_item_type == "publications":
-                    all_items_of_type = self.resume_data.get("publications", [])
-                elif prev_item_type == "mixed":
-                    # For mixed, get all projects (most common)
-                    all_items_of_type = self.resume_data.get("projects", [])
-                else:
-                    all_items_of_type = self.resume_data.get("projects", [])
+                # Get ALL items - if mixed, need to get from all content types that were searched!
+                all_items_of_type = []
                 
-                # Apply the same filters as the original query
-                if prev_tech_filters:
-                    all_items_of_type = self.filter_by_technology(all_items_of_type, prev_tech_filters)
-                if prev_date_filters.get("years"):
-                    all_items_of_type = self.filter_by_date(all_items_of_type, prev_date_filters)
+                if prev_item_type == "mixed":
+                    # For mixed, get from all content types that were originally searched
+                    content_types_searched = prev_metadata.get('content_types_searched', ['projects', 'experience', 'publications'])
+                    print(f"🔍 DEBUG - Mixed query, getting from: {content_types_searched}")
+                    
+                    for content_type in content_types_searched:
+                        items = self.resume_data.get(content_type, [])
+                        # Apply filters to each content type
+                        if prev_tech_filters:
+                            items = self.filter_by_technology(items, prev_tech_filters)
+                        if prev_date_filters.get("years"):
+                            items = self.filter_by_date(items, prev_date_filters)
+                        
+                        # Tag with content source
+                        for item in items:
+                            item["content_source"] = content_type
+                        
+                        all_items_of_type.extend(items)
+                    
+                    print(f"🔍 DEBUG - Mixed query found {len(all_items_of_type)} total items")
+                else:
+                    # Single content type
+                    if prev_item_type == "projects":
+                        all_items_of_type = self.resume_data.get("projects", [])
+                    elif prev_item_type == "experience":
+                        all_items_of_type = self.resume_data.get("experience", [])
+                    elif prev_item_type == "publications":
+                        all_items_of_type = self.resume_data.get("publications", [])
+                    else:
+                        all_items_of_type = self.resume_data.get("projects", [])
+                    
+                    # Apply the same filters as the original query
+                    if prev_tech_filters:
+                        all_items_of_type = self.filter_by_technology(all_items_of_type, prev_tech_filters)
+                    if prev_date_filters.get("years"):
+                        all_items_of_type = self.filter_by_date(all_items_of_type, prev_date_filters)
                 
                 # Sort items (same as original)
                 if prev_item_type == "projects":
@@ -1277,7 +1497,23 @@ class ResumeQueryProcessor:
         """Process a natural language query and return structured results"""
         print(f"🔍 FOLLOWUP DEBUG - Query: '{question}', History: {bool(conversation_history)}")
         
-        # GUARDRAILS: Detect off-topic or malicious queries
+        # Extract intent first to handle greetings before guardrails
+        intent = self.extract_intent(question)
+        
+        # Handle greetings gracefully (don't block as off-topic)
+        if intent in ["greeting", "general"]:
+            return QueryResult(
+                response_text="Casual conversation - no cards needed",
+                items=[],
+                item_type="none",
+                metadata={
+                    "intent": intent,
+                    "original_query": question,
+                    "needs_cards": False
+                }
+            )
+        
+        # GUARDRAILS: Detect off-topic or malicious queries (after greeting check)
         if self._is_off_topic_query(question):
             return QueryResult(
                 response_text="Whoa there! 🚀 I'm all about Nitigya's epic tech journey, projects, and skills. For random questions like that, ChatGPT's your best bet! 🤖✨",
@@ -1330,13 +1566,24 @@ class ResumeQueryProcessor:
                 }
             )
         
-        # Extract intent, technology filters, and date filters
-        intent = self.extract_intent(question)
+        # Extract technology filters and date filters (intent already extracted earlier)
         tech_filters = self.extract_technologies(question)
         date_filters = self.extract_date_filters(question)
         
+        # SPECIAL HANDLING: If this is a very general query, force mixed content search
+        very_general_queries = [
+            r"^(tell|show).*\b(me|us)\b.*\babout\s+(him|her|them|nitigya)$",
+            r"^what\s+(has|have|did)\s+(he|she|they|nitigya)\s+done\??$",
+            r"^show\s+me\s+(everything|all)$",
+            r"^tell\s+me\s+everything$",
+            r"^what('s| is)\s+(his|her|their)\s+(background|story|work)$",
+            r"^(his|her|their)\s+(background|story|resume|portfolio)$"
+        ]
+        
+        is_very_general = any(re.search(pattern, question.lower().strip()) for pattern in very_general_queries)
+        
         # SPECIAL HANDLING: If this is a highlights/recap query, force mixed content search
-        is_highlights = self.is_highlights_query(question)
+        is_highlights = self.is_highlights_query(question) or is_very_general
         if is_highlights:
             print(f"🎯 Detected highlights query: '{question}' - forcing mixed content search")
             # Override intent to mixed and ensure we search across all content types
@@ -1346,19 +1593,6 @@ class ResumeQueryProcessor:
             content_types_to_search = ["projects", "experience", "publications"]
         else:
             content_types_to_search = None  # Will be determined below
-        
-        # For greetings or general conversation, return empty results
-        if intent in ["greeting", "general"]:
-            return QueryResult(
-                response_text="Casual conversation - no cards needed",
-                items=[],
-                item_type="none",
-                metadata={
-                    "intent": intent,
-                    "original_query": question,
-                    "needs_cards": False
-                }
-            )
         
         # INDUSTRY-STANDARD MULTI-KEYWORD EXTRACTION: Search across ALL relevant content types
         if tech_filters or date_filters["years"] or intent in ["publications", "blog"] or is_highlights:
@@ -1537,10 +1771,29 @@ class ResumeQueryProcessor:
                             type_items = sorted(type_items, key=lambda x: x.get("dates", x.get("date", "2020")), reverse=True)
                         sorted_fallback.extend(type_items)
                     
-                    # Create helpful response explaining the fallback
+                    # Create QUIRKY response with personality!
                     asked_techs = ", ".join(original_tech_filters)
-                    found_similar = ", ".join(similar_techs)
-                    response_text = f"No direct experience with {asked_techs}, but found related work with {found_similar}"
+                    found_similar = ", ".join(similar_techs[:3])  # Limit to 3 for brevity
+                    
+                    # QUIRKY RESPONSES based on the requested tech
+                    quirky_responses = {
+                        "go": f"Go isn't his 'Go'-to, but he's got serious chops in {found_similar}! Check these out:",
+                        "rust": f"Rust might not be in his toolbox yet, but {found_similar}? He's built production systems with those!",
+                        "ruby": f"Ruby's not his gem, but {found_similar} definitely are! Here's his work:",
+                        "php": f"PHP isn't his flavor, but he's whipped up magic with {found_similar}:",
+                        "scala": f"Scala's not on the setlist, but he's got {found_similar} in heavy rotation:",
+                        "kotlin": f"Kotlin hasn't made it to his stack yet, but {found_similar}? Those are his daily drivers:",
+                        "swift": f"Swift isn't in the Swift-ness, but check out his {found_similar} work instead:",
+                        "r": f"R isn't his statistical weapon of choice, but {found_similar}? He's crunched serious numbers with those!"
+                    }
+                    
+                    # Use quirky response if available, otherwise generic but still fun
+                    first_tech = original_tech_filters[0].lower() if original_tech_filters else ""
+                    if first_tech in quirky_responses:
+                        response_text = quirky_responses[first_tech]
+                    else:
+                        # Generic but still personality-driven
+                        response_text = f"Hmm, {asked_techs} isn't in his arsenal yet, but he's built some cool stuff with {found_similar}!"
                     
                     primary_type = "mixed" if len(set(item["content_source"] for item in sorted_fallback)) > 1 else sorted_fallback[0]["content_source"]
                     
@@ -1554,12 +1807,78 @@ class ResumeQueryProcessor:
                             "total_results": len(sorted_fallback),
                             "needs_cards": len(sorted_fallback) > 0,
                             "fallback_search": True,
+                            "tech_not_found": True,  # Signal for quirky LLM responses
                             "requested_technologies": original_tech_filters,
                             "similar_technologies_found": similar_techs,
                             "content_types_searched": content_types_to_search,
-                            "fallback_explanation": f"Showing similar technologies since {asked_techs} not found"
+                            "fallback_explanation": f"Showing similar technologies since {asked_techs} not found",
+                            "quirky_response_enabled": True  # Let LLM know it can be creative
                         }
                     )
+                
+                # RAG FALLBACK: If similar tech search also found nothing, try semantic search
+                print("🔍 NLP found 0 items, trying RAG semantic search...")
+                try:
+                    from rag_service import get_rag
+                    rag = get_rag()
+                    
+                    # Perform semantic search
+                    rag_results = rag.semantic_search(
+                        query=question,
+                        top_k=8,  # Get more for diversity
+                        min_score=0.25,  # Lower threshold for broader matching
+                        section_filter=content_types_to_search if content_types_to_search else None
+                    )
+                    
+                    if rag_results:
+                        print(f"✅ RAG found {len(rag_results)} semantically similar items!")
+                        
+                        # Extract items and scores
+                        rag_items = []
+                        for item, score in rag_results:
+                            # Add content_source if not present
+                            if 'content_source' not in item:
+                                # Infer from item structure
+                                if 'company' in item or 'role' in item:
+                                    item['content_source'] = 'experience'
+                                elif 'authors' in item or 'journal' in item:
+                                    item['content_source'] = 'publications'
+                                else:
+                                    item['content_source'] = 'projects'
+                            item['rag_score'] = score  # Add score for debugging
+                            rag_items.append(item)
+                        
+                        # Determine primary type
+                        sources = [item.get('content_source', 'projects') for item in rag_items]
+                        primary_type = "mixed" if len(set(sources)) > 1 else sources[0]
+                        
+                        asked_techs = ", ".join(original_tech_filters) if original_tech_filters else "that"
+                        
+                        return QueryResult(
+                            response_text=f"I used semantic search to find these conceptually related items!",
+                            items=rag_items[:6],  # Limit to 6 for diversity
+                            item_type=primary_type,
+                            metadata={
+                                "tech_filters": original_tech_filters,
+                                "original_query": question,
+                                "total_results": len(rag_items),
+                                "needs_cards": True,
+                                "fallback_search": True,
+                                "rag_search": True,  # New flag!
+                                "tech_not_found": True,
+                                "requested_technologies": original_tech_filters,
+                                "search_method": "semantic_rag",
+                                "rag_scores": [score for _, score in rag_results[:6]],
+                                "fallback_explanation": f"Used semantic search to find conceptually related items",
+                                "quirky_response_enabled": True
+                            }
+                        )
+                    else:
+                        print("⚠️ RAG also found 0 items")
+                
+                except Exception as e:
+                    print(f"⚠️ RAG fallback failed: {e}")
+                    # Continue to regular fallback logic
         
         # FALLBACK: Original single-type logic for non-technology queries
         if intent == "projects":
@@ -1729,6 +2048,12 @@ class ResumeQueryProcessor:
             "python", "javascript", "react", "fastapi", "ai", "machine learning",
             "ml", "data", "web", "app", "application", "system", "platform",
             
+            # Programming/Tech specific (expanded to fix false negatives)
+            "language", "languages", "framework", "frameworks", "library", "libraries",
+            "database", "databases", "backend", "frontend", "fullstack", "full-stack",
+            "api", "rest", "graphql", "sql", "nosql", "cloud", "aws", "docker",
+            "algorithms", "data structures", "computer science", "cs",
+            
             # Education/Research specific
             "education", "study", "studied", "degree", "university", "college",
             "school", "research", "paper", "publication", "published", "phd",
@@ -1736,7 +2061,7 @@ class ResumeQueryProcessor:
             
             # Skills specific
             "skill", "skills", "expertise", "knowledge", "proficient", "experienced",
-            "specialize", "focus",
+            "specialize", "focus", "know", "knows", "familiar",
             
             # Content types specific
             "portfolio", "resume", "cv", "bio", "biography", "profile",

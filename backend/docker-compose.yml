@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  conversational-ai-backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - WHISPER_MODEL_SIZE=${WHISPER_MODEL_SIZE:-base}
+      - VAD_THRESHOLD=${VAD_THRESHOLD:-0.8}
+      - TTS_VOICE=${TTS_VOICE:-en-US-AriaNeural}
+      - API_PORT=8000
+      - DEBUG_MODE=${DEBUG_MODE:-false}
+      - MAX_AUDIO_LENGTH=${MAX_AUDIO_LENGTH:-30}
+      - CLEANUP_INTERVAL=${CLEANUP_INTERVAL:-15}
+      - AUDIO_MAX_AGE=${AUDIO_MAX_AGE:-30}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - ./audio_files:/app/audio_files
+      - ./logs:/app/logs
+      - ./temp:/app/temp
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Redis for session management and caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+volumes:
+  redis_data:

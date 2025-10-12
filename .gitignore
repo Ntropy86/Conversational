@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+.pytest_cache/
+.coverage
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Audio files
+*.wav
+*.mp3
+temp_speech_output.wav
+response_audio_*.wav
+tts_output_*.wav
+
+# Database
+*.db
+*.sqlite
+conversational_ai.db
+
+# Node
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Hugging Face Backend (separate deployment)
+hf-backend/
+
+# Logs
+logs/
+*.log
+
+# Temp files
+temp/
+tmp/
+audio_files/
+
+# Test outputs
+test_*.py
+*_output.txt
+*_results.json
+
+# Backup files
+*.backup
+*.bak

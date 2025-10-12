@@ -37,6 +37,14 @@ const Publications = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
+        <motion.h2
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className={`text-3xl md:text-4xl ${typographyClasses.heading} mb-4`}
+        >
+          Publications
+        </motion.h2>
         <p className={`mb-6 md:mb-8 text-sm md:text-base ${typographyClasses.body} max-w-2xl`}>
           Research contributions in brain-computer interfaces, machine learning, and educational robotics, 
           published in peer-reviewed journals and conferences.

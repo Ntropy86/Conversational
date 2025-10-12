@@ -25,17 +25,32 @@ export const skillCategories = {
   "all": {
     title: "All Skills",
     skills: {
+      "ML & AI": 4.8, // weighted average of ML/AI skills
       "Languages": 4.5, // (5+4+5+4)/4 = 4.5
-      "Backend": 3.9, // weighted average of backend skills
-      "Databases": 4.0, // weighted average
-      "Big Data": 3.5, // weighted average  
-      "DevOps": 3.7, // weighted average
-      "ML/AI": 4.0, // weighted average
-      "LLMs": 3.8, // weighted average
-      "Analytics": 4.25, // weighted average
-      "Visualization": 3.5 // weighted average
+      "Data & Search": 4.2, // weighted average of data/search skills
+      "Backend & Cloud": 3.9, // weighted average of backend/cloud skills
+      "Frontend": 3.5, // weighted average of frontend skills
+      "Tools": 4.0 // weighted average of tools
     },
     color: "#8B5C3C"
+  },
+  
+  "ml_ai": {
+    title: "ML & AI",
+    skills: {
+      "PyTorch": 5,
+      "TensorFlow": 4,
+      "Transformers (GPT, LLaMA, BERT)": 5,
+      "RAG": 4,
+      "LangChain": 4,
+      "Groq": 4,
+      "OpenAI API": 4,
+      "Whisper": 4,
+      "ElevenLabs": 4,
+      "scikit-learn": 4,
+      "OpenCV": 3
+    },
+    color: "#EF4444"
   },
   
   "languages": {
@@ -44,109 +59,72 @@ export const skillCategories = {
       "Python": 5,
       "TypeScript/JavaScript": 4,
       "SQL": 5,
-      "Julia": 4
+      "C++": 4
     },
     color: "#3B82F6"
   },
   
-  "backend": {
-    title: "Backend",
+  "data_search": {
+    title: "Data & Search",
+    skills: {
+      "BM25": 4,
+      "BGE-embeddings": 4,
+      "FAISS": 4,
+      "Elasticsearch": 3,
+      "H3 geospatial": 4,
+      "DBSCAN": 4,
+      "Pandas": 5,
+      "NumPy": 5,
+      "PySpark": 4,
+      "BigQuery": 4
+    },
+    color: "#8B5CF6"
+  },
+  
+  "backend_cloud": {
+    title: "Backend & Cloud",
     skills: {
       "FastAPI": 5,
-      "Node.js/Express": 4,
-      "Flask": 4,
-      "REST/WebSockets": 4,
-      "Celery": 3,
-      "Postman": 4,
-      "Sentry": 3
+      "Node.js": 4,
+      "NestJS": 4,
+      "Docker": 4,
+      "AWS (Lambda, S3, SQS)": 4,
+      "GCP": 3,
+      "Databricks": 4,
+      "BigQuery": 4,
+      "MongoDB": 4,
+      "PostgreSQL": 5,
+      "Redis": 4
     },
     color: "#10B981"
   },
   
-  "databases": {
-    title: "Databases",
+  "frontend": {
+    title: "Frontend",
     skills: {
-      "PostgreSQL": 5,
-      "MongoDB": 4,
-      "Redis": 4,
-      "Cassandra": 3
+      "React": 4,
+      "Next.js": 4,
+      "Streamlit": 4,
+      "D3.js": 3,
+      "Plotly": 4,
+      "Matplotlib": 4,
+      "Seaborn": 4
     },
     color: "#06B6D4"
   },
   
-  "big_data": {
-    title: "Big Data",
+  "tools": {
+    title: "Tools",
     skills: {
-      "PySpark": 4,
-      "Kafka": 3,
-      "PyArrow": 3,
-      "Apache Spark": 4,
-      "Hadoop": 3,
-      "ETL Pipelines": 4
-    },
-    color: "#8B5CF6"
-  },
-  
-  "devops": {
-    title: "DevOps",
-    skills: {
-      "AWS (Lambda, SQS, S3, EC2, EMR)": 4,
-      "GCP BigQuery": 3,
-      "Docker": 4,
+      "Git": 5,
+      "pytest": 4,
+      "CI/CD": 4,
+      "EEG/signal processing": 4,
+      "Statistical modeling": 5,
       "GitHub Actions": 4,
-      "Kubernetes": 3,
       "Linux": 4
     },
     color: "#F59E0B"
-  },
-  
-  "ml_ai": {
-    title: "ML/AI",
-    skills: {
-      "PyTorch": 5,
-      "TensorFlow": 4,
-      "scikit-learn": 4,
-      "LangChain": 4,
-      "NLTK": 3,
-      "OpenCV": 3
-    },
-    color: "#EF4444"
-  },
-  
-  "llms": {
-    title: "LLMs",
-    skills: {
-      "LLM integration": 5,
-      "RAG": 4,
-      "prompt design": 4,
-      "evals": 3,
-      "guardrails": 3
-    },
-    color: "#8B5CF6"
-  },
-  
-  "analytics": {
-    title: "Analytics",
-    skills: {
-      "Statistical Modeling": 5,
-      "Inference": 4,
-      "A/B Testing": 4,
-      "Hypothesis Testing": 4
-    },
-    color: "#F97316"
-  },
-  
-  "visualization": {
-    title: "Visualization",
-    skills: {
-      "Plotly": 4,
-      "Tableau": 3,
-      "Matplotlib": 4,
-      "Seaborn": 4,
-      "D3.js": 3,
-      "Power BI": 3
-    },
-    color: "#84CC16"
   }
 };
 
@@ -164,90 +142,72 @@ export const getSkillValue = (skillName) => skillsData[skillName] || 0;
 // Technology logos mapping
 export const techLogos = {
   // Category-level logos for "All Skills" view (prefer local assets to reduce third-party requests)
+  "ML & AI": "/tech-logos/pytorch-original.svg",
   "Languages": "/tech-logos/python-original.svg",
-  "Backend": "/tech-logos/nodejs-original.svg",
-  "Databases": "/tech-logos/postgresql-original.svg",
-  "Big Data": "/tech-logos/apache-original.svg",
-  "DevOps": "/tech-logos/docker-original.svg",
-  "ML/AI": "/tech-logos/pytorch-original.svg",
-  "LLMs": "/tech-logos/openai-favicon.svg",
-  "Analytics": "/tech-logos/r-original.svg",
-  "Visualization": "/tech-logos/plotly-logomark.png",
+  "Data & Search": "/tech-logos/apache-original.svg",
+  "Backend & Cloud": "/tech-logos/nodejs-original.svg",
+  "Frontend": "/tech-logos/typescript-original.svg",
+  "Tools": "/tech-logos/docker-original.svg",
 
   // Languages
   "Python": "/tech-logos/python-original.svg",
   "TypeScript/JavaScript": "/tech-logos/typescript-original.svg",
   "SQL": "/tech-logos/mysql-original.svg",
-  "Julia": "/tech-logos/julia-original.svg",
+  "C++": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg",
   
-  // Backend
-  "FastAPI": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg",
-  "Node.js/Express": "/tech-logos/nodejs-original.svg",
-  "Flask": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flask/flask-original.svg",
-  "REST/WebSockets": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/swagger/swagger-original.svg",
-  "Celery": "https://docs.celeryproject.org/en/stable/_static/celery_512.png",
-  "Postman": "https://www.vectorlogo.zone/logos/getpostman/getpostman-icon.svg",
-  "Sentry": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/sentry/sentry-original.svg",
-  
-  // Databases
-  "PostgreSQL": "/tech-logos/postgresql-original.svg",
-  "MongoDB": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg",
-  "Redis": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg",
-  "Cassandra": "https://www.vectorlogo.zone/logos/apache_cassandra/apache_cassandra-icon.svg",
-  
-  // Big Data
-  "PySpark": "/tech-logos/apache-original.svg",
-  "Kafka": "https://www.vectorlogo.zone/logos/apache_kafka/apache_kafka-icon.svg",
-  "PyArrow": "https://arrow.apache.org/img/arrow-logo_horizontal_black-txt_white-bg.png",
-  "Apache Spark": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apache/apache-original.svg",
-  "Hadoop": "https://www.vectorlogo.zone/logos/apache_hadoop/apache_hadoop-icon.svg",
-  "ETL Pipelines": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apache/apache-original.svg",
-  
-  // DevOps
-  "AWS (Lambda, SQS, S3, EC2, EMR)": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original.svg",
-  "GCP BigQuery": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg",
-  "Docker": "/tech-logos/docker-original.svg",
-  "GitHub Actions": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg",
-  "Kubernetes": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kubernetes/kubernetes-plain.svg",
-  "Linux": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg",
-  
-  // ML/AI
+  // ML & AI
   "PyTorch": "/tech-logos/pytorch-original.svg",
   "TensorFlow": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tensorflow/tensorflow-original.svg",
-  "scikit-learn": "https://upload.wikimedia.org/wikipedia/commons/0/05/Scikit_learn_logo_small.svg",
+  "Transformers (GPT, LLaMA, BERT)": "/tech-logos/openai-favicon.svg",
+  "RAG": "https://www.vectorlogo.zone/logos/pytorch/pytorch-icon.svg",
   "LangChain": "https://python.langchain.com/img/brand/wordmark.png",
-  "NLTK": "https://www.nltk.org/_static/nltk.png",
+  "Groq": "https://groq.com/favicon.ico",
+  "OpenAI API": "/tech-logos/openai-favicon.svg",
+  "Whisper": "https://openai.com/favicon.ico",
+  "ElevenLabs": "https://elevenlabs.io/favicon.ico",
+  "scikit-learn": "https://upload.wikimedia.org/wikipedia/commons/0/05/Scikit_learn_logo_small.svg",
   "OpenCV": "https://opencv.org/wp-content/uploads/2022/05/logo.png",
   
-  // LLMs
-  "LLM integration": "/tech-logos/python-original.svg",
-  "RAG": "https://www.vectorlogo.zone/logos/pytorch/pytorch-icon.svg",
-  "prompt design": "https://openai.com/favicon.ico",
-  "evals": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
-  "guardrails": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
+  // Data & Search
+  "BM25": "https://www.vectorlogo.zone/logos/elastic/elastic-icon.svg",
+  "BGE-embeddings": "https://huggingface.co/favicon.ico",
+  "FAISS": "https://faiss.ai/favicon.ico",
+  "Elasticsearch": "https://www.vectorlogo.zone/logos/elastic/elastic-icon.svg",
+  "H3 geospatial": "https://h3geo.org/favicon.ico",
+  "DBSCAN": "https://scikit-learn.org/stable/_static/scikit-learn-logo-small.png",
+  "Pandas": "https://pandas.pydata.org/static/img/pandas_white.svg",
+  "NumPy": "https://numpy.org/images/logo.svg",
+  "PySpark": "/tech-logos/apache-original.svg",
+  "BigQuery": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg",
   
-  // Analytics
-  "Statistical Modeling": "/tech-logos/r-original.svg",
-  "Inference": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
-  "A/B Testing": "https://www.vectorlogo.zone/logos/google_analytics/google_analytics-icon.svg",
-  "Hypothesis Testing": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/r/r-original.svg",
+  // Backend & Cloud
+  "FastAPI": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg",
+  "Node.js": "/tech-logos/nodejs-original.svg",
+  "NestJS": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nestjs/nestjs-plain.svg",
+  "Docker": "/tech-logos/docker-original.svg",
+  "AWS (Lambda, S3, SQS)": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original.svg",
+  "GCP": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg",
+  "Databricks": "https://databricks.com/favicon.ico",
+  "BigQuery": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg",
+  "MongoDB": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg",
+  "PostgreSQL": "/tech-logos/postgresql-original.svg",
+  "Redis": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg",
   
-  // Visualization
+  // Frontend
+  "React": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
+  "Next.js": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg",
+  "Streamlit": "https://streamlit.io/images/brand/streamlit-logo-primary-colormark-darktext.png",
+  "D3.js": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/d3js/d3js-original.svg",
   "Plotly": "/tech-logos/plotly-logomark.png",
-  "Tableau": "https://cdn.worldvectorlogo.com/logos/tableau-software.svg",
   "Matplotlib": "https://matplotlib.org/_static/images/logo2.svg",
   "Seaborn": "https://seaborn.pydata.org/_static/logo-wide-lightbg.svg",
-  "D3.js": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/d3js/d3js-original.svg",
-  "Power BI": "https://www.vectorlogo.zone/logos/microsoft_powerbi/microsoft_powerbi-icon.svg",
   
-  // Category logos for "All Skills" view
-  "Languages": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg",
-  "Backend": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg",
-  "Databases": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg",
-  "Big Data": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apache/apache-original.svg",
-  "DevOps": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg",
-  "ML/AI": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg",
-  "LLMs": "https://openai.com/favicon.ico",
-  "Analytics": "https://www.vectorlogo.zone/logos/google_analytics/google_analytics-icon.svg",
-  "Visualization": "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
+  // Tools
+  "Git": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg",
+  "pytest": "https://docs.pytest.org/en/stable/_static/pytest_logo_curves.svg",
+  "CI/CD": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg",
+  "EEG/signal processing": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
+  "Statistical modeling": "/tech-logos/r-original.svg",
+  "GitHub Actions": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg",
+  "Linux": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg"
 };

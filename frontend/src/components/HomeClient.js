@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useTheme } from '../context/ThemeContext';
 import MainLayout from './MainLayout';
@@ -17,6 +18,7 @@ import TabManager from './TabManager';
 import ContentPage from './ContentPage';
 import Publications from './Publications';
 import Blog from './Blog';
+import TimeMachine from './TimeMachine';
 import { getExperienceContent, getProjectContent, getBlogContent, getPublicationContent, getSkillsContent, getEducationContent, getContactContent } from '../services/contentService';
 import { portfolioConfig } from '../services/portfolioConfigService';
 
@@ -24,8 +26,8 @@ import { portfolioConfig } from '../services/portfolioConfigService';
 const AIMode = dynamic(() => import('./AIMode'), {
   ssr: false,
   loading: () => (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+    <div className="flex items-center justify-center py-20">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-400 dark:border-gray-300"></div>
     </div>
   )
 });
@@ -128,6 +130,7 @@ const ExperienceCard = ({ experience, onClick }) => {
         {/* Action */}
         <div className="flex justify-between items-center pt-4">
           <Button
+            onCard={true}
             onClick={(e) => {
               e.stopPropagation();
               onClick();
@@ -204,6 +207,7 @@ const EducationCard = ({ education, onClick }) => {
         {/* Action */}
         <div className="flex justify-between items-center pt-4">
           <Button
+            onCard={true}
             onClick={(e) => {
               e.stopPropagation();
               onClick();
@@ -353,6 +357,7 @@ const ProjectCard = ({ project, onClick }) => {
               <Link 
                 href={project.link} 
                 external 
+                onClick={(e) => e.stopPropagation()}
               >
                 View Details
               </Link>
@@ -361,6 +366,7 @@ const ProjectCard = ({ project, onClick }) => {
               <Link 
                 href={project.links.demo} 
                 external 
+                onClick={(e) => e.stopPropagation()}
               >
                 Live Demo
               </Link>
@@ -369,6 +375,7 @@ const ProjectCard = ({ project, onClick }) => {
               <Link 
                 href={project.link} 
                 external 
+                onClick={(e) => e.stopPropagation()}
               >
                 <svg className="w-4 h-4 mr-1 inline" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
@@ -393,6 +400,7 @@ const ProjectCard = ({ project, onClick }) => {
 export default function HomeClient({ resumeData, experiences, projects, education }) {
   const { isAIMode, toggleAIMode } = useAIAgent();
   const { isDarkMode } = useTheme();
+  const router = useRouter();
   
   // Tab system state
   const [tabs, setTabs] = useState([
@@ -425,6 +433,18 @@ export default function HomeClient({ resumeData, experiences, projects, educatio
       window.lucide.createIcons();
     }
   }, []);
+
+  // Check for AI mode URL parameter on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('ai') === 'true' && !isAIMode) {
+        toggleAIMode();
+        // Clean up the URL parameter
+        window.history.replaceState({}, '', '/');
+      }
+    }
+  }, [isAIMode, toggleAIMode]);
 
   // Tab management functions
   const openTab = async (type, item) => {
@@ -465,6 +485,12 @@ export default function HomeClient({ resumeData, experiences, projects, educatio
           break;
         case 'education':
           content = await getEducationContent(item.id);
+          break;
+        case 'blog':
+          content = await getBlogContent(item.id);
+          break;
+        case 'publication':
+          content = await getPublicationContent(item.id);
           break;
         default:
           content = null;
@@ -622,45 +648,69 @@ export default function HomeClient({ resumeData, experiences, projects, educatio
           {/* About Section */}
           <SectionTransition id="about">
             <section id="about" className="space-y-8">
-              <div className="text-center space-y-4">
+              <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                {/* Content - LEFT on desktop */}
+                <div className="flex-1 text-center md:text-left space-y-4 order-2 md:order-1">
+                  <motion.h1
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className={`text-4xl md:text-6xl ${typographyClasses.heading}`}
+                  >
+                    {resumeData.name || 'Nitigya Kargeti'}
+                  </motion.h1>
+                  <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    className={`text-xl md:text-2xl ${typographyClasses.subtitle}`}
+                  >
+                    {resumeData.headline || 'System Builder — Data-Intensive Backend & Applied ML'}
+                  </motion.p>
+                  <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className={`${typographyClasses.body}`}
+                  >
+                    {resumeData.profile || 'Engineer focused on scalable, low-latency data systems, AWS/GCP pipelines, and LLM-integrated applications.'}
+                  </motion.p>
+                  
+                  {/* Two Buttons - Centered */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                    className="flex gap-4 pt-6 justify-center md:justify-start"
+                  >
+                    <Button
+                      onClick={() => router.push('/guestbook')}
+                    >
+                      ✍️ Sign Guestbook
+                    </Button>
+                    <Button
+                      onClick={() => router.push('/resume')}
+                    >
+                      📄 View Resume
+                    </Button>
+                  </motion.div>
+                </div>
+
+                {/* Picture - RIGHT on desktop */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.5 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5 }}
-                  className="w-32 h-32 mx-auto rounded-full overflow-hidden"
+                  className="w-32 h-32 md:w-48 md:h-48 rounded-full overflow-hidden flex-shrink-0 order-1 md:order-2"
                 >
                   <Image
                     src="/photo.jpeg"
                     alt="Profile"
-                    width={128}
-                    height={128}
+                    width={192}
+                    height={192}
                     className="w-full h-full object-cover"
                   />
                 </motion.div>
-                <motion.h1
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  className={`text-4xl md:text-6xl ${typographyClasses.heading}`}
-                >
-                  {resumeData.name || 'Nitigya Kargeti'}
-                </motion.h1>
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className={`text-xl md:text-2xl ${typographyClasses.subtitle}`}
-                >
-                  {resumeData.headline || 'System Builder — Data-Intensive Backend & Applied ML'}
-                </motion.p>
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                  className={`max-w-2xl mx-auto ${typographyClasses.body}`}
-                >
-                  {resumeData.profile || 'Engineer focused on scalable, low-latency data systems, AWS/GCP pipelines, and LLM-integrated applications.'}
-                </motion.p>
               </div>
             </section>
           </SectionTransition>
@@ -822,7 +872,7 @@ export default function HomeClient({ resumeData, experiences, projects, educatio
           <Publications />
 
           {/* Blog Section */}
-          <Blog />
+          <Blog onPostClick={(post) => openTab('blog', post)} />
 
           {/* Contact Section */}
           <SectionTransition id="contact">
@@ -916,6 +966,9 @@ export default function HomeClient({ resumeData, experiences, projects, educatio
           onBack={() => setActiveTabId('overview')}
         />
       )}
+
+      {/* Time Machine Component */}
+      <TimeMachine />
     </MainLayout>
   );
 }

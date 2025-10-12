@@ -21,7 +21,15 @@ from llm_service import ConversationManager
 from tts_service import generate_speech_async  # Use the async version directly
 from resume_query_processor import ResumeQueryProcessor
 
+# Import new database services
+from guestbook_api import router as guestbook_router
+from ai_session_logger import start_ai_session, log_ai_interaction, get_ai_session_stats, end_ai_session, ai_logger
+from database_service import db_service
+
 app = FastAPI(title="AI Assistant API")
+
+# Include guestbook router
+app.include_router(guestbook_router, prefix="/api", tags=["guestbook"])
 
 # Enable CORS
 app.add_middleware(
@@ -43,6 +51,15 @@ app.add_middleware(
 async def startup_event():
     init_cleanup_service()
     print("🧹 Audio cleanup service started")
+    
+    # Start AI session logging
+    try:
+        print(f"🔍 Database connected: {db_service.is_connected()}")
+        session_id = start_ai_session()
+        print(f"🤖 AI session logging started: {session_id}")
+        print(f"🔍 AI logger current session: {ai_logger.current_session_id}")
+    except Exception as e:
+        print(f"⚠️ AI session logging not available: {e}")
 
 # Store conversations by session ID
 conversations = {}
@@ -68,6 +85,17 @@ async def create_session():
     """Create a new conversation session"""
     session_id = str(uuid.uuid4())
     conversations[session_id] = ConversationManager()
+    
+    # Create session in database for AI interaction logging
+    try:
+        # Pass the session_id explicitly to ensure it's created with the correct ID
+        created_session_id = db_service.create_session(session_id=session_id)
+        print(f"✅ Created database session: {created_session_id}")
+    except Exception as e:
+        print(f"⚠️ Failed to create database session: {e}")
+        import traceback
+        traceback.print_exc()
+    
     return {"session_id": session_id}
 
 @app.post("/test/transcribe")
@@ -188,48 +216,11 @@ async def smart_query(request: SmartRequest):
     
     # For first 2 queries: Try LLM with 5-second timeout (premium experience)
     # For subsequent queries: Immediate NLP + background enhancement (fast experience)
-    session_id = request.session_id or str(uuid.uuid4())
+    # Use the frontend's session_id if provided, otherwise use AI session logger's session
+    session_id = request.session_id or ai_logger.current_session_id or str(uuid.uuid4())
     
-    if user_request_counts[user_id] <= 2:
-        # PREMIUM EXPERIENCE: Wait for LLM with timeout for first 2 queries
-        try:
-            # Use existing session or create a new one
-            if session_id not in conversations:
-                conversations[session_id] = ConversationManager()
-            
-            conversation = conversations[session_id]
-            
-            # Try LLM with 5-second timeout
-            structured_response = await asyncio.wait_for(
-                conversation.generate_structured_response_async(
-                    request.text, 
-                    conversation_history=request.conversation_history
-                ),
-                timeout=5.0  # 5-second timeout for premium experience
-            )
-            
-            return {
-                "session_id": session_id,
-                "response": structured_response["response"],
-                "items": structured_response["items"],
-                "item_type": structured_response["item_type"],
-                "metadata": {
-                    **structured_response["metadata"],
-                    "premium_llm_response": True,
-                    "request_count": user_request_counts[user_id]
-                },
-                "processing_time_ms": round((time.time() - start_time) * 1000, 2),
-                "user_id": user_id,
-                "llm_enhancement": None
-            }
-            
-        except asyncio.TimeoutError:
-            print(f"⏰ LLM timeout for user {user_id} query {user_request_counts[user_id]} - falling back to NLP")
-        except Exception as e:
-            print(f"⚠️ LLM error for user {user_id}: {e} - falling back to NLP")
-    
-    # FAST EXPERIENCE: Immediate NLP response + background enhancement
-    # (Used for: timeouts on first 2 queries, or all queries after 2nd)
+    # NEW ARCHITECTURE: NLP First (cards), LLM Second (response text only)
+    # Step 1: NLP gets cards FAST
     processor = ResumeQueryProcessor()
     print(f"🔍 API DEBUG - Query: '{request.text}', Conversation history length: {len(request.conversation_history) if request.conversation_history else 0}")
     if request.conversation_history:
@@ -264,6 +255,23 @@ async def smart_query(request: SmartRequest):
         
         return selected
     
+    # Ensure all items have content_source set (fix diversity issue)
+    for item in nlp_result.items:
+        if 'content_source' not in item or not item.get('content_source') or item.get('content_source') == 'unknown':
+            # Infer from item_type and item structure
+            if nlp_result.item_type in ['projects', 'experience', 'publications', 'skills', 'blog']:
+                item['content_source'] = nlp_result.item_type
+            elif nlp_result.item_type == 'mixed':
+                # Try to infer from item fields
+                if 'company' in item or 'role' in item:
+                    item['content_source'] = 'experience'
+                elif 'authors' in item or 'journal' in item:
+                    item['content_source'] = 'publications'
+                elif 'tech_stack' in item or 'link' in item:
+                    item['content_source'] = 'projects'
+                else:
+                    item['content_source'] = 'projects'  # Default
+    
     # Limit fast NLP results to 4 items maximum with diversity
     max_fast_items = 4
     if len(nlp_result.items) > max_fast_items:
@@ -272,22 +280,245 @@ async def smart_query(request: SmartRequest):
     else:
         selected_items = nlp_result.items
     
-    # Improve the NLP response to be more friendly
-    friendly_response = nlp_result.response_text
-    if friendly_response.startswith("Found ") and "matching your query" in friendly_response:
-        # Make generic responses more personality-driven
-        if nlp_result.item_type == "projects":
-            friendly_response = "Let me show you some of his awesome projects!"
-        elif nlp_result.item_type == "experience":
-            friendly_response = "Here's where he's worked and made his mark!"
-        elif nlp_result.item_type == "skills":
-            friendly_response = "This guy's got some serious technical chops!"
-        elif nlp_result.item_type == "publications":
-            friendly_response = "Check out his research contributions!"
-        elif nlp_result.item_type == "blog":
-            friendly_response = "Here are some insights he's shared with the world!"
+    # Step 2: Try LLM for quirky response (lightweight call)
+    llm_response_text = None
+    llm_generated = False
     
-    # Prepare immediate response
+    try:
+        print(f"🎯 Calling LLM for quirky response (Query {user_request_counts[user_id]})")
+        
+        # Use existing session or create new one
+        if session_id not in conversations:
+            conversations[session_id] = ConversationManager()
+        conversation = conversations[session_id]
+        
+        # Build MINIMAL context for LLM (no resume data, just query context)
+        llm_context = {
+            "query": request.text,
+            "tech_requested": nlp_result.metadata.get('requested_technologies', []),
+            "tech_found": nlp_result.metadata.get('tech_filters', []),
+            "similar_tech": nlp_result.metadata.get('similar_technologies_found', []),
+            "is_fallback": nlp_result.metadata.get('fallback_search', False),
+            "tech_not_found": nlp_result.metadata.get('tech_not_found', False),
+            "item_count": len(selected_items),
+            "item_type": nlp_result.item_type
+        }
+        
+        # NEW: Add item summaries so LLM can reference specific projects/companies
+        item_summaries = []
+        for item in selected_items[:4]:  # Max 4 items to keep tokens low
+            title = item.get('title', item.get('role', item.get('name', 'Unknown')))
+            
+            # Get key techs (first 3-4 only) - handle both list and dict
+            techs = []
+            if 'tech_stack' in item and item['tech_stack']:
+                if isinstance(item['tech_stack'], list):
+                    techs = item['tech_stack'][:4]
+                elif isinstance(item['tech_stack'], dict):
+                    # If dict, flatten all values
+                    for tech_list in item['tech_stack'].values():
+                        if isinstance(tech_list, list):
+                            techs.extend(tech_list)
+                    techs = techs[:4]  # Limit to 4
+            elif 'technologies' in item and item['technologies']:
+                if isinstance(item['technologies'], list):
+                    techs = item['technologies'][:4]
+            
+            # Get context (company, university, journal)
+            context = item.get('company', item.get('university', item.get('journal', '')))
+            
+            # Build compact summary
+            summary = f"{title}"
+            if context:
+                summary += f" @ {context}"
+            if techs:
+                summary += f" ({', '.join(techs)})"
+            
+            item_summaries.append(summary)
+        
+        # Create minimal prompt for LLM with item context
+        items_text = "\n".join([f"{i+1}. {s}" for i, s in enumerate(item_summaries)]) if item_summaries else "No items"
+        
+        llm_prompt = f"""User asked: "{request.text}"
+
+Context:
+- Requested tech: {llm_context['tech_requested']}
+- Found tech: {llm_context['tech_found']}
+- Similar tech found: {llm_context['similar_tech']}
+- Is fallback search: {llm_context['is_fallback']}
+- Tech not in resume: {llm_context['tech_not_found']}
+
+Items to show ({llm_context['item_count']} {llm_context['item_type']}):
+{items_text}
+
+CRITICAL: Generate a SHORT, QUIRKY response (max 30 words). 
+- If you reference items, use their ACTUAL NAMES (e.g., "Portfolio AI Mode", "Dataplatr"), NOT numbers like "item 1" or "item 3"!
+- If fallback/missing tech, be EXTRA creative with puns!
+- Mention specific project/company names when relevant."""
+        
+        # Call LLM with short timeout (it's just generating one sentence!)
+        async def get_llm_response():
+            # Simple completion call (not the full structured response)
+            response = conversation.client.chat.completions.create(
+                model=conversation.model,
+                messages=[
+                    {"role": "system", "content": conversation.system_prompt},
+                    {"role": "user", "content": llm_prompt}
+                ],
+                temperature=0.9,  # Higher temp for more creativity
+                max_tokens=100  # Just one sentence!
+            )
+            return response.choices[0].message.content.strip()
+        
+        llm_response_text = await asyncio.wait_for(get_llm_response(), timeout=5.0)
+        llm_generated = True
+        print(f"✅ LLM response: {llm_response_text}")
+        
+        # Log AI interaction for session tracking (for ALL queries)
+        print(f"🔍 About to log AI interaction for session: {session_id}")
+        try:
+            log_result = log_ai_interaction(
+                prompt=request.text,
+                response=llm_response_text,
+                model_used="gpt-4",
+                tokens_used=None,
+                session_id=session_id
+            )
+            print(f"🔍 AI interaction logging result: {log_result}")
+        except Exception as log_error:
+            print(f"⚠️ Failed to log AI interaction: {log_error}")
+            import traceback
+            traceback.print_exc()
+        
+    except asyncio.TimeoutError:
+        print(f"⏰ LLM timeout - using NLP fallback response")
+        # Log AI interaction for timeout case
+        print(f"🔍 About to log AI interaction for session: {session_id}")
+        try:
+            log_result = log_ai_interaction(
+                prompt=request.text,
+                response="LLM timeout - using NLP fallback",
+                model_used="gpt-4",
+                tokens_used=None,
+                session_id=session_id
+            )
+            print(f"🔍 AI interaction logging result: {log_result}")
+        except Exception as log_error:
+            print(f"⚠️ Failed to log AI interaction: {log_error}")
+    except Exception as e:
+        error_msg = str(e)
+        # Check for rate limit errors
+        if 'rate_limit' in error_msg.lower() or '413' in error_msg or '429' in error_msg:
+            print(f"🚫 Rate limit exceeded - using NLP fallback response")
+        else:
+            print(f"⚠️ LLM error ({type(e).__name__}): {error_msg[:100]} - using NLP fallback")
+        
+        # Log AI interaction for error case
+        print(f"🔍 About to log AI interaction for session: {session_id}")
+        try:
+            log_result = log_ai_interaction(
+                prompt=request.text,
+                response=f"LLM error: {error_msg[:100]}",
+                model_used="gpt-4",
+                tokens_used=None,
+                session_id=session_id
+            )
+            print(f"🔍 AI interaction logging result: {log_result}")
+        except Exception as log_error:
+            print(f"⚠️ Failed to log AI interaction: {log_error}")
+    
+    # Generate context-aware NLP response using query keywords
+    def generate_contextual_response(query: str, items: list, item_type: str, metadata: dict, nlp_response: str = None) -> str:
+        """Generate a context-aware response that incorporates query keywords"""
+        # SPECIAL: If this is a quirky fallback response (tech not found), preserve it!
+        if metadata.get('tech_not_found') and metadata.get('quirky_response_enabled') and nlp_response:
+            # The NLP layer already generated a quirky response, use it!
+            return nlp_response
+        
+        query_lower = query.lower()
+        
+        # Extract meaningful keywords from query (remove common words)
+        common_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 
+                       'of', 'with', 'by', 'from', 'what', 'tell', 'me', 'about', 'show', 
+                       'his', 'he', 'you', 'does', 'has', 'have', 'any', 'some'}
+        query_words = [w for w in query.lower().split() if w not in common_words and len(w) > 2]
+        
+        # Get technology filters if present
+        tech_filters = metadata.get('tech_filters', [])
+        
+        # Check for specific contexts
+        is_ml_query = any(term in query_lower for term in ['machine learning', 'ml', 'ai', 'artificial intelligence'])
+        is_python_query = 'python' in query_lower
+        is_react_query = 'react' in query_lower or 'frontend' in query_lower
+        is_database_query = 'database' in query_lower or 'sql' in query_lower
+        
+        # Generate personalized responses based on context
+        if item_type == "projects":
+            if is_ml_query:
+                return f"He's built some impressive AI and machine learning projects! Here are {len(items)}:"
+            elif is_python_query:
+                return f"Check out these {len(items)} Python projects he's created:"
+            elif is_react_query:
+                return f"Here are {len(items)} frontend/React projects from his portfolio:"
+            elif tech_filters:
+                tech_str = ", ".join(tech_filters[:2])  # First 2 techs
+                return f"Here are {len(items)} projects using {tech_str}:"
+            elif query_words:
+                return f"Found {len(items)} {' '.join(query_words[:2])} projects:"
+            return f"Here are {len(items)} standout projects from his portfolio:"
+        
+        elif item_type == "experience":
+            if tech_filters:
+                tech_str = ", ".join(tech_filters[:2])
+                return f"Here's where he's used {tech_str} professionally:"
+            elif query_words:
+                return f"His work experience in {' '.join(query_words[:2])}:"
+            return f"His career spans {len(items)} impressive roles:"
+        
+        elif item_type == "skills":
+            if is_python_query or is_react_query or tech_filters:
+                return f"Here are his technical skills!"
+            return f"This guy's got some serious technical chops across {len(items)} areas:"
+        
+        elif item_type == "publications":
+            return f"He's published {len(items)} research papers:"
+        
+        elif item_type == "mixed":
+            if is_ml_query:
+                return f"Here's his AI/ML work across projects and experience:"
+            elif tech_filters:
+                tech_str = ", ".join(tech_filters[:2])
+                return f"Here's his {tech_str} work across different areas:"
+            elif query_words:
+                return f"Found {len(items)} items related to {' '.join(query_words[:2])}:"
+            return f"Here's a mix of {len(items)} highlights from his portfolio:"
+        
+        elif item_type == "none":
+            # Handle greetings and casual conversation
+            if any(greeting in query_lower for greeting in ['hello', 'hi', 'hey', 'yo', 'sup']):
+                return "Hey there! 👋 I'm here to help you explore Nitigya's work. Ask me about his projects, experience, or skills!"
+            return "I'm here to help you learn about Nitigya's professional background!"
+        
+        # Fallback
+        return f"Found {len(items)} relevant items!"
+    
+    # Step 3: Choose response text (LLM if available, else NLP fallback)
+    if llm_response_text and llm_generated:
+        # Use LLM's quirky, creative response!
+        friendly_response = llm_response_text
+        print(f"✅ Using LLM-generated response")
+    else:
+        # Fallback to NLP contextual response
+        friendly_response = generate_contextual_response(
+            request.text, 
+            selected_items, 
+            nlp_result.item_type,
+            nlp_result.metadata,
+            nlp_response=nlp_result.response_text
+        )
+        print(f"📝 Using NLP fallback response")
+    
+    # Prepare final response
     immediate_response = {
         "session_id": session_id,
         "response": friendly_response,
@@ -295,8 +526,9 @@ async def smart_query(request: SmartRequest):
         "item_type": nlp_result.item_type,
         "metadata": {
             **nlp_result.metadata,
-            "fast_nlp_response": True,
-            "llm_enhancement_pending": True,
+            "item_type": nlp_result.item_type,  # Add item_type to metadata for follow-ups!
+            "llm_generated": llm_generated,  # Track if LLM was used
+            "nlp_cards": True,  # Cards always from NLP
             "request_count": user_request_counts[user_id],
             "intelligent_selection_applied": len(selected_items) < len(nlp_result.items) if nlp_result.items else False
         },
@@ -305,27 +537,7 @@ async def smart_query(request: SmartRequest):
         "llm_enhancement": None
     }
     
-    # Start background LLM enhancement task (don't await it)
-    task_id = str(uuid.uuid4())
-    background_tasks[task_id] = {
-        "status": "pending",
-        "result": None,
-        "created_at": time.time()
-    }
-    
-    # Fire-and-forget background task
-    asyncio.create_task(enhance_with_llm(
-        task_id, 
-        request, 
-        session_id
-    ))
-    
-    immediate_response["llm_enhancement"] = {
-        "task_id": task_id,
-        "status": "pending",
-        "check_url": f"/smart/enhancement/{task_id}"
-    }
-    
+    # No background tasks - LLM already called above!
     return immediate_response
 
 async def enhance_with_llm(task_id: str, request: SmartRequest, session_id: str):
@@ -618,6 +830,23 @@ async def process_audio(
                 }
             )
         
+        # Log AI interaction for session tracking (for all queries)
+        print(f"🔍 About to log AI interaction for session: {session_id}")
+        try:
+            # Use the session_id from the request (frontend's session)
+            log_result = log_ai_interaction(
+                prompt=transcription,
+                response=response,
+                model_used=conversation.model,
+                tokens_used=None,  # Could be extracted from response if available
+                session_id=session_id  # Pass the session_id explicitly
+            )
+            print(f"🔍 AI interaction logging result: {log_result}")
+        except Exception as log_error:
+            print(f"⚠️ Failed to log AI interaction: {log_error}")
+            import traceback
+            traceback.print_exc()
+        
         # Return JSON response with timing info and file path
         return JSONResponse(
             status_code=200,
@@ -668,6 +897,88 @@ async def mark_inactive_after_delay(filename: str, delay_seconds: int):
     """Helper to mark file as inactive after a delay"""
     await asyncio.sleep(delay_seconds)
     mark_audio_inactive(filename)
+
+# AI Session Management Endpoints
+@app.get("/api/session/stats")
+async def get_session_stats():
+    """Get current AI session statistics"""
+    try:
+        stats = get_ai_session_stats()
+        return JSONResponse(content=stats)
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to get session stats: {str(e)}"}
+        )
+
+@app.post("/api/session/end")
+async def end_current_session():
+    """End the current AI session and return final stats"""
+    try:
+        stats = end_ai_session()
+        return JSONResponse(content=stats)
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to end session: {str(e)}"}
+        )
+
+# Debug endpoints for AI interactions
+@app.get("/api/ai-interactions")
+async def get_ai_interactions():
+    """Get top 5 AI interactions for debugging"""
+    try:
+        from database_service import db_service
+        if not db_service.is_connected():
+            return JSONResponse(
+                status_code=500,
+                content={"success": False, "error": "Database not connected"}
+            )
+        
+        # Get recent AI interactions
+        interactions = db_service.get_recent_interactions(limit=5)
+        return JSONResponse(content={"success": True, "interactions": interactions})
+    except Exception as e:
+        import traceback
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": str(e), "traceback": traceback.format_exc()}
+        )
+
+@app.post("/api/test-ai-logging")
+async def test_ai_logging():
+    """Test AI interaction logging directly"""
+    try:
+        from database_service import db_service
+        if not db_service.is_connected():
+            return JSONResponse(
+                status_code=500,
+                content={"success": False, "error": "Database not connected"}
+            )
+        
+        # Create a test session
+        session_id = db_service.create_session("test_user")
+        
+        # Log a test interaction
+        result = db_service.log_interaction(
+            session_id=session_id,
+            prompt="Test prompt from API",
+            response="Test response from API",
+            model_used="gpt-4",
+            tokens_used=50
+        )
+        
+        return JSONResponse(content={
+            "success": True, 
+            "session_id": session_id,
+            "interaction_result": result
+        })
+    except Exception as e:
+        import traceback
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": str(e), "traceback": traceback.format_exc()}
+        )
 
 if __name__ == "__main__":
     uvicorn.run("api_server:app", host="0.0.0.0", port=8000, reload=True)
