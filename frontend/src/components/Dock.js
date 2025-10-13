@@ -141,9 +141,10 @@ const Dock = ({ onSectionNavigate, highlightAI }) => {
         style={{
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
           background: 'rgba(30, 17, 8, 0.2)',
-          maxWidth: 'calc(100vw - 2rem)',
+          maxWidth: '95vw',
           minWidth: 'fit-content',
-          gap: '0.125rem'
+          gap: '0.125rem',
+          overflow: 'visible'
         }}
         onClick={() => {
           if (isMobile) {

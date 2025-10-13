@@ -7,8 +7,8 @@ import Button from './Button';
 
 const TimeMachine = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 640 : false);
+  const [isTablet, setIsTablet] = useState(typeof window !== 'undefined' ? window.innerWidth >= 640 && window.innerWidth < 1024 : false);
 
   // Detect screen size on mount and resize
   useEffect(() => {

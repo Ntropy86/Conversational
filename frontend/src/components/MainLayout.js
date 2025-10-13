@@ -372,8 +372,10 @@ const MainLayout = ({ children, onSectionNavigate, highlightAI }) => {
              {children}
            </div>
          </PageTransition>
-       </motion.main>       {/* Dock */}
-       <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 overflow-visible">
+       </motion.main>
+       
+       {/* Dock - closer to bottom on mobile */}
+       <div className="fixed bottom-4 sm:bottom-10 left-1/2 transform -translate-x-1/2 z-40 overflow-visible">
          <Dock onSectionNavigate={onSectionNavigate} highlightAI={highlightAI} />
        </div>
 
