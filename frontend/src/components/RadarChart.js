@@ -49,7 +49,10 @@ const RadarChart = ({
         setLoadedLogos(prev => new Map(prev.set(skillName, img)));
         resolve(img);
       };
-      img.onerror = () => resolve(null);
+      // Silently fail - don't spam console with 404s
+      img.onerror = () => {
+        resolve(null);
+      };
       img.src = logoUrl;
     });
   };
@@ -388,8 +391,8 @@ const RadarChart = ({
       });
     });
     
-    // Load all logos
-    Promise.all(skillNames.map(skillName => loadLogoImage(skillName)));
+    // Disable logo loading to avoid 404 spam - logos optional
+    // Promise.all(skillNames.map(skillName => loadLogoImage(skillName)));
   }, [highlightCategory, categories, loadedLogos]);
 
   // Animation effect

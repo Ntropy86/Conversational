@@ -15,8 +15,12 @@ const Guestbook = () => {
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const [selectedColor, setSelectedColor] = useState('#8B7355'); // Golden brown default
   const canvasRef = useRef(null);
+  const loaderRef = useRef(null);
   const [isMouseDown, setIsMouseDown] = useState(false);
 
   // Color palette - elegant, no black/dark colors
@@ -36,20 +40,67 @@ const Guestbook = () => {
     loadSignatures();
   }, []);
 
+  // Infinite scroll observer
+  useEffect(() => {
+    const loader = loaderRef.current;
+    if (!loader) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          loadMoreSignatures();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(loader);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, offset]);
+
   const loadSignatures = async () => {
     try {
-      // Fetch from backend database API
-      const response = await fetch(`${API_URL}/api/guestbook`);
+      setLoading(true);
+      // Fetch first batch from backend database API
+      const response = await fetch(`${API_URL}/api/guestbook?limit=20&offset=0`);
       if (response.ok) {
         const data = await response.json();
         setSignatures(data.signatures || []);
-        console.log('✅ Loaded signatures from database:', data.signatures.length);
+        setOffset(20);
+        setHasMore(data.signatures.length === 20); // If we got less than 20, no more to load
+        console.log('✅ Loaded initial signatures from database:', data.signatures.length);
       } else {
         console.error('Failed to load signatures:', response.status);
       }
     } catch (error) {
       console.error('Error loading signatures from database:', error);
-      // No fallback - database only
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadMoreSignatures = async () => {
+    if (loadingMore || !hasMore) return;
+    
+    try {
+      setLoadingMore(true);
+      const response = await fetch(`${API_URL}/api/guestbook?limit=20&offset=${offset}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.signatures && data.signatures.length > 0) {
+          setSignatures(prev => [...prev, ...data.signatures]);
+          setOffset(prev => prev + data.signatures.length);
+          setHasMore(data.signatures.length === 20);
+          console.log(`✅ Loaded ${data.signatures.length} more signatures (total: ${signatures.length + data.signatures.length})`);
+        } else {
+          setHasMore(false);
+          console.log('✅ No more signatures to load');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading more signatures:', error);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -380,6 +431,32 @@ const Guestbook = () => {
                   </Card>
                 </motion.div>
               ))}
+            </div>
+          )}
+
+          {/* Infinite Scroll Loader */}
+          {!loading && hasMore && (
+            <div 
+              ref={loaderRef}
+              className="flex justify-center items-center py-8"
+            >
+              {loadingMore ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+              ) : (
+                <div className="h-8"></div>
+              )}
+            </div>
+          )}
+          
+          {!loading && !hasMore && signatures.length > 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                ✨ You've reached the end!
+              </p>
             </div>
           )}
         </div>

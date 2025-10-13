@@ -185,3 +185,28 @@ html {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 }
+
+/* Performance Optimizations - Simplified to avoid ghosting */
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Smooth scroll optimization */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optimize image loading */
+img {
+  content-visibility: auto;
+}

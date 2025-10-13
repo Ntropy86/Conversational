@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { typographyClasses } from './Typography';
 import Card from './Card';
@@ -7,6 +7,31 @@ import Button from './Button';
 
 const TimeMachine = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+
+  // Detect screen size on mount and resize
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 640);
+      setIsTablet(width >= 640 && width < 1024);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    // Listen for custom event to open Time Machine from mobile dock
+    const handleOpenTimeMachine = () => {
+      setIsOpen(true);
+    };
+    window.addEventListener('openTimeMachine', handleOpenTimeMachine);
+    
+    return () => {
+      window.removeEventListener('resize', checkScreenSize);
+      window.removeEventListener('openTimeMachine', handleOpenTimeMachine);
+    };
+  }, []);
 
   const versions = [
     {
@@ -63,7 +88,16 @@ const TimeMachine = () => {
   ];
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <>
+      {/* Desktop/Tablet Button - hidden on mobile */}
+      <div 
+        className="fixed z-50"
+        style={{
+          display: isMobile ? 'none' : 'block',
+          bottom: isTablet ? '140px' : '1.5rem',
+          right: '1.5rem'
+        }}
+      >
       {/* Time Machine Button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
@@ -197,7 +231,82 @@ const TimeMachine = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+
+      {/* Mobile Panel - shows when opened via dock */}
+      {isMobile && isOpen && (
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-x-4 top-20 z-50 max-h-[70vh] overflow-y-auto"
+          >
+            <Card className="p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border border-gray-200/20 shadow-2xl">
+              <div className="space-y-4">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className={`text-xl font-bold ${typographyClasses.heading}`}>
+                    Portfolio Evolution
+                  </h3>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Version List */}
+                <div className="space-y-3">
+                  {versions.map((version, index) => (
+                    <motion.div
+                      key={version.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h4 className={`font-semibold ${typographyClasses.heading}`}>
+                            {version.name}
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {version.year}
+                          </p>
+                        </div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${version.color}`}>
+                          {version.status}
+                        </span>
+                      </div>
+                      
+                      <p className={`text-sm ${typographyClasses.body} mb-3`}>
+                        {version.description}
+                      </p>
+
+                      <Button
+                        size="sm"
+                        onClick={() => window.open(version.url, '_blank')}
+                        className="w-full"
+                      >
+                        {version.status === 'Live' ? 'Visit Current' : 'View Archive'}
+                        <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </Button>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
+      )}
+    </>
   );
 };
 

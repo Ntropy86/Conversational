@@ -36,15 +36,19 @@ def get_db_service():
         return None
 
 @router.get("/guestbook", response_model=SignatureListResponse)
-async def get_signatures(db: Optional[object] = Depends(get_db_service)):
-    """Get all guestbook signatures"""
-    print(f"🔍 GET /api/guestbook - DB service: {db}")
+async def get_signatures(
+    limit: int = 20,  # Default to 20 signatures per page
+    offset: int = 0,  # Default to start from beginning
+    db: Optional[object] = Depends(get_db_service)
+):
+    """Get guestbook signatures with pagination"""
+    print(f"🔍 GET /api/guestbook?limit={limit}&offset={offset} - DB service: {db}")
     try:
         if db:
             print("✅ Using database service")
-            # Use database
-            signatures = db.get_signatures(limit=100)
-            print(f"✅ Found {len(signatures)} signatures from database")
+            # Use database with pagination
+            signatures = db.get_signatures(limit=limit, offset=offset)
+            print(f"✅ Found {len(signatures)} signatures from database (offset={offset})")
             # Convert image_data to image for frontend compatibility
             converted_signatures = []
             for sig in signatures:
@@ -61,13 +65,13 @@ async def get_signatures(db: Optional[object] = Depends(get_db_service)):
         else:
             print("❌ Database service is None, using fallback")
             # Fallback to JSON file (existing logic)
-            return await get_signatures_fallback()
+            return await get_signatures_fallback(limit, offset)
     except Exception as e:
         print(f"❌ Error getting signatures: {e}")
         import traceback
         traceback.print_exc()
         # Fallback to JSON file
-        return await get_signatures_fallback()
+        return await get_signatures_fallback(limit, offset)
 
 @router.post("/guestbook", response_model=SignatureResponse)
 async def save_signature(
@@ -123,8 +127,8 @@ async def delete_signature(
         raise HTTPException(status_code=500, detail="Failed to delete signature")
 
 # Fallback functions for JSON file storage
-async def get_signatures_fallback():
-    """Fallback to JSON file storage"""
+async def get_signatures_fallback(limit: int = 20, offset: int = 0):
+    """Fallback to JSON file storage with pagination"""
     import json
     import os
     
@@ -134,7 +138,10 @@ async def get_signatures_fallback():
         if os.path.exists(guestbook_file):
             with open(guestbook_file, 'r') as f:
                 data = json.load(f)
-                return SignatureListResponse(signatures=data.get("signatures", []))
+                all_signatures = data.get("signatures", [])
+                # Apply pagination
+                paginated_signatures = all_signatures[offset:offset + limit]
+                return SignatureListResponse(signatures=paginated_signatures)
         else:
             return SignatureListResponse(signatures=[])
     except Exception as e:

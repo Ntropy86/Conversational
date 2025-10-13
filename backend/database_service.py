@@ -52,15 +52,15 @@ class DatabaseService:
         result = self.supabase.table("guestbook_signatures").insert(signature_data).execute()
         return result.data[0] if result.data else None
     
-    def get_signatures(self, limit: int = 100) -> List[Dict[str, Any]]:
-        """Get all guestbook signatures"""
+    def get_signatures(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
+        """Get guestbook signatures with pagination"""
         if not self.is_connected():
             raise Exception("Database not connected")
             
         result = self.supabase.table("guestbook_signatures")\
             .select("*")\
             .order("created_at", desc=True)\
-            .limit(limit)\
+            .range(offset, offset + limit - 1)\
             .execute()
         
         return result.data if result.data else []
