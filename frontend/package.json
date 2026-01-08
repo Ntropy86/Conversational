@@ -12,7 +12,7 @@
   "dependencies": {
     "framer-motion": "^12.5.0",
     "fs": "^0.0.1-security",
-    "next": "15.2.3",
+    "next": "15.2.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
